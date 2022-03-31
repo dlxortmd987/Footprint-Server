@@ -1,16 +1,11 @@
 package com.umc.footprint.src.users.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
 @Getter
-@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class PatchUserInfoReq {
     private String nickname;
     private String sex;
@@ -20,6 +15,22 @@ public class PatchUserInfoReq {
     private List<Integer> dayIdx;
     private int walkGoalTime;
     private int walkTimeSlot;
+
+    @Builder
+    public PatchUserInfoReq(String nickname, String sex, String birth, int height, int weight, List<Integer> dayIdx, int walkGoalTime, int walkTimeSlot) {
+        this.nickname = nickname;
+        this.sex = sex;
+        this.birth = birth;
+        this.height = height;
+        this.weight = weight;
+        this.dayIdx = dayIdx;
+        this.walkGoalTime = walkGoalTime;
+        this.walkTimeSlot = walkTimeSlot;
+    }
+
+    public void setDayIdx(List<Integer> dayIdx) {
+        this.dayIdx = dayIdx;
+    }
 
     public void setEncryptedNickname(String encryptedNickname) {
         this.nickname = encryptedNickname;
