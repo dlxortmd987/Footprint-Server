@@ -266,4 +266,6 @@ public class WalkService {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
+
 }

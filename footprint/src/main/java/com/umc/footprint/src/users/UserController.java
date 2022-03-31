@@ -1,24 +1,22 @@
 package com.umc.footprint.src.users;
 
-import com.umc.footprint.src.users.model.GetUserTodayRes;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.umc.footprint.config.BaseException;
+import com.umc.footprint.config.BaseResponse;
+import com.umc.footprint.config.BaseResponseStatus;
+import com.umc.footprint.src.users.model.*;
+import com.umc.footprint.utils.JwtService;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import com.umc.footprint.src.users.model.*;
-import com.umc.footprint.utils.JwtService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.umc.footprint.config.BaseException;
-import com.umc.footprint.config.BaseResponse;
-
-import com.umc.footprint.config.BaseResponseStatus;
 
 import static com.umc.footprint.config.BaseResponseStatus.*;
 import static com.umc.footprint.utils.ValidationRegax.isRegexEmail;
@@ -46,7 +44,12 @@ public class UserController {
      */
     @ResponseBody
     @PostMapping("/auth/login")
-    public BaseResponse<PostLoginRes> postUser(@RequestBody PostLoginReq postLoginReq) throws BaseException {
+    @ApiOperation(value = "로그인 및 회원가입", notes = "기존 회원은 로그인, 신규 회원은 회원 가입을 진행 (판별 기준은 이메일)")
+    @ApiImplicitParam(name = "postLoginReq", value = "로그인 정보", required = true)
+    public BaseResponse<PostLoginRes> postUser(@RequestBody String request) throws JsonProcessingException {
+
+        PostLoginReq postLoginReq = new ObjectMapper().readValue(request, PostLoginReq.class);
+
         // 유저 id를 입력하지 않은 경우
         if (postLoginReq.getUserId().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_USERID);
@@ -83,6 +86,7 @@ public class UserController {
      */
     @ResponseBody
     @GetMapping("/autologin")
+    @ApiOperation(value = "자동 로그인", notes = "JWT 토큰을 판별하여 자동 로그인 진행")
     public BaseResponse<PostLoginRes> getCheckMonthChanged() {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
@@ -185,7 +189,10 @@ public class UserController {
      */
     @ResponseBody
     @PatchMapping("/infos/after")
-    public BaseResponse<String> modifyUserInfo(@RequestBody PatchUserInfoReq patchUserInfoReq) {
+    public BaseResponse<String> modifyUserInfo(@RequestBody String request) throws JsonProcessingException {
+
+        PatchUserInfoReq patchUserInfoReq = new ObjectMapper().readValue(request, PatchUserInfoReq.class);
+
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
@@ -291,7 +298,9 @@ public class UserController {
     // Path-variable
     @ResponseBody
     @PatchMapping("/goals") // [PATCH] /users/goals
-    public BaseResponse<String> modifyGoal(@RequestBody PatchUserGoalReq patchUserGoalReq){
+    public BaseResponse<String> modifyGoal(@RequestBody String request) throws JsonProcessingException {
+
+        PatchUserGoalReq patchUserGoalReq = new ObjectMapper().readValue(request, PatchUserGoalReq.class);
 
         // Validaion 1. dayIdx 길이 확인
         if(patchUserGoalReq.getDayIdx().size() == 0) // 요일 0개 선택
@@ -460,7 +469,9 @@ public class UserController {
     // Path-variable
     @ResponseBody
     @PostMapping("/infos") // [POST] /users/infos
-    public BaseResponse<String> postUserInfo(@RequestBody PatchUserInfoReq patchUserInfoReq){
+    public BaseResponse<String> postUserInfo(@RequestBody String request) throws JsonProcessingException {
+
+        PatchUserInfoReq patchUserInfoReq = new ObjectMapper().readValue(request, PatchUserInfoReq.class);
 
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
@@ -568,5 +579,4 @@ public class UserController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
-
 }
