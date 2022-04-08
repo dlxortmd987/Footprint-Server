@@ -35,7 +35,7 @@ public class WeatherController {
 
     @ResponseBody
     @GetMapping("")
-    public BaseResponse<PostWeatherRes> GetWeather(@RequestParam String nx,@RequestParam String ny) throws IOException {
+    public BaseResponse<PostWeatherRes> GetWeather(@RequestParam(value = "nx") String nx,@RequestParam(value = "ny") String ny) throws IOException {
 
         String apiUrl = "https://api.openweathermap.org/data/2.5/weather";
 
@@ -67,40 +67,40 @@ public class WeatherController {
         return new BaseResponse<>(postWeatherRes);
     }
 
-    @ResponseBody
-    @PostMapping("/post")
-    public BaseResponse<PostWeatherRes> PostWeather(@RequestBody String request) throws IOException {
-
-        PostWeatherReq postWeatherReq = new ObjectMapper().readValue(request, PostWeatherReq.class);
-
-        String apiUrl = "https://api.openweathermap.org/data/2.5/weather";
-
-        StringBuilder urlBuilder = new StringBuilder(apiUrl);
-        urlBuilder.append("?"+URLEncoder.encode("lat", "UTF-8") + "=" + URLEncoder.encode(postWeatherReq.getNx(), "UTF-8"));
-        urlBuilder.append("&"+URLEncoder.encode("lon", "UTF-8") + "=" + URLEncoder.encode(postWeatherReq.getNy(), "UTF-8"));
-        urlBuilder.append("&"+URLEncoder.encode("appid", "UTF-8") + "=" + serviceKey);
-        urlBuilder.append("&"+URLEncoder.encode("units", "UTF-8") + "=" + URLEncoder.encode("metric", "UTF-8"));
-
-        URL url = new URL(urlBuilder.toString());
-
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-        conn.setConnectTimeout(1000);
-        conn.setReadTimeout(1000);
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Content-type", "application/json");
-        conn.connect();
-
-        BufferedReader rd;
-        if (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
-            rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        } else {
-            rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-        }
-
-        PostWeatherRes postWeatherRes = weatherService.postWeather(rd);
-
-        return new BaseResponse<>(postWeatherRes);
-    }
+//    @ResponseBody
+//    @PostMapping("/post")
+//    public BaseResponse<PostWeatherRes> PostWeather(@RequestBody String request) throws IOException {
+//
+//        PostWeatherReq postWeatherReq = new ObjectMapper().readValue(request, PostWeatherReq.class);
+//
+//        String apiUrl = "https://api.openweathermap.org/data/2.5/weather";
+//
+//        StringBuilder urlBuilder = new StringBuilder(apiUrl);
+//        urlBuilder.append("?"+URLEncoder.encode("lat", "UTF-8") + "=" + URLEncoder.encode(postWeatherReq.getNx(), "UTF-8"));
+//        urlBuilder.append("&"+URLEncoder.encode("lon", "UTF-8") + "=" + URLEncoder.encode(postWeatherReq.getNy(), "UTF-8"));
+//        urlBuilder.append("&"+URLEncoder.encode("appid", "UTF-8") + "=" + serviceKey);
+//        urlBuilder.append("&"+URLEncoder.encode("units", "UTF-8") + "=" + URLEncoder.encode("metric", "UTF-8"));
+//
+//        URL url = new URL(urlBuilder.toString());
+//
+//        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+//
+//        conn.setConnectTimeout(1000);
+//        conn.setReadTimeout(1000);
+//        conn.setRequestMethod("GET");
+//        conn.setRequestProperty("Content-type", "application/json");
+//        conn.connect();
+//
+//        BufferedReader rd;
+//        if (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
+//            rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+//        } else {
+//            rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+//        }
+//
+//        PostWeatherRes postWeatherRes = weatherService.postWeather(rd);
+//
+//        return new BaseResponse<>(postWeatherRes);
+//    }
     
 }
