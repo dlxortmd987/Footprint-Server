@@ -37,6 +37,8 @@ public class DecodingFilter implements Filter {
         try{
             logger.info("Request URI: {}", req.getRequestURL());
 
+            log.info(req.getMethod());
+
             if(req.getMethod().equals("POST") || req.getMethod().equals("PATCH")){
                 RequestBodyDecryptWrapper requestWrapper = new RequestBodyDecryptWrapper(req, encryptProperties);
 
@@ -45,7 +47,7 @@ public class DecodingFilter implements Filter {
                 chain.doFilter(request, response);   // ** doFilter **
             }
 
-            logger.info("Return URI: {}", req.getRequestURL());
+            logger.info("Return URI: {}, method: {}", req.getRequestURL(), req.getMethod());
         } catch (Exception exception){
             logger.error("디코딩이 불가합니다.");
         }

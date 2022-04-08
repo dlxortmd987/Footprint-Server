@@ -37,6 +37,8 @@ public class WeatherController {
     @GetMapping("")
     public BaseResponse<PostWeatherRes> GetWeather(@RequestParam(value = "nx") String nx,@RequestParam(value = "ny") String ny) throws IOException {
 
+
+
         String apiUrl = "https://api.openweathermap.org/data/2.5/weather";
 
         StringBuilder urlBuilder = new StringBuilder(apiUrl);
