@@ -42,6 +42,7 @@ public class RequestBodyDecryptWrapper extends HttpServletRequestWrapper {
         } else {                                // 비암호화된 Request Body가 들어올 경우 -> 그냥 전달
             isEncrypted = false;
 
+            log.info("requestData : " + requestHashData);
             requestBody = requestHashData;
         }
 
