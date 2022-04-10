@@ -20,6 +20,7 @@ public class PatchUserInfoReq {
     private List<Integer> dayIdx;
     private int walkGoalTime;
     private int walkTimeSlot;
+    private int walkNumber;
 
     public void setEncryptedNickname(String encryptedNickname) {
         this.nickname = encryptedNickname;
