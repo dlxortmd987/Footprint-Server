@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -35,7 +36,7 @@ public class NoticeService {
 
     public GetNoticeListRes getNoticeList(int page, int size) throws BaseException {
         // User에게 page와 size를 받아 Paging 처리된 notice Get
-        Page<Notice> findNotice = noticeRepository.findAll(PageRequest.of(page-1,size));
+        Page<Notice> findNotice = noticeRepository.findAll(PageRequest.of(page-1,size, Sort.Direction.DESC,"noticeIdx"));
 
         // find된 Notice가 없을때 exception
         if(findNotice.isEmpty()){
