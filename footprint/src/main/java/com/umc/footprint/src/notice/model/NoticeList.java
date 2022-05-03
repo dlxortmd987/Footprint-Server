@@ -8,20 +8,16 @@ import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
-public class GetNoticeRes {
+public class NoticeList {
     private int noticeIdx;
     private String title;
-    private String notice;
-    private String image;
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
 
     @Builder
-    public GetNoticeRes(int noticeIdx, String title, String notice, String image, LocalDateTime createAt, LocalDateTime updateAt) {
+    public NoticeList(int noticeIdx, String title, LocalDateTime createAt, LocalDateTime updateAt) {
         this.noticeIdx = noticeIdx;
         this.title = title;
-        this.notice = notice;
-        this.image = image;
         this.createAt = createAt;
         this.updateAt = updateAt;
     }

@@ -2,7 +2,9 @@ package com.umc.footprint.src.notice;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
+import com.umc.footprint.src.notice.model.GetNoticeListRes;
 import com.umc.footprint.src.notice.model.GetNoticeRes;
 import com.umc.footprint.src.users.model.PostLoginReq;
 import com.umc.footprint.src.users.model.PostLoginRes;
@@ -11,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -26,28 +31,31 @@ public class NoticeController {
 
     //
     @ResponseBody
-    @GetMapping("")
-    public BaseResponse<Page<GetNoticeRes>> getNotice(){
+    @GetMapping("/list")
+    public BaseResponse<GetNoticeListRes> getNoticeList(@RequestParam(required = true) int page,@RequestParam(required = true) int size){
 
-        Page<GetNoticeRes> page =  noticeService.getNotice();
+        try {
+            GetNoticeListRes noticeList = noticeService.getNoticeList(page, size);
 
-        return new BaseResponse<>(page);
+            return new BaseResponse<>(noticeList);
+        } catch (BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
     }
 
-//    //
-//    @ResponseBody
-//    @GetMapping("")
-//    public BaseResponse<GetNoticeRes> getNoticeList(@RequestBody String request){
-//
-//    }
-//
-//    //
-//    @ResponseBody
-//    @PostMapping("")
-//    public BaseResponse<postNoticeRes> postNotice(@RequestBody String request){
-//
-//
-//    }
+    //
+    @ResponseBody
+    @GetMapping("")
+    public BaseResponse<Optional<GetNoticeRes>> getNotice(@RequestParam(required = true) int page,@RequestParam(required = true) int size,@RequestParam(required = true) int offset) throws BaseException {
+
+        try{
+            Optional<GetNoticeRes> notice = noticeService.getNotice(page, size, offset);
+
+            return new BaseResponse<>(notice);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 
 
 }
