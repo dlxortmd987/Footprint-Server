@@ -57,16 +57,15 @@ public class NoticeService {
         return getNoticeListRes;
     }
 
-    public Optional<GetNoticeRes> getNotice(int page, int size, int offset) throws BaseException {
+    public Optional<GetNoticeRes> getNotice(int idx) throws BaseException {
         /* index 계산(>=1)
         * page : 현재 page(>=1)
         * size : page의 size(>=1)
         * offset : page 안에서 원하는 공지의 index(>=1)
         * */
-        int index = (page-1) * size + offset;
 
         // index를 사용하여 notice find
-        Optional<Notice> noticeByIdx = noticeRepository.findById(index);
+        Optional<Notice> noticeByIdx = noticeRepository.findById(idx);
 
         // 찾은 Notice 정보를 GetNoticeRes DTO로 mapping
         Optional<GetNoticeRes> getNoticeRes = noticeByIdx.map(notice -> new GetNoticeRes(notice.getNoticeIdx(), notice.getTitle(), notice.getNotice(),

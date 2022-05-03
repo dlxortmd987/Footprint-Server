@@ -46,10 +46,10 @@ public class NoticeController {
     //
     @ResponseBody
     @GetMapping("")
-    public BaseResponse<Optional<GetNoticeRes>> getNotice(@RequestParam(required = true) int page,@RequestParam(required = true) int size,@RequestParam(required = true) int offset) throws BaseException {
+    public BaseResponse<Optional<GetNoticeRes>> getNotice(@RequestParam(required = true) int idx) throws BaseException {
 
         try{
-            Optional<GetNoticeRes> notice = noticeService.getNotice(page, size, offset);
+            Optional<GetNoticeRes> notice = noticeService.getNotice(idx);
 
             return new BaseResponse<>(notice);
         } catch (BaseException exception) {
