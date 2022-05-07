@@ -11,13 +11,15 @@ import java.time.LocalDateTime;
 public class NoticeList {
     private int noticeIdx;
     private String title;
+    private boolean isNewNotice;
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
 
     @Builder
-    public NoticeList(int noticeIdx, String title, LocalDateTime createAt, LocalDateTime updateAt) {
+    public NoticeList(int noticeIdx, String title, boolean isNewNotice, LocalDateTime createAt, LocalDateTime updateAt) {
         this.noticeIdx = noticeIdx;
         this.title = title;
+        this.isNewNotice = isNewNotice;
         this.createAt = createAt;
         this.updateAt = updateAt;
     }

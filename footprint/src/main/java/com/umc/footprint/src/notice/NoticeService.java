@@ -16,6 +16,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -44,7 +46,9 @@ public class NoticeService {
         }
 
         // NoticList 형식으로 mapping 진행
-        Page<NoticeList> map = findNotice.map(notice -> new NoticeList(notice.getNoticeIdx(), notice.getTitle(), notice.getCreateAt(), notice.getUpdateAt()));
+        Page<NoticeList> map = findNotice.map(notice -> new NoticeList(notice.getNoticeIdx(), notice.getTitle(),
+                                                                notice.getCreateAt().isAfter(LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(5)),
+                                                                notice.getCreateAt(), notice.getUpdateAt()));
 
         // 현재 페이지와 전체 페이지를 포함한 GetNoticeListRes 생성
         GetNoticeListRes getNoticeListRes = GetNoticeListRes.builder()
@@ -67,9 +71,23 @@ public class NoticeService {
         // index를 사용하여 notice find
         Optional<Notice> noticeByIdx = noticeRepository.findById(idx);
 
+        // Check isNewNotice
+        boolean isNewNotice;
+        if(noticeByIdx.get().getCreateAt().isAfter(LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(5)))
+            isNewNotice = true;
+        else
+            isNewNotice = false;
+
+        // Check isLastNotice
+        boolean isLastNotice;
+        if(noticeByIdx.get().getNoticeIdx() == 1)
+            isLastNotice = true;
+        else
+            isLastNotice = false;
+
         // 찾은 Notice 정보를 GetNoticeRes DTO로 mapping
         Optional<GetNoticeRes> getNoticeRes = noticeByIdx.map(notice -> new GetNoticeRes(notice.getNoticeIdx(), notice.getTitle(), notice.getNotice(),
-                notice.getImage(), notice.getCreateAt(), notice.getUpdateAt()));
+                notice.getImage(), isNewNotice, isLastNotice ,notice.getCreateAt(), notice.getUpdateAt()));
 
         System.out.println("noticeByIdx = " + noticeByIdx);
         if(noticeByIdx.equals(Optional.empty())){
