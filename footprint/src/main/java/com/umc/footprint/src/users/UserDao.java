@@ -1191,9 +1191,9 @@ public class UserDao {
 
     // 로그인 정보 입력
     public void postUserLogin(PostLoginReq postLoginReq) {
-        String postLoginQuery = "insert into User(userId, username, email, providerType, status) values (?,?,?,?,?)";
+        String postLoginQuery = "insert into User(userId, username, email, providerType, status, logAt) values (?,?,?,?,?,?)";
         String status = "ONGOING";
-        Object[] postLoginParams = new Object[]{postLoginReq.getUserId(), postLoginReq.getUsername(), postLoginReq.getEmail(), postLoginReq.getProviderType(), status};
+        Object[] postLoginParams = new Object[]{postLoginReq.getUserId(), postLoginReq.getUsername(), postLoginReq.getEmail(), postLoginReq.getProviderType(), status, LocalDateTime.now()};
         this.jdbcTemplate.update(postLoginQuery,  postLoginParams);
     }
 

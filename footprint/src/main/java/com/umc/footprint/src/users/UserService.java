@@ -205,7 +205,7 @@ public class UserService {
             }
 
             // 현재 로그인하는 시간 logAt에 저장
-            log.debug("현재 시간: {}", now);
+            log.info("현재 시간: {}", now);
             userDao.modifyUserLogAt(now, userIdx);
 
             return postLoginRes;
