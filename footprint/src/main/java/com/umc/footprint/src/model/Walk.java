@@ -31,8 +31,8 @@ public class Walk {
     @Column(name = "coordinate", nullable = false)
     private String coordinate;
 
-    @Column(name = "pathImgUrl")
-    private String pathImgUrl;
+    @Column(name = "pathImageUrl")
+    private String pathImageUrl;
 
     @Column(name = "status", length = 20, nullable = false)
     private String status;
@@ -47,13 +47,13 @@ public class Walk {
     private int calorie;
 
     @Builder
-    public Walk(int walkIdx, LocalDateTime startAt, LocalDateTime endAt, double distance, String coordinate, String pathImgUrl, String status, int userIdx, float goalRate, int calorie) {
+    public Walk(int walkIdx, LocalDateTime startAt, LocalDateTime endAt, double distance, String coordinate, String pathImageUrl, String status, int userIdx, float goalRate, int calorie) {
         this.walkIdx = walkIdx;
         this.startAt = startAt;
         this.endAt = endAt;
         this.distance = distance;
         this.coordinate = coordinate;
-        this.pathImgUrl = pathImgUrl;
+        this.pathImageUrl = pathImageUrl;
         this.status = status;
         this.userIdx = userIdx;
         this.goalRate = goalRate;

@@ -40,6 +40,10 @@ public class Footprint {
     @Column(name = "onWalk", nullable = false)
     private boolean onWalk;
 
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "walkIdx", insertable = false, updatable = false)
+    private Walk walk;
+
     @Builder
     public Footprint(int footprintIdx, String coordinate, String write, LocalDateTime recordAt, int walkIdx, String status, LocalDateTime updateAt, boolean onWalk) {
         this.footprintIdx = footprintIdx;

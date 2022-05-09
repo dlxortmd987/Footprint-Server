@@ -30,6 +30,14 @@ public class Tag {
     @Column(name = "status", length = 20, nullable = false)
     private String status;
 
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "hashtagIdx", insertable = false, updatable = false)
+    private Hashtag hashtag;
+
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "footprintIdx", insertable = false, updatable = false)
+    private Footprint footprint;
+
     @Builder
     public Tag(int tagIdx, int hashtagIdx, int footprintIdx, int userIdx, String status) {
         this.tagIdx = tagIdx;
