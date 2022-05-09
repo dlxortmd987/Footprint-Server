@@ -1,15 +1,14 @@
 package com.umc.footprint.src.users;
 
-import static com.umc.footprint.config.BaseResponseStatus.*;
-
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.AwsS3Service;
 import com.umc.footprint.src.model.User;
+import com.umc.footprint.src.repository.TagRepository;
 import com.umc.footprint.src.repository.UserRepository;
+import com.umc.footprint.src.repository.WalkRepository;
 import com.umc.footprint.src.users.model.*;
-
 import com.umc.footprint.utils.AES128;
 import com.umc.footprint.utils.JwtService;
 import lombok.extern.slf4j.Slf4j;
@@ -20,30 +19,114 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.umc.footprint.config.BaseResponseStatus.*;
 
 @Slf4j
 @Service
 public class UserService {
     private final UserDao userDao;
     private final UserRepository userRepository;
+    private final TagRepository tagRepository;
     private final JwtService jwtService;
     private final AwsS3Service awsS3Service;
     private final EncryptProperties encryptProperties;
 
     @Autowired
-    public UserService(UserDao userDao, UserRepository userRepository, JwtService jwtService, AwsS3Service awsS3Service, EncryptProperties encryptProperties) {
+    public UserService(UserDao userDao, UserRepository userRepository, TagRepository tagRepository, JwtService jwtService, AwsS3Service awsS3Service, EncryptProperties encryptProperties) {
         this.userDao = userDao;
         this.userRepository = userRepository;
+        this.tagRepository = tagRepository;
         this.jwtService = jwtService;
         this.awsS3Service = awsS3Service;
         this.encryptProperties = encryptProperties;
     }
 
+    // 해당 유저의 산책기록 중 태그를 포함하는 산책기록 조회
+    public List<GetTagRes> getTagResult(String userId, String tag) throws BaseException {
+        try {
+            Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
+
+            tag = "#" + tag;
+            // 1. 태그 검색을 위한 키워드 암호화
+            String encryptedTag = new AES128(encryptProperties.getKey()).encrypt(tag);
+
+            // 2. 태그 검색
+            List<WalkHashtag> walkAndHashtagList = tagRepository.findAllWalkAndHashtag(encryptedTag, userIdx);
+
+            // 3. 추출한 값으로 response 객체 초기화
+            Set<String> dateSet = new HashSet<>();
+            // 날짜만 추출
+            for (WalkHashtag walkHashtag : walkAndHashtagList) {
+                dateSet.add(
+                        // 날짜 + 요일 ex) 2022. 5. 8 일
+                        walkHashtag.getEndAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")).replace(".0", ". ")
+                        + " " + walkHashtag.getEndAt().getDayOfWeek().getDisplayName(TextStyle.NARROW, Locale.KOREAN)
+                );
+            }
+
+            // response 객체
+            List<GetTagRes> getTagResList = new ArrayList<>();
+            // response 객체에 저장된 walkIdx (중복 저장 확인용)
+            List<Integer> responseWalkIdxList = new ArrayList<>();
+
+            // 날짜에 따라 분류
+            for (String date : dateSet) {
+                // walk 정보 + hashtag 리스트
+                Set<SearchWalk> searchWalkSet = new HashSet<>();
+
+                for (WalkHashtag walkHashtag : walkAndHashtagList) {
+                    // 날짜 + 요일 ex) 2022. 5. 8 일
+                    String walkDate = walkHashtag.getEndAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")).replace(".0", ". ")
+                            + " " + walkHashtag.getEndAt().getDayOfWeek().getDisplayName(TextStyle.NARROW, Locale.KOREAN);
+                    // 날짜 같은 경우만 response 객체에 삽입 && response에 중복된 산책이 없어야함
+                    if (date.equals(walkDate) && responseWalkIdxList.indexOf(walkHashtag.getWalkIdx()) == -1) {
+                        // hashtag 리스트
+                        List<String> hashtagList = new ArrayList<>();
+                        for (WalkHashtag hashtag : walkAndHashtagList) {
+                            // 동일한 산책에 있는 지 확인
+                            if (walkHashtag.getWalkIdx().equals(hashtag.getWalkIdx())) {
+                                hashtagList.add(new AES128(encryptProperties.getKey()).decrypt(hashtag.getHashtag()));
+                            }
+                        }
+
+
+                        searchWalkSet.add(
+                                SearchWalk.builder()
+                                        // 산책 정보
+                                        .userDateWalk(
+                                                UserDateWalk.builder()
+                                                        .walkIdx(walkHashtag.getWalkIdx())
+                                                        .startTime(walkHashtag.getStartAt().format(DateTimeFormatter.ofPattern("HH:mm")))
+                                                        .endTime(walkHashtag.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")))
+                                                        .pathImageUrl(new AES128(encryptProperties.getKey()).decrypt(walkHashtag.getPathImageUrl()))
+                                                        .build()
+                                        )
+                                        .hashtag(hashtagList)
+                                        .build()
+                        );
+                        responseWalkIdxList.add(walkHashtag.getWalkIdx());
+                    }
+                }
+
+                getTagResList.add(
+                        GetTagRes.builder()
+                                .walkAt(date)
+                                .walks(new ArrayList<>(searchWalkSet))
+                                .build()
+                );
+            }
+
+            return getTagResList;
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
 
     // yummy 12
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)

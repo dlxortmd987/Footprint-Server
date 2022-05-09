@@ -537,13 +537,11 @@ public class UserController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
             if (tag == null) { // Query String(검색어)를 입력하지 않았을 경우
                 return new BaseResponse<>(new BaseException(BaseResponseStatus.NEED_TAG_INFO).getStatus());
             }
-            List<GetTagRes> tagResult = userProvider.getTagResult(userIdx, tag);
+            List<GetTagRes> tagResult = userService.getTagResult(userId, tag);
             return new BaseResponse<>(tagResult);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
