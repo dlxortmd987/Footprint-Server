@@ -1,17 +1,18 @@
 package com.umc.footprint.src.users.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
 @Getter
-@Setter
-@AllArgsConstructor
 @NoArgsConstructor
 public class GetTagRes {
     private String walkAt;
     private List<SearchWalk> walks;
+
+    @Builder
+    public GetTagRes(String walkAt, List<SearchWalk> walks) {
+        this.walkAt = walkAt;
+        this.walks = walks;
+    }
 }
