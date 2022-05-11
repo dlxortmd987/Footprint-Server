@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -541,7 +542,8 @@ public class UserController {
             if (tag == null) { // Query String(검색어)를 입력하지 않았을 경우
                 return new BaseResponse<>(new BaseException(BaseResponseStatus.NEED_TAG_INFO).getStatus());
             }
-            List<GetTagRes> tagResult = userService.getTagResult(userId, tag);
+            List<GetTagRes> tagResult = new ArrayList<>();
+            tagResult = userService.getTagResult(userId, tag);
             return new BaseResponse<>(tagResult);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));

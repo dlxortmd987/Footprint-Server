@@ -28,9 +28,6 @@ public class Footprint {
     @Column(name = "recordAt", nullable = false)
     private LocalDateTime recordAt;
 
-    @Column(name = "walkIdx", nullable = false)
-    private int walkIdx;
-
     @Column(name = "status", length = 20, nullable = false)
     private String status;
 
@@ -45,14 +42,17 @@ public class Footprint {
     private Walk walk;
 
     @Builder
-    public Footprint(int footprintIdx, String coordinate, String write, LocalDateTime recordAt, int walkIdx, String status, LocalDateTime updateAt, boolean onWalk) {
+    public Footprint(int footprintIdx, String coordinate, String write, LocalDateTime recordAt, String status, LocalDateTime updateAt, boolean onWalk) {
         this.footprintIdx = footprintIdx;
         this.coordinate = coordinate;
         this.write = write;
         this.recordAt = recordAt;
-        this.walkIdx = walkIdx;
         this.status = status;
         this.updateAt = updateAt;
         this.onWalk = onWalk;
+    }
+
+    public void setWalk(Walk walk) {
+        this.walk = walk;
     }
 }

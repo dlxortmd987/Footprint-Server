@@ -18,12 +18,6 @@ public class Tag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int tagIdx;
 
-    @Column(name = "hashtagIdx", nullable = false)
-    private int hashtagIdx;
-
-    @Column(name = "footprintIdx", nullable = false)
-    private int footprintIdx;
-
     @Column(name = "userIdx", nullable = false)
     private int userIdx;
 
@@ -39,11 +33,17 @@ public class Tag {
     private Footprint footprint;
 
     @Builder
-    public Tag(int tagIdx, int hashtagIdx, int footprintIdx, int userIdx, String status) {
+    public Tag(int tagIdx, int userIdx, String status) {
         this.tagIdx = tagIdx;
-        this.hashtagIdx = hashtagIdx;
-        this.footprintIdx = footprintIdx;
         this.userIdx = userIdx;
         this.status = status;
+    }
+
+    public void setHashtag(Hashtag hashtag) {
+        this.hashtag = hashtag;
+    }
+
+    public void setFootprint(Footprint footprint) {
+        this.footprint = footprint;
     }
 }
