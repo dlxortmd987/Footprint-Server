@@ -2,10 +2,7 @@ package com.umc.footprint.src.notice;
 
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.src.model.Notice;
-import com.umc.footprint.src.notice.model.GetNoticeListRes;
-import com.umc.footprint.src.notice.model.GetNoticeNewRes;
-import com.umc.footprint.src.notice.model.GetNoticeRes;
-import com.umc.footprint.src.notice.model.NoticeList;
+import com.umc.footprint.src.notice.model.*;
 import com.umc.footprint.src.repository.NoticeRepository;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -138,6 +135,26 @@ public class NoticeService {
                 .isNoticeNew(isNewNotice)
                 .build();
 
+    }
+
+    public PostKeyNoticeRes postNoticeKey(PostKeyNoticeReq postKeyNoticeReq) throws BaseException {
+
+        // 클라이언트에서 이미 확인한 주요 공지 index List
+        List<Integer> checkedKeyNoticeIdxList = postKeyNoticeReq.getCheckedKeyNoticeIdxList();
+
+        // 전체 주요공지 List
+        List<Notice> keyNoticeList = noticeRepository.findAllByKeyAndStatus(true,"ACTIVE");
+
+        // 결과 Notice 들을 담을 ArrayList
+        List<Notice> result = new ArrayList<>();
+
+        // 클라이언트에서 이미 확인한 주요 공지 index를 제외한 주요 공지들만 result에 넣어준다.
+        for(Notice keyNotice : keyNoticeList){
+            if(!checkedKeyNoticeIdxList.contains(keyNotice.getNoticeIdx()))
+                result.add(keyNotice);
+        }
+
+        return PostKeyNoticeRes.builder().keyNoticeList(result).build();
     }
 
 }

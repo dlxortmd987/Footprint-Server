@@ -4,9 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
-import com.umc.footprint.src.notice.model.GetNoticeListRes;
-import com.umc.footprint.src.notice.model.GetNoticeNewRes;
-import com.umc.footprint.src.notice.model.GetNoticeRes;
+import com.umc.footprint.src.notice.model.*;
 import com.umc.footprint.src.users.model.PostLoginReq;
 import com.umc.footprint.src.users.model.PostLoginRes;
 import lombok.extern.slf4j.Slf4j;
@@ -72,5 +70,18 @@ public class NoticeController {
         }
     }
 
+    // 주요 공지 GET API
+    @ResponseBody
+    @PostMapping("/key")
+    public BaseResponse<PostKeyNoticeRes> postKeyNotice(@RequestBody PostKeyNoticeReq postKeyNoticeReq) throws BaseException {
+
+        try{
+            PostKeyNoticeRes postKeyNoticeRes = noticeService.postNoticeKey(postKeyNoticeReq);
+
+            return new BaseResponse<>(postKeyNoticeRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 
 }

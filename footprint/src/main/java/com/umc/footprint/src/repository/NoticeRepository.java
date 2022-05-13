@@ -12,4 +12,6 @@ public interface NoticeRepository extends JpaRepository<Notice, Integer> {
     List<Notice> findAllByStatus(@Param(value = "status") String status);
 
     List<Notice> findAllByCreateAtAfter(LocalDateTime date);
+
+    List<Notice> findAllByKeyAndStatus(@Param(value = "key") boolean key,@Param(value = "status") String status);
 }
