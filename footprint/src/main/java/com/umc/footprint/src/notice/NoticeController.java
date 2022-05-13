@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.src.notice.model.GetNoticeListRes;
+import com.umc.footprint.src.notice.model.GetNoticeNewRes;
 import com.umc.footprint.src.notice.model.GetNoticeRes;
 import com.umc.footprint.src.users.model.PostLoginReq;
 import com.umc.footprint.src.users.model.PostLoginRes;
@@ -29,7 +30,7 @@ public class NoticeController {
         this.noticeService = noticeService;
     }
 
-    //
+    // 페이징 처리된 리스트 목록 조회 GET API
     @ResponseBody
     @GetMapping("/list")
     public BaseResponse<GetNoticeListRes> getNoticeList(@RequestParam(required = true) int page,@RequestParam(required = true) int size){
@@ -43,7 +44,7 @@ public class NoticeController {
         }
     }
 
-    //
+    // 개별 리스트 조회 GET API
     @ResponseBody
     @GetMapping("")
     public BaseResponse<Optional<GetNoticeRes>> getNotice(@RequestParam(required = true) int idx) throws BaseException {
@@ -52,6 +53,20 @@ public class NoticeController {
             Optional<GetNoticeRes> notice = noticeService.getNotice(idx);
 
             return new BaseResponse<>(notice);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    // 새로운 Notice가 있는지 확인하는 GET API
+    @ResponseBody
+    @GetMapping("/new")
+    public BaseResponse<GetNoticeNewRes> getNoticeNew() throws BaseException {
+
+        try{
+            GetNoticeNewRes noticeNew = noticeService.getNoticeNew();
+
+            return new BaseResponse<>(noticeNew);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
         }

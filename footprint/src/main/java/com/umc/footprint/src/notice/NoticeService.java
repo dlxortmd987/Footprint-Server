@@ -3,6 +3,7 @@ package com.umc.footprint.src.notice;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.src.model.Notice;
 import com.umc.footprint.src.notice.model.GetNoticeListRes;
+import com.umc.footprint.src.notice.model.GetNoticeNewRes;
 import com.umc.footprint.src.notice.model.GetNoticeRes;
 import com.umc.footprint.src.notice.model.NoticeList;
 import com.umc.footprint.src.repository.NoticeRepository;
@@ -104,6 +105,7 @@ public class NoticeService {
         }
 
         // 찾은 Notice 정보를 GetNoticeRes DTO로 mapping
+        // 왜? 이유 생각해보자..!
         int finalPreNoticeIdx = preNoticeIdx;
         int finalPostNoticeIdx = postNoticeIdx;
         Optional<GetNoticeRes> getNoticeRes = noticeByIdx.map(notice -> new GetNoticeRes(notice.getNoticeIdx(), notice.getTitle(), notice.getNotice(),
@@ -117,5 +119,25 @@ public class NoticeService {
         return getNoticeRes;
     }
 
+    public GetNoticeNewRes getNoticeNew() throws BaseException {
+
+        // createAt과 비교할 Date
+        LocalDateTime compDate = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(5);
+
+        // index를 사용하여 notice find
+        List<Notice> allNotice = noticeRepository.findAllByCreateAtAfter(compDate);
+
+        // Check isNewNotice
+        boolean isNewNotice;
+        if(allNotice.isEmpty())
+            isNewNotice = false;
+        else
+            isNewNotice = true;
+
+        return GetNoticeNewRes.builder()
+                .isNoticeNew(isNewNotice)
+                .build();
+
+    }
 
 }
