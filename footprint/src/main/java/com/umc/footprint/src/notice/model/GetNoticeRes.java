@@ -14,19 +14,20 @@ public class GetNoticeRes {
     private String notice;
     private String image;
     private boolean isNewNotice;
-    private boolean isLastNotice;
+    private int preIdx;
+    private int postIdx;
     private LocalDateTime createAt;
     private LocalDateTime updateAt;
 
     @Builder
-    public GetNoticeRes(int noticeIdx, String title, String notice, String image, boolean isNewNotice,
-                        boolean isLastNotice, LocalDateTime createAt, LocalDateTime updateAt) {
+    public GetNoticeRes(int noticeIdx, String title, String notice, String image, boolean isNewNotice, int preIdx, int postIdx, LocalDateTime createAt, LocalDateTime updateAt) {
         this.noticeIdx = noticeIdx;
         this.title = title;
         this.notice = notice;
         this.image = image;
         this.isNewNotice = isNewNotice;
-        this.isLastNotice = isLastNotice;
+        this.preIdx = preIdx;
+        this.postIdx = postIdx;
         this.createAt = createAt;
         this.updateAt = updateAt;
     }

@@ -33,14 +33,18 @@ public class Notice {
     @Column(name = "updateAt", nullable = false)
     private LocalDateTime updateAt;
 
+    @Column(name = "status", nullable = false)
+    private String status;
+
     @Builder
-    public Notice(int noticeIdx, String title, String notice, String image, LocalDateTime createAt, LocalDateTime updateAt){
+    public Notice(int noticeIdx, String title, String notice, String image, LocalDateTime createAt, LocalDateTime updateAt, String status){
         this.noticeIdx = noticeIdx;
         this.title = title;
         this.notice = notice;
         this.image = image;
         this.createAt = createAt;
         this.updateAt = updateAt;
+        this.status = status;
     }
 
 }

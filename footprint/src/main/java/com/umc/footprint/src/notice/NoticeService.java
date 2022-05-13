@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -66,6 +67,7 @@ public class NoticeService {
         * page : 현재 page(>=1)
         * size : page의 size(>=1)
         * offset : page 안에서 원하는 공지의 index(>=1)
+        *
         * */
 
         // index를 사용하여 notice find
@@ -78,16 +80,34 @@ public class NoticeService {
         else
             isNewNotice = false;
 
-        // Check isLastNotice
-        boolean isLastNotice;
-        if(noticeByIdx.get().getNoticeIdx() == 1)
-            isLastNotice = true;
-        else
-            isLastNotice = false;
+        // Check preNoticeIdx , postNoticeIdx
+        // 1) status 가 active한 Notice 추출후 noticeIdx만 추출하여 리스트에 저장(activeNoticeIdxList)
+        List<Notice> activeNoticeList = noticeRepository.findAllByStatus("ACTIVE");
+        List<Integer> activeNoticeIdxList = new ArrayList<>();
+        
+        for(Notice acticeNotice : activeNoticeList){
+            activeNoticeIdxList.add(acticeNotice.getNoticeIdx());
+        }
+//        System.out.println("activeNoticeIdxList = " + activeNoticeIdxList);
+
+        int nowNoticeIdx = activeNoticeIdxList.indexOf(noticeByIdx.get().getNoticeIdx());
+
+        int preNoticeIdx = -1;
+        int postNoticeIdx = -1;
+        if(nowNoticeIdx == 0){  // 맨 마지막 Notice를 접근시
+            preNoticeIdx = activeNoticeIdxList.get(nowNoticeIdx+1);
+        }else if(nowNoticeIdx == activeNoticeIdxList.size()-1){ // 맨 처음 Notice를 접근시
+            postNoticeIdx = activeNoticeIdxList.get(nowNoticeIdx-1);
+        }else{
+            preNoticeIdx = activeNoticeIdxList.get(nowNoticeIdx+1);
+            postNoticeIdx = activeNoticeIdxList.get(nowNoticeIdx-1);
+        }
 
         // 찾은 Notice 정보를 GetNoticeRes DTO로 mapping
+        int finalPreNoticeIdx = preNoticeIdx;
+        int finalPostNoticeIdx = postNoticeIdx;
         Optional<GetNoticeRes> getNoticeRes = noticeByIdx.map(notice -> new GetNoticeRes(notice.getNoticeIdx(), notice.getTitle(), notice.getNotice(),
-                notice.getImage(), isNewNotice, isLastNotice ,notice.getCreateAt(), notice.getUpdateAt()));
+                notice.getImage(), isNewNotice, finalPreNoticeIdx, finalPostNoticeIdx, notice.getCreateAt(), notice.getUpdateAt()));
 
         System.out.println("noticeByIdx = " + noticeByIdx);
         if(noticeByIdx.equals(Optional.empty())){
