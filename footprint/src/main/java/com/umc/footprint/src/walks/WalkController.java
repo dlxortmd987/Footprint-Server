@@ -1,16 +1,11 @@
 package com.umc.footprint.src.walks;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.src.users.UserProvider;
-import com.umc.footprint.src.users.model.GetMonthInfoRes;
-import com.umc.footprint.src.users.model.PostLoginReq;
 import com.umc.footprint.src.walks.model.*;
 
-import com.umc.footprint.utils.AES128;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -20,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -110,7 +105,7 @@ public class WalkController {
             int wholeWalkIdx = walkProvider.getWalkWholeIdx(walkIdx, userIdx);
             log.debug("wholeWalkIdx: {}", wholeWalkIdx);
 
-            GetWalkInfo getWalkInfo = walkProvider.getWalkInfo(wholeWalkIdx);
+            GetWalkInfo getWalkInfo = walkService.getWalkInfo(wholeWalkIdx);
             return new BaseResponse<>(getWalkInfo);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -142,5 +137,4 @@ public class WalkController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
-
 }
