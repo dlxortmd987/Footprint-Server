@@ -1,12 +1,14 @@
 package com.umc.footprint.src.users.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
-@Setter
-@AllArgsConstructor
+@NoArgsConstructor
 public class ExistUser {
     private int userIdx;
+
+    @Builder
+    public ExistUser(int userIdx){
+        this.userIdx = userIdx;
+    }
 }

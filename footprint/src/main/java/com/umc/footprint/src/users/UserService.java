@@ -25,6 +25,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -113,7 +114,7 @@ public class UserService {
     }
 
 
-    // 해당 userIdx를 갖는 Goal 정보 저장
+    // 해당 userIdx를 갖는 Info 정보 저장
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public int postUserInfo(int userIdx, PatchUserInfoReq patchUserInfoReq) throws BaseException{
         try {
@@ -291,4 +292,5 @@ public class UserService {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
 }

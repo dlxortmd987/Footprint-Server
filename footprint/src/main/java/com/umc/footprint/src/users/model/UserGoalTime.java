@@ -1,13 +1,16 @@
 package com.umc.footprint.src.users.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
-@Setter
-@AllArgsConstructor
+@NoArgsConstructor
 public class UserGoalTime {
     private int walkGoalTime;
     private int walkTimeSlot;
+
+    @Builder
+    public UserGoalTime(int walkGoalTime, int walkTimeSlot){
+        this.walkGoalTime = walkGoalTime;
+        this.walkTimeSlot = walkTimeSlot;
+    }
 }

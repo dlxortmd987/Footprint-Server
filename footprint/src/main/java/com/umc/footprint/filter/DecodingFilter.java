@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 public class DecodingFilter implements Filter {
     private static final Logger logger = LoggerFactory.getLogger(DecodingFilter.class);
     private final EncryptProperties encryptProperties;
+    private static Boolean isEncrypted;
 
     public DecodingFilter(EncryptProperties encryptProperties){
         this.encryptProperties = encryptProperties;
@@ -36,11 +37,18 @@ public class DecodingFilter implements Filter {
         try{
             logger.info("Request URI: {}", req.getRequestURL());
 
-            RequestBodyDecryptWrapper requestWrapper = new RequestBodyDecryptWrapper(req, encryptProperties);
+            log.info(req.getMethod());
 
-            chain.doFilter(requestWrapper, response);
 
-            logger.info("Return URI: {}", req.getRequestURL());
+            if(req.getMethod().equals("POST") || req.getMethod().equals("PATCH")){
+                RequestBodyDecryptWrapper requestWrapper = new RequestBodyDecryptWrapper(req, encryptProperties);
+
+                chain.doFilter(requestWrapper, response);   // ** doFilter **
+            } else {
+                chain.doFilter(request, response);   // ** doFilter **
+            }
+
+            logger.info("Return URI: {}, method: {}", req.getRequestURL(), req.getMethod());
         } catch (Exception exception){
             logger.error("디코딩이 불가합니다.");
         }
