@@ -330,16 +330,15 @@ public class UserDao {
 
         try {
             GetUserTodayRes getUserTodayRes =  this.jdbcTemplate.queryForObject(getUserTodayQuery,
-                    (rs, rowNum) -> new GetUserTodayRes(
-                            rs.getFloat("goalRate"),
-                            rs.getInt("walkGoalTime"),
-                            rs.getInt("walkTime"),
-                            rs.getDouble("distance"),
-                            rs.getInt("calorie")
-                    ), getUserIdxParam, getUserIdxParam);
+                    (rs, rowNum) -> GetUserTodayRes.builder()
+                            .goalRate((float)Math.floor(rs.getFloat("goalRate")))
+                            .walkGoalTime(rs.getInt("walkGoalTime"))
+                            .walkTime(rs.getInt("walkTime")/60)
+                            .distance(Math.floor(rs.getDouble("distance")*10)/10.0)
+                            .calorie(rs.getInt("calorie"))
+                            .build()
+                    , getUserIdxParam, getUserIdxParam);
 
-            getUserTodayRes.setGoalRate((float)Math.floor(getUserTodayRes.getGoalRate()));
-            getUserTodayRes.setDistance(Math.floor(getUserTodayRes.getDistance()*10)/10.0);
 
             return getUserTodayRes;
 
@@ -360,13 +359,13 @@ public class UserDao {
                 "WHERE userIdx = ? and DATE(startAt) = DATE(?) and status = 'ACTIVE' " +
                 "ORDER BY startAt ";
 
-        List<UserDateWalk> userDateWalkInfo = this.jdbcTemplate.query(getUserDateWalkQuery, (rs, rowNum) -> new UserDateWalk(
-                rs.getInt("walkIdx"),
-                rs.getString("startTime"),
-                rs.getString("endTime"),
-                rs.getString("pathImageUrl")
-        ),userIdx,date);
-
+        List<UserDateWalk> userDateWalkInfo = this.jdbcTemplate.query(getUserDateWalkQuery, (rs, rowNum) -> UserDateWalk.builder()
+                        .walkIdx(rs.getInt("walkIdx"))
+                        .startTime(rs.getString("startTime"))
+                        .endTime(rs.getString("endTime"))
+                        .pathImageUrl(rs.getString("pathImageUrl"))
+                        .build()
+        ,userIdx,date);
 
         // 2-1. Hashtag 정보 가져오기
         String getHashtagQuery = "SELECT SF.walkIdx, H.hashtag " +
@@ -380,10 +379,11 @@ public class UserDao {
                 "        ON T.hashtagIdx = H.hashtagIdx " +
                 "WHERE status = 'ACTIVE' ";
 
-        List<Hashtag> entireHashtag = this.jdbcTemplate.query(getHashtagQuery, (rs, rowNum) -> new Hashtag(
-                rs.getInt("walkIdx"),
-                rs.getString("hashtag")
-        ),date,userIdx);
+        List<Hashtag> entireHashtag = this.jdbcTemplate.query(getHashtagQuery, (rs, rowNum) -> Hashtag.builder()
+                        .walkIdx(rs.getInt("walkIdx"))
+                        .hashtag(rs.getString("hashtag"))
+                        .build()
+                ,date,userIdx);
 
         List<GetUserDateRes> getUserDateRes = new ArrayList<>();
         List<ArrayList<String>> hashtagList = new ArrayList<>();
@@ -619,7 +619,9 @@ public class UserDao {
 
         // Validation 1. Goal Table에 없는 userIdx인지 확인
         List<ExistUser> existUserIdx = this.jdbcTemplate.query("SELECT userIdx FROM Goal WHERE userIdx = ? ",
-                (rs, rowNum) -> new ExistUser(rs.getInt("userIdx")),userIdx);
+                (rs, rowNum) -> ExistUser.builder()
+                        .userIdx((rs.getInt("userIdx")))
+                        .build(),userIdx);
         if(existUserIdx.size() == 0)
             throw new BaseException(INVALID_USERIDX);
 
@@ -633,15 +635,17 @@ public class UserDao {
         // 2-1. get UserGoalDay
         String getUserGoalDayQuery = "SELECT sun, mon, tue, wed, thu, fri, sat FROM GoalDay WHERE userIdx = ? and MONTH(createAt) = MONTH(NOW())";
         UserGoalDay userGoalDay = this.jdbcTemplate.queryForObject(getUserGoalDayQuery,
-                (rs,rowNum) -> new UserGoalDay(
-                        rs.getBoolean("sun"),
-                        rs.getBoolean("mon"),
-                        rs.getBoolean("tue"),
-                        rs.getBoolean("wed"),
-                        rs.getBoolean("thu"),
-                        rs.getBoolean("fri"),
-                        rs.getBoolean("sat")
-                ),userIdx);
+                (rs,rowNum) -> UserGoalDay.builder()
+                        .sun(rs.getBoolean("sun"))
+                        .mon(rs.getBoolean("mon"))
+                        .thu(rs.getBoolean("thu"))
+                        .wed(rs.getBoolean("wed"))
+                        .thu(rs.getBoolean("thu"))
+                        .fri(rs.getBoolean("fri"))
+                        .sat(rs.getBoolean("sat"))
+                        .build()
+                ,userIdx);
+
 
         // 2-2. List<Integer> 형태로 변형
         List<Integer> dayIdx = new ArrayList<>();
@@ -663,16 +667,21 @@ public class UserDao {
         // 3. get UserGoalTime
         String getUserGoalTimeQuery = "SELECT walkGoalTime, walkTimeSlot FROM Goal WHERE userIdx = ? and MONTH(createAt) = MONTH(NOW())";
         UserGoalTime userGoalTime = this.jdbcTemplate.queryForObject(getUserGoalTimeQuery,
-                (rs,rowNum) -> new UserGoalTime(
-                        rs.getInt("walkGoalTime"),
-                        rs.getInt("walkTimeSlot")
-                ), userIdx);
+                (rs,rowNum) -> UserGoalTime.builder()
+                        .walkGoalTime(rs.getInt("walkGoalTime"))
+                        .walkTimeSlot(rs.getInt("walkTimeSlot"))
+                        .build()
+                , userIdx);
 
         boolean goalNextModified = checkGoalModified(userIdx);
 
         // 4. GetUserGoalRes에 dayIdx 와 userGoalTime 합침
-        return new GetUserGoalRes(month,dayIdx,userGoalTime,goalNextModified);
-
+        return GetUserGoalRes.builder()
+                .month(month)
+                .dayIdx(dayIdx)
+                .userGoalTime(userGoalTime)
+                .goalNextModified(goalNextModified)
+                .build();
     }
 
     // 해당 userIdx를 갖는 유저의 "다음달" 목표 조회
@@ -680,7 +689,9 @@ public class UserDao {
 
         // Validation 1. Goal Table에 없는 userIdx인지 확인
         List<ExistUser> existUserIdx = this.jdbcTemplate.query("SELECT userIdx FROM GoalNext WHERE userIdx = ? ",
-                (rs, rowNum) -> new ExistUser(rs.getInt("userIdx")),userIdx);
+                (rs, rowNum) -> ExistUser.builder()
+                        .userIdx((rs.getInt("userIdx")))
+                        .build(),userIdx);
         if(existUserIdx.size() == 0)
             throw new BaseException(INVALID_USERIDX);
 
@@ -695,15 +706,16 @@ public class UserDao {
         // 2-1. get UserGoalDay
         String getUserGoalDayNextQuery = "SELECT sun, mon, tue, wed, thu, fri, sat FROM GoalDayNext WHERE userIdx = ?";
         UserGoalDay userGoalDay = this.jdbcTemplate.queryForObject(getUserGoalDayNextQuery,
-                (rs,rowNum) -> new UserGoalDay(
-                        rs.getBoolean("sun"),
-                        rs.getBoolean("mon"),
-                        rs.getBoolean("tue"),
-                        rs.getBoolean("wed"),
-                        rs.getBoolean("thu"),
-                        rs.getBoolean("fri"),
-                        rs.getBoolean("sat")
-                ),userIdx);
+                (rs,rowNum) -> UserGoalDay.builder()
+                        .sun(rs.getBoolean("sun"))
+                        .mon(rs.getBoolean("mon"))
+                        .thu(rs.getBoolean("thu"))
+                        .wed(rs.getBoolean("wed"))
+                        .thu(rs.getBoolean("thu"))
+                        .fri(rs.getBoolean("fri"))
+                        .sat(rs.getBoolean("sat"))
+                        .build()
+                ,userIdx);
 
         // 2-2. List<Integer> 형태로 변형
         List<Integer> dayIdx = new ArrayList<>();
@@ -725,10 +737,11 @@ public class UserDao {
         // 3. get UserGoalTime
         String getUserGoalTimeNextQuery = "SELECT walkGoalTime, walkTimeSlot FROM GoalNext WHERE userIdx = ?";
         UserGoalTime userGoalTime = this.jdbcTemplate.queryForObject(getUserGoalTimeNextQuery,
-                (rs,rowNum) -> new UserGoalTime(
-                        rs.getInt("walkGoalTime"),
-                        rs.getInt("walkTimeSlot")
-                ), userIdx);
+                (rs,rowNum) -> UserGoalTime.builder()
+                        .walkGoalTime(rs.getInt("walkGoalTime"))
+                        .walkTimeSlot(rs.getInt("walkTimeSlot"))
+                        .build()
+                , userIdx);
 
         boolean goalNextModified = checkGoalModified(userIdx);
 
@@ -1191,9 +1204,9 @@ public class UserDao {
 
     // 로그인 정보 입력
     public void postUserLogin(PostLoginReq postLoginReq) {
-        String postLoginQuery = "insert into User(userId, username, email, providerType, status) values (?,?,?,?,?)";
+        String postLoginQuery = "insert into User(userId, username, email, providerType, status, logAt) values (?,?,?,?,?,?)";
         String status = "ONGOING";
-        Object[] postLoginParams = new Object[]{postLoginReq.getUserId(), postLoginReq.getUsername(), postLoginReq.getEmail(), postLoginReq.getProviderType(), status};
+        Object[] postLoginParams = new Object[]{postLoginReq.getUserId(), postLoginReq.getUsername(), postLoginReq.getEmail(), postLoginReq.getProviderType(), status, LocalDateTime.now()};
         this.jdbcTemplate.update(postLoginQuery,  postLoginParams);
     }
 
