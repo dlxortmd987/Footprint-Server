@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-REPOSITORY=/var/www/prod/deploy/footprint
+REPOSITORY=/var/www/dev/deploy/footprint
 cd $REPOSITORY
 
 APP_NAME=footprint 
