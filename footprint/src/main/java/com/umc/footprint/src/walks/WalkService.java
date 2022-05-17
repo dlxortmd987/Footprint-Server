@@ -271,10 +271,4 @@ public class WalkService {
         }
     }
 
-
-    public void testJpa() {
-        Optional<GoalNext> example = goalNextRepository.findById(3);
-        log.debug("example: {}" ,example.get().toString());
-
-    }
 }
