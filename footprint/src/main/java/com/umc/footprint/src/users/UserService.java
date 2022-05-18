@@ -237,8 +237,6 @@ public class UserService {
             // checkExistFlag == false -> 유저 정보 등록 필요
             boolean checkExistFlag = userRepository.existsByEmail(email);
 
-            log.debug("checkExistFlag: {}", checkExistFlag);
-
             if (checkExistFlag) {
                 // email로 userId랑 상태 추출
                 User user = userRepository.findByEmail(email);
