@@ -9,13 +9,16 @@ import java.util.ArrayList;
  * */
 
 @Getter
-@Setter
-@AllArgsConstructor
+@NoArgsConstructor
 public class GetUserDateRes {
-
-    public GetUserDateRes(){}
 
     private UserDateWalk userDateWalk;
     private ArrayList<String> hashtag;
+
+    @Builder
+    public  GetUserDateRes(UserDateWalk userDateWalk, ArrayList<String> hashtag){
+        this.userDateWalk = userDateWalk;
+        this.hashtag = hashtag;
+    }
 
 }

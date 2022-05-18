@@ -15,7 +15,7 @@ public class UserDateWalk {
     private String pathImageUrl;
 
     @Builder
-    public UserDateWalk(int walkIdx, String startTime, String endTime, String pathImageUrl) {
+    public UserDateWalk(int walkIdx, String startTime, String endTime, String pathImageUrl){
         this.walkIdx = walkIdx;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -28,5 +28,6 @@ public class UserDateWalk {
 
     public void setWalkIdx(int getWalkIdx) {
         walkIdx = getWalkIdx;
+
     }
 }

@@ -1,18 +1,23 @@
 package com.umc.footprint.filter;
 
+import com.amazonaws.util.IOUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.utils.AES128;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.methods.HttpRequestWrapper;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Enumeration;
 
 @Slf4j
 public class EncodingFilter implements Filter{
@@ -37,17 +42,25 @@ public class EncodingFilter implements Filter{
         try{
             ResponseBodyEncryptWrapper responseWrapper = new ResponseBodyEncryptWrapper(res);
 
-            chain.doFilter(request, responseWrapper);
+            // 암호화 되지 않고 들어온 Request인지 확인
+            // 파라미터로 들어온 request로 부터 isEncrypted 정보 얻어옴
+            String isEncrypted = req.getHeader("isEncrypted");
+
+            chain.doFilter(request, responseWrapper);   // ** doFilter **
 
             // encode response body
             String url = req.getServletPath();
-            if(!(url.equals("/walks/check/encrypt")) && !(url.equals("/walks/check/decrypt"))){
+            log.info("url : " + url);
+
+            if(!(isEncrypted == null) && !(url.equals("/walks/check/encrypt")) && !(url.equals("/walks/check/decrypt"))){
                 String responseMessage = new String(responseWrapper.getDataStream(), StandardCharsets.UTF_8);
 
                 JSONObject jsonObject = new JSONObject(responseMessage);
 
                 int startIndex = responseMessage.indexOf("result") + 8;
                 int endIndex = responseMessage.lastIndexOf("}");
+
+                System.out.println("responseMessage = " + responseMessage);
 
                 // 최종 메시지
                 StringBuffer finalResponseMessage = new StringBuffer(responseMessage);
@@ -63,11 +76,12 @@ public class EncodingFilter implements Filter{
 
                 response.getOutputStream().write(finalResponseMessage.toString().getBytes());
             }else{
+                log.info("responseData : " + new String(responseWrapper.getDataStream(), StandardCharsets.UTF_8));
                 response.getOutputStream().write(responseWrapper.getDataStream());
             }
 
         } catch (Exception exception){
-            logger.error("디코딩이 불가합니다.");
+            logger.error("인코딩이 불가합니다.");
         }
 
     }

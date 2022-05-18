@@ -7,7 +7,6 @@ import com.umc.footprint.src.AwsS3Service;
 import com.umc.footprint.src.model.User;
 import com.umc.footprint.src.repository.TagRepository;
 import com.umc.footprint.src.repository.UserRepository;
-import com.umc.footprint.src.repository.WalkRepository;
 import com.umc.footprint.src.users.model.*;
 import com.umc.footprint.utils.AES128;
 import com.umc.footprint.utils.JwtService;
@@ -22,7 +21,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.umc.footprint.config.BaseResponseStatus.*;
 
@@ -196,7 +194,7 @@ public class UserService {
     }
 
 
-    // 해당 userIdx를 갖는 Goal 정보 저장
+    // 해당 userIdx를 갖는 Info 정보 저장
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public int postUserInfo(int userIdx, PatchUserInfoReq patchUserInfoReq) throws BaseException{
         try {
@@ -372,4 +370,5 @@ public class UserService {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
 }
