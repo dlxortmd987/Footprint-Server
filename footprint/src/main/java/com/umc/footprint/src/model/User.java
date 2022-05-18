@@ -17,16 +17,16 @@ public class User {
     @Id
     @Column(name = "userIdx")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int userIdx;
+    private Integer userIdx;
 
     @Column(name = "userId", length = 200, nullable = false)
     private String userId;
 
-    @Column(name = "nickname", length = 15, nullable = false)
+    @Column(name = "nickname", length = 15)
     private String nickname;
 
     @Column(name = "badgeIdx")
-    private int badgeIdx;
+    private Integer badgeIdx;
 
     @Column(name = "username", length = 200, nullable = false)
     private String username;
@@ -41,22 +41,22 @@ public class User {
     private String email;
 
     @Column(name = "height")
-    private int height;
+    private Integer height;
 
     @Column(name = "weight")
-    private int weight;
+    private Integer weight;
 
     @Column(name = "providerType", length = 20)
     private String providerType;
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status")
     private String status;
 
-    @Column(name = "logAt", nullable = false)
+    @Column(name = "logAt")
     private LocalDateTime logAt;
 
     @Builder
-    public User(int userIdx, String userId, String nickname, int badgeIdx, String username, LocalDateTime birth, String sex, String email, int height, int weight, String providerType, String status, LocalDateTime logAt) {
+    public User(Integer userIdx, String userId, String nickname, Integer badgeIdx, String username, LocalDateTime birth, String sex, String email, Integer height, Integer weight, String providerType, String status, LocalDateTime logAt) {
         this.userIdx = userIdx;
         this.userId = userId;
         this.nickname = nickname;
@@ -82,5 +82,9 @@ public class User {
 
     public void updateLogAtNow(LocalDateTime now) {
         this.logAt = now;
+    }
+
+    public void setBadgeIdx(int badgeIdx) {
+        this.badgeIdx = badgeIdx;
     }
 }

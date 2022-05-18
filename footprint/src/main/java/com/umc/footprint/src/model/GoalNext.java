@@ -15,16 +15,16 @@ public class GoalNext {
     @Id
     @Column(name = "planIdx")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int planIdx;
+    private Integer planIdx;
 
     @Column(name = "userIdx", nullable = false)
-    private int userIdx;
+    private Integer userIdx;
 
     @Column(name = "walkGoalTime")
-    private int walkGoalTime;
+    private Integer walkGoalTime;
 
     @Column(name = "walkTimeSlot", nullable = false)
-    private int walkTimeSlot;
+    private Integer walkTimeSlot;
 
     @Column(name = "createAt", nullable = false)
     private LocalDateTime createAt;
@@ -33,7 +33,7 @@ public class GoalNext {
     private LocalDateTime updateAt;
 
     @Builder
-    public GoalNext(int planIdx, int userIdx, int walkGoalTime, int walkTimeSlot, LocalDateTime createAt, LocalDateTime updateAt) {
+    public GoalNext(Integer planIdx, Integer userIdx, Integer walkGoalTime, Integer walkTimeSlot, LocalDateTime createAt, LocalDateTime updateAt) {
         this.planIdx = planIdx;
         this.userIdx = userIdx;
         this.walkGoalTime = walkGoalTime;

@@ -17,37 +17,37 @@ public class GoalDay {
     @Id
     @Column(name = "planIdx")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int planIdx;
+    private Integer planIdx;
 
     @Column(name = "userIdx", nullable = false)
-    private int userIdx;
+    private Integer userIdx;
 
     @Column(name = "sun", nullable = false)
-    private int sun;
+    private Integer sun;
 
     @Column(name = "mon", nullable = false)
-    private int mon;
+    private Integer mon;
 
     @Column(name = "tue", nullable = false)
-    private int tue;
+    private Integer tue;
 
     @Column(name = "wed", nullable = false)
-    private int wed;
+    private Integer wed;
 
     @Column(name = "thu", nullable = false)
-    private int thu;
+    private Integer thu;
 
     @Column(name = "fri", nullable = false)
-    private int fri;
+    private Integer fri;
 
     @Column(name = "sat", nullable = false)
-    private int sat;
+    private Integer sat;
 
     @Column(name = "createAt")
     private LocalDateTime createAt;
 
     @Builder
-    public GoalDay(int planIdx, int userIdx, int sun, int mon, int tue, int wed, int thu, int fri, int sat, LocalDateTime createAt) {
+    public GoalDay(Integer planIdx, Integer userIdx, Integer sun, Integer mon, Integer tue, Integer wed, Integer thu, Integer fri, Integer sat, LocalDateTime createAt) {
         this.planIdx = planIdx;
         this.userIdx = userIdx;
         this.sun = sun;
