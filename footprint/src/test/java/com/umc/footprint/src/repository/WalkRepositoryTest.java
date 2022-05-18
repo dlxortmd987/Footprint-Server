@@ -1,6 +1,7 @@
 package com.umc.footprint.src.repository;
 
-import com.umc.footprint.src.users.model.WalkHashtag;
+import com.umc.footprint.src.model.Walk;
+import com.umc.footprint.src.walks.model.ObtainedBadgeInterface;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,41 +9,45 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
-import java.util.List;
-import java.util.Locale;
+import java.time.LocalDateTime;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class WalkRepositoryTest {
     @Autowired
-    private TagRepository tagRepository;
+    private WalkRepository walkRepository;
 
     @Test
-    void 태그_검색_쿼리_테스트() {
+    void walkSaveTest() {
         //given
-        String myHashtag = "wJXpTZ/waSknzS10yrveFA==";
-        Integer userIdx = 57;
-        List<WalkHashtag> allWalks = tagRepository.findAllWalkAndHashtag(myHashtag, userIdx);
+        Walk walk = Walk.builder()
+                .startAt(LocalDateTime.of(2022, 02, 21, 12, 13, 02))
+                .endAt(LocalDateTime.of(2022, 02, 21, 12, 22, 42))
+                .distance(10.4)
+                .coordinate("78fhZRXLLO865pXs54x1VrMDihArBxsGqw+bROqqmsEDMgOftOjseEjCOqssSi++01HOx9n4rgS7XORABOTgD1tSKXAhruNeNZmfZWZsae1e/ckO4TLIaQpNwQAhs+TO")
+                .pathImageUrl("2i+H0/mYIL7bT5jEPuEPFCpt4mrCBFgu1XYFzOy9/tOaMwYNWsxYcKlNCQjqeydFo+aaFbnE/q7Utdr858eXgaUAXKMgatjkO21YE5e9h4xTnV69yI6OofOBQcOiECZN")
+                .userIdx(13)
+                .goalRate(50.0)
+                .calorie(100)
+                .build();
 
         //when
-
+        Walk savedWalk = walkRepository.save(walk);
 
         //then
-        for (WalkHashtag w : allWalks) {
-            String displayName = w.getEndAt().getDayOfWeek().getDisplayName(TextStyle.NARROW, Locale.KOREAN);
-            String date = w.getEndAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")).replace(".0", ". ");
-            String time = w.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")).replace(".0", ". ");
-            System.out.println("WalkIdx = " + w.getWalkIdx().toString());
-            System.out.println("StartAt = " + w.getStartAt().toString());
-            System.out.println("EndAt = " + w.getEndAt().toString());
-            System.out.println("date = " + date + " " + displayName);
-            System.out.println("time = " + time);
-            System.out.println("displayName = " + displayName);
-            System.out.println("PathImageUrl = " + w.getPathImageUrl());
-            System.out.println("Hashtag = " + w.getHashtag());
-        }
+        assertEquals(walk.getCoordinate(), savedWalk.getCoordinate());
+    }
+
+    @Test
+    void 얻은_뱃지들_테스트() {
+        //given
+        int userIdx = 61;
+        ObtainedBadgeInterface obtainedBadgeInterface = walkRepository.getAcquiredBadgeIdxList(userIdx);
+
+        System.out.println("DistanceBadgeIdx = " + obtainedBadgeInterface.getDistanceBadgeIdx());
+        System.out.println("RecordBadgeIdx = " + obtainedBadgeInterface.getRecordBadgeIdx());
     }
 }
