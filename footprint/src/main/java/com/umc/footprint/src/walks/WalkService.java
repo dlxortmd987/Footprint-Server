@@ -75,12 +75,13 @@ public class WalkService {
         // userIdx 추출
         int userIdx = userRepository.findByUserId(userId).getUserIdx();
 
+
         try {
             String encryptImage = new AES128(encryptProperties.getKey()).encrypt(request.getWalk().getThumbnail());
 
             // 라인에 좌표가 올 때 나는 오류 방지 (복제)
             String safeCoordinate = new AES128(encryptProperties.getKey()).encrypt(convert2DListToString(changeSafeCoordinate(request.getWalk().getCoordinates())));
-            Double goalRate = getGoalRate(request.getWalk());
+            Double goalRate = getGoalRate(request.getWalk(), userIdx);
 
             // Walk Table에 삽입 후 생성된 walkIdx return
             log.debug("3. Walk 테이블에 insert 후 walkIdx 반환");
@@ -165,7 +166,7 @@ public class WalkService {
             }
 
             // 처음 산책인지 확인
-            if (checkFirstWalk(request.getWalk().getUserIdx())) {
+            if (checkFirstWalk(userIdx)) {
                 User byUserId = userRepository.findByUserId(userId);
                 byUserId.setBadgeIdx(1);
                 userRepository.save(byUserId);
@@ -188,13 +189,13 @@ public class WalkService {
         }
     }
 
-    public Double getGoalRate(SaveWalk walk) throws BaseException {
+    public Double getGoalRate(SaveWalk walk, int userIdx) throws BaseException {
         try {
             // 산책 시간
             Long walkTime = Duration.between(walk.getStartAt(), walk.getEndAt()).getSeconds();
             log.debug("walkTime: {}", walkTime);
             // 산책 목표 시간
-            Long walkGoalTime = goalRepository.findByUserIdx(walk.getUserIdx()).get().getWalkGoalTime() * MINUTES_TO_SECONDS;
+            Long walkGoalTime = goalRepository.findByUserIdx(userIdx).get().getWalkGoalTime() * MINUTES_TO_SECONDS;
             log.debug("walkGoalTime: {}", walkGoalTime);
             // (산책 끝 시간 - 산책 시작 시간) / 산책 목표 시간
             Double goalRate =(walkTime.doubleValue() / walkGoalTime.doubleValue())*100.0;

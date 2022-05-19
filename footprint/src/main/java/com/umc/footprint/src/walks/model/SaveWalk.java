@@ -25,9 +25,6 @@ public class SaveWalk {
     @ApiModelProperty(example = "산책 거리")
     private double distance;
 
-    @ApiModelProperty(example = "산책한 유저 인덱스")
-    private int userIdx;
-
     @ApiModelProperty(example = "산책 좌표")
     private List<List<Double>> coordinates;
 
@@ -49,16 +46,12 @@ public class SaveWalk {
         this.endAt = endAt;
         this.distance = distance;
         this.coordinates = coordinates;
-        this.userIdx = userIdx;
         this.strCoordinates = strCoordinates;
         this.goalRate = goalRate;
         this.calorie = calorie;
         this.thumbnail = thumbnail;
     }
 
-    public void setUserIdx(int userIdx) {
-        this.userIdx = userIdx;
-    }
 }
 
 
