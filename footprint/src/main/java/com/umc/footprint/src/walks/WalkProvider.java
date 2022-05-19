@@ -45,27 +45,27 @@ public class WalkProvider {
   }
 
     //
-    public Double getGoalRate(SaveWalk walk) throws BaseException {
-        try {
-            // 산책 시간
-            Long walkTime = Duration.between(walk.getStartAt(), walk.getEndAt()).getSeconds();
-            log.debug("walkTime: {}", walkTime);
-            // 산책 목표 시간
-            Long walkGoalTime = walkDao.getWalkGoalTime(walk.getUserIdx()) * MINUTES_TO_SECONDS;
-            log.debug("walkGoalTime: {}", walkGoalTime);
-            // (산책 끝 시간 - 산책 시작 시간) / 산책 목표 시간
-            Double goalRate =(walkTime.doubleValue() / walkGoalTime.doubleValue())*100.0;
-
-            // 100퍼 넘을 시 100으로 고정
-            if (goalRate >= 100.0) {
-                goalRate = 100.0;
-            }
-
-            return goalRate;
-        } catch (Exception exception) {
-            throw new BaseException(DATABASE_ERROR);
-        }
-    }
+//    public Double getGoalRate(SaveWalk walk) throws BaseException {
+//        try {
+//            // 산책 시간
+//            Long walkTime = Duration.between(walk.getStartAt(), walk.getEndAt()).getSeconds();
+//            log.debug("walkTime: {}", walkTime);
+//            // 산책 목표 시간
+//            Long walkGoalTime = walkDao.getWalkGoalTime(walk.getUserIdx()) * MINUTES_TO_SECONDS;
+//            log.debug("walkGoalTime: {}", walkGoalTime);
+//            // (산책 끝 시간 - 산책 시작 시간) / 산책 목표 시간
+//            Double goalRate =(walkTime.doubleValue() / walkGoalTime.doubleValue())*100.0;
+//
+//            // 100퍼 넘을 시 100으로 고정
+//            if (goalRate >= 100.0) {
+//                goalRate = 100.0;
+//            }
+//
+//            return goalRate;
+//        } catch (Exception exception) {
+//            throw new BaseException(DATABASE_ERROR);
+//        }
+//    }
 
 
     public List<Integer> getAcquiredBadgeIdxList(int userIdx) throws BaseException {
