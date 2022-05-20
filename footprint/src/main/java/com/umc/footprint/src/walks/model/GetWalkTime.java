@@ -15,21 +15,11 @@ public class GetWalkTime {
 
     public void convTimeString() {
         int time = Integer.parseInt(timeString);
-
-//        int hour = time / 3600;
-//        time %= 3600;
         int min = time / 60;
         int sec = time % 60;
 
         String str;
         str = String.format("%02d:%02d", min, sec );
-//        if(hour == 0) {
-//            str = String.format("%02d:%02d", min, sec );
-//        }
-//        else {
-//            str = String.format("%02d:%02d:%02d", hour, min, sec );
-//        }
-
         setTimeString(str);
     }
 }

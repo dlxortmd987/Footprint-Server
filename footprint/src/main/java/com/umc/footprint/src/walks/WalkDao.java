@@ -32,8 +32,7 @@ public class WalkDao {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-
-    public GetWalkInfo getWalkInfo(int walkIdx) {
+    public GetWalkTime getWalkTime(int walkIdx) {
         String getTimeQuery = "select date_format(date(startAt), '%Y.%m.%d') as date, \n" +
                 "       date_format(time(startAt),'%H:%i') as startAt,\n" +
                 "       date_format(time(endAt),'%H:%i') as endAt, \n" +
@@ -48,22 +47,14 @@ public class WalkDao {
 
         getWalkTime.convTimeString();
 
+        return getWalkTime;
+    }
+
+    public Integer getFootCount(int walkIdx) {
         String getFootCountQuery = "select count(footprintIdx) as footCount from Footprint where walkIdx=? and status='ACTIVE';";
         Integer footCount = this.jdbcTemplate.queryForObject(getFootCountQuery,
                 (rs, rowNum) -> rs.getInt("footCount"), walkIdx);
-
-
-        String getWalkInfoQuery = "select walkIdx, calorie, distance, pathImageUrl from Walk where walkIdx=? and status='ACTIVE';";
-        GetWalkInfo getWalkInfo = this.jdbcTemplate.queryForObject(getWalkInfoQuery,
-                (rs,rowNum) -> new GetWalkInfo(
-                        rs.getInt("walkIdx"),
-                        getWalkTime,
-                        rs.getInt("calorie"),
-                        rs.getDouble("distance"),
-                        footCount,
-                        rs.getString("pathImageUrl")), walkIdx);
-
-        return getWalkInfo;
+        return footCount;
     }
 
     public String deleteWalk(int walkIdx) {
