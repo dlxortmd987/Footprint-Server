@@ -10,7 +10,6 @@ import com.umc.footprint.src.walks.model.*;
 import com.umc.footprint.utils.AES128;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +18,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -187,6 +192,21 @@ public class WalkService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public GetWalkInfo getWalkInfo(int walkIdx) throws BaseException {
+        try {
+            int check = walkDao.checkWalkVal(walkIdx);
+            if(check!=1) { //산책 INACTIVE
+                throw new BaseException(INVALID_WALKIDX);
+            }
+            GetWalkInfo getWalkInfo = walkDao.getWalkInfo(walkIdx);
+            getWalkInfo.setPathImageUrl(new AES128(encryptProperties.getKey()).decrypt(getWalkInfo.getPathImageUrl()));
+            return getWalkInfo;
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
     private ArrayList<List<Double>> changeSafeCoordinate(List<List<Double>> coordinates) {
         ArrayList<List<Double>> safeCoordinate = new ArrayList<>();
         for (List<Double> line : coordinates) {
@@ -232,6 +252,42 @@ public class WalkService {
         String result = str.toString();
 
         return result;
+    }
+
+    //yummy path : String -> List<List<Double>>
+    public List<ArrayList<Double>> convertStringTo2DList(String inputString) {
+        // inputString은 파라미터로 바꾸기!
+        ArrayList<ArrayList<Double>> coordinate = new ArrayList<>();
+        String decryptTest = "";
+        try {
+            decryptTest = new AES128(encryptProperties.getKey()).decrypt(inputString);
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
+
+        decryptTest = decryptTest.substring(17, decryptTest.length()-2);
+        String[] strArr = decryptTest.split(",");
+
+        for(String coor : strArr) {
+            String[] coorArr = coor.split("\\s"); // 공백 기준 구분
+            ArrayList<Double> temp = new ArrayList<>();
+            temp.add(Double.parseDouble(coorArr[0]));
+            temp.add(Double.parseDouble(coorArr[1]));
+            coordinate.add(temp);
+        }
+        log.info(String.valueOf(coordinate.get(0).get(0)));
+        log.info(String.valueOf(coordinate.get(0).get(1)));
+        return coordinate;
     }
 
     public String convertListToString(List<Double> inputList) {
