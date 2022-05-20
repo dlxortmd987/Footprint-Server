@@ -22,11 +22,12 @@ public class UserDateWalk {
         this.pathImageUrl = pathImageUrl;
     }
 
-    public void setWalkIdx(int walkIdx) {
-        this.walkIdx = walkIdx;
+    public void setDecryptedPathImageUrl(String decrypt) {
+        pathImageUrl = decrypt;
     }
 
-    public void setPathImageUrl(String pathImageUrl) {
-        this.pathImageUrl = pathImageUrl;
+    public void setWalkIdx(int getWalkIdx) {
+        walkIdx = getWalkIdx;
+
     }
 }

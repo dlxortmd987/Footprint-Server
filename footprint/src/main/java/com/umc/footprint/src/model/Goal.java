@@ -17,26 +17,31 @@ public class Goal {
     @Id
     @Column(name = "planIdx")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int planIdx;
+    private Integer planIdx;
 
     @Column(name = "userIdx", nullable = false)
-    private int userIdx;
+    private Integer userIdx;
 
     @Column(name = "walkGoalTime", nullable = false)
-    private int walkGoalTime;
+    private Integer walkGoalTime;
 
     @Column(name = "walkTimeSlot", nullable = false)
-    private int walkTimeSlot;
+    private Integer walkTimeSlot;
 
-    @Column(name = "createAt", nullable = false)
+    @Column(name = "createAt")
     private LocalDateTime createAt;
 
     @Builder
-    public Goal(int planIdx, int userIdx, int walkGoalTime, int walkTimeSlot, LocalDateTime createAt) {
+    public Goal(Integer planIdx, Integer userIdx, Integer walkGoalTime, Integer walkTimeSlot, LocalDateTime createAt) {
         this.planIdx = planIdx;
         this.userIdx = userIdx;
         this.walkGoalTime = walkGoalTime;
         this.walkTimeSlot = walkTimeSlot;
         this.createAt = createAt;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        this.createAt = this.createAt == null ? LocalDateTime.now() : this.createAt;
     }
 }

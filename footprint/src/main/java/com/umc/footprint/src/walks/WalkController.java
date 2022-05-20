@@ -2,6 +2,7 @@ package com.umc.footprint.src.walks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.config.BaseResponseStatus;
@@ -55,40 +56,20 @@ public class WalkController {
             @ApiImplicitParam(name = "footprintList", value = "발자국 정보", required = false),
             @ApiImplicitParam(name = "photos", value = "동선 사진 및 발자국에서 남긴 사진들", required = true)
     })
-    public BaseResponse<List<PostWalkRes>> saveRecord(
-            @RequestPart(value = "walk") SaveWalk walk,
-            @RequestPart(value = "footprintList") List<SaveFootprint> footprintList,
-            @RequestPart(value = "photos") List<MultipartFile> photos
-    ) throws BaseException {
+    public BaseResponse<List<PostWalkRes>> saveRecord(@RequestBody String request) throws BaseException, JsonProcessingException {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
+        PostWalkReq postWalkReq = objectMapper.readValue(request, PostWalkReq.class);
+
         // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
         String userId = jwtService.getUserId();
         log.debug("userId = " + userId);
         // userId로 userIdx 추출
-        int userIdx = userProvider.getUserIdx(userId);
-        walk.setUserIdx(userIdx);
-
-
-        log.debug("walk startAt: {}", walk.getStartAt());
-        log.debug("walk endAt: {}", walk.getEndAt());
-        log.debug("walk distance: {}", walk.getDistance());
-        log.debug("walk userIdx: {}", walk.getUserIdx());
-        log.debug("walk coordinate: {}", walk.getCoordinates());
-        log.debug("walk calorie: {}", walk.getCalorie());
-        log.debug("walk photoMatchNumList: {}", walk.getPhotoMatchNumList());
-
 
         try {
-
-            if (walk.getPhotoMatchNumList().size() != footprintList.size()) {
-                return new BaseResponse<>(BaseResponseStatus.NOT_MATCH_IMAGE_COUNT);
-            }
-            List<PostWalkRes> postWalkResList = walkService.saveRecord(
-                    PostWalkReq.builder()
-                            .walk(walk)
-                            .footprintList(footprintList)
-                            .photos(photos)
-                            .build()
-            );
+            List<PostWalkRes> postWalkResList = walkService.saveRecord(userId, postWalkReq);
             return new BaseResponse<>(postWalkResList);
 
         } catch (BaseException exception) {

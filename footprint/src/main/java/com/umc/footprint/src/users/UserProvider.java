@@ -335,55 +335,6 @@ public class UserProvider {
         }
     }
 
-    // 해당 유저의 산책기록 중 태그를 포함하는 산책기록 조회
-    public List<GetTagRes> getTagResult(int userIdx, String tag) throws BaseException {
-        try {
-            tag = "#" + tag;
-            String encryptedTag = new AES128(encryptProperties.getKey()).encrypt(tag);
-            List<GetTagRes> getTagResult = userDao.getWalks(userIdx, encryptedTag);
-
-            List<GetTagRes> decryptedTagResultList = new ArrayList<>();
-            for (GetTagRes getTagRes : getTagResult) {
-                GetTagRes decryptedGetTagRes = new GetTagRes();
-                decryptedGetTagRes.setWalkAt(getTagRes.getWalkAt());
-
-                List<SearchWalk> decryptedSearchWalkList = new ArrayList<>();
-
-                for (SearchWalk walk : getTagRes.getWalks()) {
-                    SearchWalk decryptedSearchWalk = new SearchWalk();
-
-                    // 복호화된 태그 리스트 설정
-                    List<String> decryptedHashtagList = new ArrayList<>();
-                    for (String hashtag : walk.getHashtag()) {
-                        String decryptedHashtag = new AES128(encryptProperties.getKey()).decrypt(hashtag);
-                        decryptedHashtagList.add(decryptedHashtag);
-                    }
-                    decryptedSearchWalk.setHashtag(decryptedHashtagList);
-
-                    // 복호화된 이미지 설정
-                    String decryptedImage = new AES128(encryptProperties.getKey()).decrypt(walk.getUserDateWalk().getPathImageUrl());
-                    decryptedSearchWalk.setUserDateWalk(new UserDateWalk(
-                            walk.getUserDateWalk().getWalkIdx(),
-                            walk.getUserDateWalk().getStartTime(),
-                            walk.getUserDateWalk().getEndTime(),
-                            decryptedImage
-                    ));
-
-                    decryptedSearchWalkList.add(decryptedSearchWalk);
-                }
-
-                decryptedGetTagRes.setWalks(decryptedSearchWalkList);
-
-                decryptedTagResultList.add(decryptedGetTagRes);
-            }
-            
-            return decryptedTagResultList;
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            throw new BaseException(DATABASE_ERROR);
-        }
-    }
-
     //yummy 13
     // 이번달 사용자가 얻은 뱃지 조회 (PRO, LOVER, MASTER)
     public BadgeInfo getMonthlyBadgeStatus(int userIdx) throws BaseException {

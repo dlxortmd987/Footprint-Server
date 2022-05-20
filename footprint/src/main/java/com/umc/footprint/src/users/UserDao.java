@@ -3,7 +3,6 @@ package com.umc.footprint.src.users;
 
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.EncryptProperties;
-import com.umc.footprint.src.AwsS3Service;
 import com.umc.footprint.src.users.model.*;
 
 import com.umc.footprint.utils.AES128;
@@ -390,7 +389,7 @@ public class UserDao {
 
         try {
             for (UserDateWalk walk : userDateWalkInfo) {
-                walk.setPathImageUrl(new AES128(encryptProperties.getKey()).decrypt(walk.getPathImageUrl()));
+                walk.setDecryptedPathImageUrl(new AES128(encryptProperties.getKey()).decrypt(walk.getPathImageUrl()));
                 hashtagList.add(new ArrayList<>());
                 for (Hashtag tag : entireHashtag) {
                     if (walk.getWalkIdx() == tag.getWalkIdx()) {

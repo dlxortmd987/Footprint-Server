@@ -1,12 +1,12 @@
 package com.umc.footprint.src.model;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -17,19 +17,16 @@ public class Footprint {
     @Id
     @Column(name = "footprintIdx")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int footprintIdx;
+    private Integer footprintIdx;
 
     @Column(name = "coordinate", length = 100, nullable = false)
     private String coordinate;
 
-    @Column(name = "write", length = 500)
-    private String write;
+    @Column(name = "record", length = 500)
+    private String record;
 
     @Column(name = "recordAt", nullable = false)
     private LocalDateTime recordAt;
-
-    @Column(name = "walkIdx", nullable = false)
-    private int walkIdx;
 
     @Column(name = "status", length = 20, nullable = false)
     private String status;
@@ -38,17 +35,44 @@ public class Footprint {
     private LocalDateTime updateAt;
 
     @Column(name = "onWalk", nullable = false)
-    private boolean onWalk;
+    private Integer onWalk;
+
+    @JsonIgnore
+    @OneToMany(targetEntity = Tag.class, fetch = FetchType.LAZY, mappedBy = "footprint")
+    private List<Tag> tagList = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "walkIdx")
+    private Walk walk;
 
     @Builder
-    public Footprint(int footprintIdx, String coordinate, String write, LocalDateTime recordAt, int walkIdx, String status, LocalDateTime updateAt, boolean onWalk) {
+    public Footprint(Integer footprintIdx, String coordinate, String record, LocalDateTime recordAt, String status, LocalDateTime updateAt, Integer onWalk) {
         this.footprintIdx = footprintIdx;
         this.coordinate = coordinate;
-        this.write = write;
+        this.record = record;
         this.recordAt = recordAt;
-        this.walkIdx = walkIdx;
         this.status = status;
         this.updateAt = updateAt;
         this.onWalk = onWalk;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        this.status = this.status == null ? "ACTIVE" : this.status;
+    }
+
+    public void addTagList(Tag tag) {
+        this.getTagList().add(tag);
+        // 무한 루프에 빠지지 않게 체크
+        if (tag.getFootprint() != this) {
+            tag.setFootprint(this);
+        }
+    }
+
+    public void setWalk(Walk walk) {
+        this.walk = walk;
+        if (!walk.getFootprintList().contains(this)) {
+            walk.getFootprintList().add(this);
+        }
     }
 }

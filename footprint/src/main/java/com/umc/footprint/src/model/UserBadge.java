@@ -16,19 +16,19 @@ public class UserBadge {
     @Id
     @Column(name = "collectionIdx")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int collectionIdx;
+    private Integer collectionIdx;
 
     @Column(name = "userIdx", nullable = false)
-    private int userIdx;
+    private Integer userIdx;
 
     @Column(name = "badgeIdx", nullable = false)
-    private int badgeIdx;
+    private Integer badgeIdx;
 
     @Column(name = "status", length = 20)
     private String status;
 
     @Builder
-    public UserBadge(int collectionIdx, int userIdx, int badgeIdx, String status) {
+    public UserBadge(Integer collectionIdx, Integer userIdx, Integer badgeIdx, String status) {
         this.collectionIdx = collectionIdx;
         this.userIdx = userIdx;
         this.badgeIdx = badgeIdx;

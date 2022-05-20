@@ -1,12 +1,12 @@
 package com.umc.footprint.src.model;
 
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -17,7 +17,7 @@ public class Walk {
     @Id
     @Column(name = "walkIdx")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int walkIdx;
+    private Integer walkIdx;
 
     @Column(name = "startAt", nullable = false)
     private LocalDateTime startAt;
@@ -26,37 +26,53 @@ public class Walk {
     private LocalDateTime endAt;
 
     @Column(name = "distance", nullable = false)
-    private double distance;
+    private Double distance;
 
     @Column(name = "coordinate", nullable = false)
     private String coordinate;
 
-    @Column(name = "pathImgUrl")
-    private String pathImgUrl;
+    @Column(name = "pathImageUrl")
+    private String pathImageUrl;
 
     @Column(name = "status", length = 20, nullable = false)
     private String status;
 
     @Column(name = "userIdx", nullable = false)
-    private int userIdx;
+    private Integer userIdx;
 
     @Column(name = "goalRate", nullable = false)
-    private float goalRate;
+    private Double goalRate;
 
     @Column(name = "calorie")
-    private int calorie;
+    private Integer calorie;
+
+    @JsonIgnore
+    @OneToMany(targetEntity = Footprint.class, fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "walk")
+    private List<Footprint> footprintList = new ArrayList<>();
 
     @Builder
-    public Walk(int walkIdx, LocalDateTime startAt, LocalDateTime endAt, double distance, String coordinate, String pathImgUrl, String status, int userIdx, float goalRate, int calorie) {
+    public Walk(Integer walkIdx, LocalDateTime startAt, LocalDateTime endAt, Double distance, String coordinate, String pathImageUrl, String status, Integer userIdx, Double goalRate, Integer calorie) {
         this.walkIdx = walkIdx;
         this.startAt = startAt;
         this.endAt = endAt;
         this.distance = distance;
         this.coordinate = coordinate;
-        this.pathImgUrl = pathImgUrl;
+        this.pathImageUrl = pathImageUrl;
         this.status = status;
         this.userIdx = userIdx;
         this.goalRate = goalRate;
         this.calorie = calorie;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        this.status = this.status == null ? "ACTIVE" : this.status;
+    }
+
+    public void addFootprint(Footprint footprint) {
+        this.footprintList.add(footprint);
+        if (footprint.getWalk() != this) {
+            footprint.setWalk(this);
+        }
     }
 }

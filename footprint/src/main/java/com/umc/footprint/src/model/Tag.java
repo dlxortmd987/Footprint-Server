@@ -16,26 +16,42 @@ public class Tag {
     @Id
     @Column(name = "tagIdx")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int tagIdx;
-
-    @Column(name = "hashtagIdx", nullable = false)
-    private int hashtagIdx;
-
-    @Column(name = "footprintIdx", nullable = false)
-    private int footprintIdx;
+    private Integer tagIdx;
 
     @Column(name = "userIdx", nullable = false)
-    private int userIdx;
+    private Integer userIdx;
 
     @Column(name = "status", length = 20, nullable = false)
     private String status;
 
+    @OneToOne(targetEntity = Hashtag.class, fetch = FetchType.LAZY)
+    @JoinColumn(name = "hashtagIdx")
+    private Hashtag hashtag;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "footprintIdx")
+    private Footprint footprint;
+
     @Builder
-    public Tag(int tagIdx, int hashtagIdx, int footprintIdx, int userIdx, String status) {
+    public Tag(Integer tagIdx, Integer userIdx, String status) {
         this.tagIdx = tagIdx;
-        this.hashtagIdx = hashtagIdx;
-        this.footprintIdx = footprintIdx;
         this.userIdx = userIdx;
         this.status = status;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        this.status = this.status == null ? "ACTIVE" : this.status;
+    }
+
+    public void setHashtag(Hashtag hashtag) {
+        this.hashtag = hashtag;
+    }
+
+    public void setFootprint(Footprint footprint) {
+        this.footprint = footprint;
+        if (!footprint.getTagList().contains(this)) {
+            footprint.addTagList(this);
+        }
     }
 }

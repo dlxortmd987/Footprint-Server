@@ -17,7 +17,7 @@ public class Badge {
     @Id
     @Column(name = "badgeIdx")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int badgeIdx;
+    private Integer badgeIdx;
 
     @Column(name = "badgeName", length = 20, nullable = false)
     private String badgeName;
@@ -29,7 +29,7 @@ public class Badge {
     private LocalDateTime badgeDate;
 
     @Builder
-    public Badge(int badgeIdx, String badgeName, String badgeUrl, LocalDateTime badgeDate) {
+    public Badge(Integer badgeIdx, String badgeName, String badgeUrl, LocalDateTime badgeDate) {
         this.badgeIdx = badgeIdx;
         this.badgeName = badgeName;
         this.badgeUrl = badgeUrl;
