@@ -10,6 +10,7 @@ import com.umc.footprint.src.users.UserService;
 import com.umc.footprint.src.walks.model.*;
 
 import com.umc.footprint.utils.AES128;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,12 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -372,4 +379,60 @@ public class WalkService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public GetWalkInfo getWalkInfo(int walkIdx) throws BaseException {
+        try {
+            Walk walk = walkRepository.findByWalkIdx(walkIdx)
+                    .orElseThrow(() -> new BaseException(INVALID_WALKIDX));
+
+            if(!walk.getStatus().equals("ACTIVE")) {
+                throw new BaseException(INVALID_WALKIDX);
+            }
+
+            String encryptPathImg = new AES128(encryptProperties.getKey()).decrypt(walk.getPathImageUrl());
+            List<ArrayList<Double>> coordinates = convertStringTo2DList(walk.getCoordinate());
+            GetWalkTime getWalkTime = walkDao.getWalkTime(walkIdx);
+            Integer footCount = walkDao.getFootCount(walkIdx);
+
+            GetWalkInfo getWalkInfo = GetWalkInfo.builder()
+                    .walkIdx(walk.getWalkIdx())
+                    .getWalkTime(getWalkTime)
+                    .calorie(walk.getCalorie())
+                    .distance(walk.getDistance())
+                    .footCount(footCount)
+                    .pathImageUrl(encryptPathImg)
+                    .coordinate(coordinates)
+                    .build();
+
+            return getWalkInfo;
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    //yummy path : String -> List<List<Double>>
+    @SneakyThrows
+    public List<ArrayList<Double>> convertStringTo2DList(String inputString) {
+
+        // inputString은 파라미터로 바꾸기!
+        ArrayList<ArrayList<Double>> coordinate = new ArrayList<>();
+        String decryptTest = new AES128(encryptProperties.getKey()).decrypt(inputString);
+
+
+        decryptTest = decryptTest.substring(17, decryptTest.length()-2);
+        String[] strArr = decryptTest.split(",");
+
+        for(String coor : strArr) {
+            String[] coorArr = coor.split("\\s"); // 공백 기준 구분
+            ArrayList<Double> temp = new ArrayList<>();
+            temp.add(Double.parseDouble(coorArr[0]));
+            temp.add(Double.parseDouble(coorArr[1]));
+            coordinate.add(temp);
+        }
+        log.info(String.valueOf(coordinate.get(0).get(0)));
+        log.info(String.valueOf(coordinate.get(0).get(1)));
+
+        System.out.println(coordinate);
+        return coordinate;
+    }
 }
