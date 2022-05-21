@@ -12,11 +12,11 @@ public class NoticeList {
     private int noticeIdx;
     private String title;
     private boolean isNewNotice;
-    private LocalDateTime createAt;
-    private LocalDateTime updateAt;
+    private String createAt;
+    private String updateAt;
 
     @Builder
-    public NoticeList(int noticeIdx, String title, boolean isNewNotice, LocalDateTime createAt, LocalDateTime updateAt) {
+    public NoticeList(int noticeIdx, String title, boolean isNewNotice, String createAt, String updateAt) {
         this.noticeIdx = noticeIdx;
         this.title = title;
         this.isNewNotice = isNewNotice;

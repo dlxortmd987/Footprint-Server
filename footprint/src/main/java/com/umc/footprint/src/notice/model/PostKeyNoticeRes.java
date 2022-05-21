@@ -10,10 +10,10 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class PostKeyNoticeRes {
-    private List<Notice> keyNoticeList;
+    private List<GetNoticeRes> keyNoticeList;
 
     @Builder
-    public PostKeyNoticeRes(List<Notice> keyNoticeList) {
+    public PostKeyNoticeRes(List<GetNoticeRes> keyNoticeList) {
         this.keyNoticeList = keyNoticeList;
     }
 }

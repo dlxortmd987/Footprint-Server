@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -47,7 +48,8 @@ public class NoticeService {
         // NoticList 형식으로 mapping 진행
         Page<NoticeList> map = findNotice.map(notice -> new NoticeList(notice.getNoticeIdx(), notice.getTitle(),
                                                                 notice.getCreateAt().isAfter(LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(5)),
-                                                                notice.getCreateAt(), notice.getUpdateAt()));
+                                                                notice.getCreateAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                                                                notice.getUpdateAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))));
 
         // 현재 페이지와 전체 페이지를 포함한 GetNoticeListRes 생성
         GetNoticeListRes getNoticeListRes = GetNoticeListRes.builder()
@@ -106,7 +108,8 @@ public class NoticeService {
         int finalPreNoticeIdx = preNoticeIdx;
         int finalPostNoticeIdx = postNoticeIdx;
         Optional<GetNoticeRes> getNoticeRes = noticeByIdx.map(notice -> new GetNoticeRes(notice.getNoticeIdx(), notice.getTitle(), notice.getNotice(),
-                notice.getImage(), isNewNotice, finalPreNoticeIdx, finalPostNoticeIdx, notice.getCreateAt(), notice.getUpdateAt()));
+                notice.getImage(), isNewNotice, finalPreNoticeIdx, finalPostNoticeIdx,
+                notice.getCreateAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")), notice.getUpdateAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))));
 
         System.out.println("noticeByIdx = " + noticeByIdx);
         if(noticeByIdx.equals(Optional.empty())){
@@ -146,12 +149,22 @@ public class NoticeService {
         List<Notice> keyNoticeList = noticeRepository.findAllByKeyAndStatus(true,"ACTIVE");
 
         // 결과 Notice 들을 담을 ArrayList
-        List<Notice> result = new ArrayList<>();
+        List<GetNoticeRes> result = new ArrayList<>();
 
         // 클라이언트에서 이미 확인한 주요 공지 index를 제외한 주요 공지들만 result에 넣어준다.
         for(Notice keyNotice : keyNoticeList){
             if(!checkedKeyNoticeIdxList.contains(keyNotice.getNoticeIdx()))
-                result.add(keyNotice);
+
+                result.add(GetNoticeRes.builder()
+                        .noticeIdx(keyNotice.getNoticeIdx())
+                        .title(keyNotice.getTitle())
+                        .notice(keyNotice.getNotice())
+                        .preIdx(-1)
+                        .postIdx(-1)
+                        .image(keyNotice.getImage())
+                        .createAt(keyNotice.getCreateAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                        .updateAt(keyNotice.getUpdateAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+                        .build());
         }
 
         return PostKeyNoticeRes.builder().keyNoticeList(result).build();
