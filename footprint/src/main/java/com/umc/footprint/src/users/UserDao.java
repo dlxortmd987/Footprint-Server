@@ -16,6 +16,7 @@ import javax.sql.DataSource;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -316,6 +317,7 @@ public class UserDao {
 
     // 해당 userIdx를 갖는 오늘 산책 관련 정보 조회
     public GetUserTodayRes getUserToday(int userIdx){
+        System.out.println("Check Point Dao.1");
         String getUserTodayQuery = "SELECT SUM(W.goalRate) as goalRate, G.walkGoalTime, " +
                 "SUM(TIMESTAMPDIFF(second ,W.startAt,W.endAt)) as walkTime, " +
                 "SUM(W.distance) as distance, " +
@@ -326,8 +328,10 @@ public class UserDao {
                 "WHERE W.userIdx = ? AND DATE(W.startAt) = DATE(NOW()) AND W.status = 'ACTIVE' " +
                 "GROUP BY G.walkGoalTime ";
         int getUserIdxParam = userIdx;
+        System.out.println("Check Point Dao.2");
 
         try {
+            System.out.println("Check Point Dao.3");
             GetUserTodayRes getUserTodayRes =  this.jdbcTemplate.queryForObject(getUserTodayQuery,
                     (rs, rowNum) -> GetUserTodayRes.builder()
                             .goalRate((float)Math.floor(rs.getFloat("goalRate")))
@@ -338,10 +342,12 @@ public class UserDao {
                             .build()
                     , getUserIdxParam, getUserIdxParam);
 
+            System.out.println("Check Point Dao.4");
 
             return getUserTodayRes;
 
         } catch(EmptyResultDataAccessException e){
+            System.out.println("Check Point Dao.exception");
             String getWalkGoalQuery = "SELECT walkGoalTime FROM Goal WHERE useridx = ? and MONTH(createAt) = MONTH(NOW())";
             int walkGoalTime = this.jdbcTemplate.queryForObject(getWalkGoalQuery,int.class,userIdx);
 
@@ -836,8 +842,8 @@ public class UserDao {
 
         // 1. Goal Table에 userIdx에 맞는 walkGoalTime, walkTimeSlot Create
         int result1; // 1에서 update 확인용 result
-        String createUserGoalTimeQuery = "INSERT INTO Goal (userIdx,walkGoalTime,walkTimeSlot) VALUES (?,?,?)";
-        Object[] createUserGoalTimeParams = new Object[]{userIdx, patchUserInfoReq.getWalkGoalTime(), patchUserInfoReq.getWalkTimeSlot()};
+        String createUserGoalTimeQuery = "INSERT INTO Goal (userIdx,walkGoalTime,walkTimeSlot,createAt) VALUES (?,?,?,?)";
+        Object[] createUserGoalTimeParams = new Object[]{userIdx, patchUserInfoReq.getWalkGoalTime(), patchUserInfoReq.getWalkTimeSlot(), LocalDateTime.now(ZoneId.of("Asia/Seoul"))};
         result1 = this.jdbcTemplate.update(createUserGoalTimeQuery,createUserGoalTimeParams);
 
         // 2. GoalDay Table에 sun~fri Create
@@ -848,8 +854,8 @@ public class UserDao {
             days[dayIdx-1] = true;
         }
 
-        String createUserGoalDayQuery = "INSERT INTO GoalDay (userIdx,sun,mon,tue,wed,thu,fri,sat) VALUES (?,?,?,?,?,?,?,?)";
-        Object[] createUserGoalDayParams = new Object[]{ userIdx, days[0], days[1], days[2], days[3], days[4], days[5], days[6]};
+        String createUserGoalDayQuery = "INSERT INTO GoalDay (userIdx,sun,mon,tue,wed,thu,fri,sat,createAt) VALUES (?,?,?,?,?,?,?,?,?)";
+        Object[] createUserGoalDayParams = new Object[]{ userIdx, days[0], days[1], days[2], days[3], days[4], days[5], days[6], LocalDateTime.now(ZoneId.of("Asia/Seoul"))};
         result2 = this.jdbcTemplate.update(createUserGoalDayQuery,createUserGoalDayParams);
 
         if (result1 == 0 || result2 == 0) // result1 과 result2 중 하나라도 0이면(영향을 미치지 못함) 0 return
@@ -868,8 +874,8 @@ public class UserDao {
 
         // 1. GoalNext Table에 userIdx에 맞는 walkGoalTime, walkTimeSlot Create
         int result1; // 1에서 update 확인용 result
-        String createUserGoalTimeQuery = "INSERT INTO GoalNext (userIdx,walkGoalTime,walkTimeSlot) VALUES (?,?,?)";
-        Object[] createUserGoalTimeNextParams = new Object[]{userIdx, patchUserInfoReq.getWalkGoalTime(), patchUserInfoReq.getWalkTimeSlot()};
+        String createUserGoalTimeQuery = "INSERT INTO GoalNext (userIdx,walkGoalTime,walkTimeSlot,createAt,updateAt) VALUES (?,?,?,?,?)";
+        Object[] createUserGoalTimeNextParams = new Object[]{userIdx, patchUserInfoReq.getWalkGoalTime(), patchUserInfoReq.getWalkTimeSlot(), LocalDateTime.now(ZoneId.of("Asia/Seoul")), LocalDateTime.now(ZoneId.of("Asia/Seoul"))};
         result1 = this.jdbcTemplate.update(createUserGoalTimeQuery,createUserGoalTimeNextParams);
 
         // 2. GoalDayNext Table에 sun~fri Create
@@ -880,8 +886,8 @@ public class UserDao {
             days[dayIdx-1] = true;
         }
 
-        String createUserGoalDayQuery = "INSERT INTO GoalDayNext (userIdx,sun,mon,tue,wed,thu,fri,sat) VALUES (?,?,?,?,?,?,?,?)";
-        Object[] createUserGoalDayNextParams = new Object[]{ userIdx, days[0], days[1], days[2], days[3], days[4], days[5], days[6]};
+        String createUserGoalDayQuery = "INSERT INTO GoalDayNext (userIdx,sun,mon,tue,wed,thu,fri,sat,createAt,updateAt) VALUES (?,?,?,?,?,?,?,?,?,?)";
+        Object[] createUserGoalDayNextParams = new Object[]{ userIdx, days[0], days[1], days[2], days[3], days[4], days[5], days[6], LocalDateTime.now(ZoneId.of("Asia/Seoul")), LocalDateTime.now(ZoneId.of("Asia/Seoul"))};
         result2 = this.jdbcTemplate.update(createUserGoalDayQuery,createUserGoalDayNextParams);
 
         if (result1 == 0 || result2 == 0) // result1 과 result2 중 하나라도 0이면(영향을 미치지 못함) 0 return
@@ -1204,6 +1210,7 @@ public class UserDao {
     public int getUserIdx(String userId) {
         log.debug("userId: {}", userId);
         String getUserIdxQuery = "select userIdx from User where userId = ?";
+        System.out.println("this.jdbcTemplate.queryForObject(getUserIdxQuery, int.class, userId) = " + this.jdbcTemplate.queryForObject(getUserIdxQuery, int.class, userId));
         return this.jdbcTemplate.queryForObject(getUserIdxQuery, int.class, userId);
     }
 

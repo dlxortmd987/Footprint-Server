@@ -40,7 +40,14 @@ public class UserProvider {
     // 해당 userIdx를 갖는 오늘 산책 관련 정보 조회
     public GetUserTodayRes getUserToday(int userIdx) throws BaseException {
 
+        System.out.println("Check Point Prov.1");
         GetUserTodayRes userTodayRes = userDao.getUserToday(userIdx);
+        System.out.println("Check Point Prov.2");
+
+        System.out.println("userTodayRes.getWalkTime() = " + userTodayRes.getWalkTime());
+        System.out.println("userTodayRes.getCalorie() = " + userTodayRes.getCalorie());
+        System.out.println("userTodayRes.getDistance() = " + userTodayRes.getDistance());
+        System.out.println("userTodayRes.getWalkGoalTime() = " + userTodayRes.getWalkGoalTime());
 
         log.debug("userTodayRes: {}", userTodayRes);
 
