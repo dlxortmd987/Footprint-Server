@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -195,7 +196,16 @@ public class WalkService {
             Long walkTime = Duration.between(walk.getStartAt(), walk.getEndAt()).getSeconds();
             log.debug("walkTime: {}", walkTime);
             // 산책 목표 시간
-            Long walkGoalTime = goalRepository.findByUserIdx(userIdx).get().getWalkGoalTime() * MINUTES_TO_SECONDS;
+            List<Goal> userGoalList = goalRepository.findByUserIdx(userIdx);
+            Goal userGoal = Goal.builder().build();
+            for(Goal goal : userGoalList ){
+                LocalDate goalCreateAt = goal.getCreateAt().toLocalDate();
+                if(goalCreateAt.getMonth().equals(LocalDate.now().getMonth()) && goalCreateAt.getYear() == LocalDate.now().getYear()){
+                    userGoal = goal;
+                    break;
+                }
+            }
+            Long walkGoalTime = userGoal.getWalkGoalTime() * MINUTES_TO_SECONDS;
             log.debug("walkGoalTime: {}", walkGoalTime);
             // (산책 끝 시간 - 산책 시작 시간) / 산책 목표 시간
             Double goalRate =(walkTime.doubleValue() / walkGoalTime.doubleValue())*100.0;

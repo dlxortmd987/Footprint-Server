@@ -63,4 +63,32 @@ public class GoalDayNext {
         this.createAt = createAt;
         this.updateAt = updateAt;
     }
+
+    public void setSun(Integer sun) {
+        this.sun = sun;
+    }
+
+    public void setMon(Integer mon) {
+        this.mon = mon;
+    }
+
+    public void setTue(Integer tue) {
+        this.tue = tue;
+    }
+
+    public void setWed(Integer wed) {
+        this.wed = wed;
+    }
+
+    public void setThu(Integer thu) {
+        this.thu = thu;
+    }
+
+    public void setFri(Integer fri) {
+        this.fri = fri;
+    }
+
+    public void setSat(Integer sat) {
+        this.sat = sat;
+    }
 }

@@ -157,38 +157,38 @@ public class UserProvider {
     }
 
 
-    // 해당 userIdx를 갖는 유저의 정보 조회
-    public GetUserRes getUser(int userIdx) throws BaseException {
-        try {
-            boolean userExist = userDao.checkUser(userIdx, "User");
-            // 해당 유저가 존재하지 않음
-            if (userExist == false) {
-                throw new BaseException(INVALID_USERIDX);
-            }
-
-            // 유저 상태에 따른 validation
-            String status = userDao.getStatus(userIdx, "User");
-            if (status.equals("INACTIVE")) {
-                throw new BaseException(INACTIVE_USER);
-            }
-            else if (status.equals("BLACK")) {
-                throw new BaseException(BLACK_USER);
-            }
-
-            GetUserRes getUserRes = userDao.getUser(userIdx);
-            getUserRes.setUsername(new AES128(encryptProperties.getKey()).decrypt(getUserRes.getUsername()));
-            getUserRes.setEmail(new AES128(encryptProperties.getKey()).decrypt(getUserRes.getEmail()));
-            if(getUserRes.getBadgeUrl() == null)
-                getUserRes.setBadgeUrl("");
-            if(getUserRes.getBirth() == null)
-                getUserRes.setBirth(Timestamp.valueOf("1900-01-01"));
-
-            return getUserRes;
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            throw new BaseException(DATABASE_ERROR);
-        }
-    }
+//    // 해당 userIdx를 갖는 유저의 정보 조회
+//    public GetUserRes getUser(int userIdx) throws BaseException {
+//        try {
+//            boolean userExist = userDao.checkUser(userIdx, "User");
+//            // 해당 유저가 존재하지 않음
+//            if (userExist == false) {
+//                throw new BaseException(INVALID_USERIDX);
+//            }
+//
+//            // 유저 상태에 따른 validation
+//            String status = userDao.getStatus(userIdx, "User");
+//            if (status.equals("INACTIVE")) {
+//                throw new BaseException(INACTIVE_USER);
+//            }
+//            else if (status.equals("BLACK")) {
+//                throw new BaseException(BLACK_USER);
+//            }
+//
+//            GetUserRes getUserRes = userDao.getUser(userIdx);
+//            getUserRes.setUsername(new AES128(encryptProperties.getKey()).decrypt(getUserRes.getUsername()));
+//            getUserRes.setEmail(new AES128(encryptProperties.getKey()).decrypt(getUserRes.getEmail()));
+//            if(getUserRes.getBadgeUrl() == null)
+//                getUserRes.setBadgeUrl("");
+//            if(getUserRes.getBirth() == null)
+//                getUserRes.setBirth(Timestamp.valueOf("1900-01-01"));
+//
+//            return getUserRes;
+//        } catch (Exception exception) {
+//            exception.printStackTrace();
+//            throw new BaseException(DATABASE_ERROR);
+//        }
+//    }
 
 
     // yummy 11
