@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import com.umc.footprint.src.users.model.*;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -177,6 +178,11 @@ public class UserProvider {
             GetUserRes getUserRes = userDao.getUser(userIdx);
             getUserRes.setUsername(new AES128(encryptProperties.getKey()).decrypt(getUserRes.getUsername()));
             getUserRes.setEmail(new AES128(encryptProperties.getKey()).decrypt(getUserRes.getEmail()));
+            if(getUserRes.getBadgeUrl() == null)
+                getUserRes.setBadgeUrl("");
+            if(getUserRes.getBirth() == null)
+                getUserRes.setBirth(Timestamp.valueOf("1900-01-01"));
+
             return getUserRes;
         } catch (Exception exception) {
             exception.printStackTrace();
