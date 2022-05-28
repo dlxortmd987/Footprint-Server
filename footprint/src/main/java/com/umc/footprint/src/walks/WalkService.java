@@ -19,12 +19,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -393,6 +387,12 @@ public class WalkService {
             List<ArrayList<Double>> coordinates = convertStringTo2DList(walk.getCoordinate());
             GetWalkTime getWalkTime = walkDao.getWalkTime(walkIdx);
             Integer footCount = walkDao.getFootCount(walkIdx);
+            List<String> strFootCoordinate = footprintRepository.getCoordinateByWalk(walk);
+
+            List<List<Double>> footCoordinate = new ArrayList<>();
+            for(String fc : strFootCoordinate) {
+//                List<Double> = new
+            }//TODOLjiwon
 
             GetWalkInfo getWalkInfo = GetWalkInfo.builder()
                     .walkIdx(walk.getWalkIdx())
@@ -408,6 +408,14 @@ public class WalkService {
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
+    }
+
+    // 발자국 좌표 암호화된 문자열을 리스트로 변환하는 함수
+    @SneakyThrows
+    public String convertStringToList(String str) {
+        String test = new AES128(encryptProperties.getKey()).decrypt(str);
+        test = test.substring(1,test.length()-1);
+        return test;
     }
 
     //yummy path : String -> List<List<Double>>
