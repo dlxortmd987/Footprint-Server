@@ -87,4 +87,24 @@ public class User {
     public void setBadgeIdx(int badgeIdx) {
         this.badgeIdx = badgeIdx;
     }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void setBirth(LocalDateTime birth) {
+        this.birth = birth;
+    }
+
+    public void setSex(String sex) {
+        this.sex = sex;
+    }
+
+    public void setHeight(Integer height) {
+        this.height = height;
+    }
+
+    public void setWeight(Integer weight) {
+        this.weight = weight;
+    }
 }
