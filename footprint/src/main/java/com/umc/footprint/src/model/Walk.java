@@ -13,7 +13,6 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "Walk")
 public class Walk {
-
     @Id
     @Column(name = "walkIdx")
     @GeneratedValue(strategy = GenerationType.IDENTITY)

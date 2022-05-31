@@ -4,8 +4,8 @@ import com.umc.footprint.src.model.Walk;
 import com.umc.footprint.src.walks.model.ObtainedBadgeInterface;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
 import java.util.List;
+import java.util.Optional;
 
 public interface WalkRepository extends JpaRepository<Walk, Integer> {
     @Query(value = "SELECT \n" +
@@ -31,4 +31,6 @@ public interface WalkRepository extends JpaRepository<Walk, Integer> {
     boolean existsByUserIdx(Integer userIdx);
 
     List<Walk> findAllByStatusAndUserIdx(String status,int userIdx);
+    
+    Optional<Walk> findByWalkIdx(Integer walkIdx);
 }
