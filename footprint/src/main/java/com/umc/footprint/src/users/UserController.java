@@ -117,7 +117,7 @@ public class UserController {
             int userIdx = userProvider.getUserIdx(userId);
 
             System.out.println("Check Point Cont.1");
-            GetUserTodayRes userTodayRes = userProvider.getUserToday(userIdx);
+            GetUserTodayRes userTodayRes = userService.getUserToday(userIdx);
             System.out.println("Check Point Cont.2");
 
             return new BaseResponse<>(userTodayRes);
@@ -148,7 +148,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            List<GetUserDateRes> userDateRes = userProvider.getUserDate(userIdx,date);
+            List<GetUserDateRes> userDateRes = userService.getUserDate(userIdx,date);
 
             return new BaseResponse<>(userDateRes);
         } catch (BaseException exception){
@@ -171,7 +171,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            GetUserRes getUserRes = userProvider.getUser(userIdx);
+            GetUserRes getUserRes = userService.getUser(userIdx);
             return new BaseResponse<>(getUserRes);
         } catch (BaseException exception) {
             exception.printStackTrace();
@@ -204,7 +204,7 @@ public class UserController {
                 throw new BaseException(BaseResponseStatus.INVALID_BIRTH);
             }
 
-            userService.modifyUserInfo(userIdx, patchUserInfoReq);
+            userService.modifyUserInfoJPA(userIdx, patchUserInfoReq);
 
             String result = "유저 정보가 수정되었습니다.";
             
@@ -229,7 +229,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            GetUserGoalRes getUserGoalRes = userProvider.getUserGoal(userIdx);
+            GetUserGoalRes getUserGoalRes = userService.getUserGoal(userIdx);
             return new BaseResponse<>(getUserGoalRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -252,7 +252,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            GetUserGoalRes getUserGoalRes = userProvider.getUserGoalNext(userIdx);
+            GetUserGoalRes getUserGoalRes = userService.getUserGoalNext(userIdx);
             return new BaseResponse<>(getUserGoalRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -333,7 +333,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            userService.modifyGoal(userIdx, patchUserGoalReq);
+            userService.modifyGoalJPA(userIdx, patchUserGoalReq);
 
             String result ="목표가 수정되었습니다.";
 
@@ -450,9 +450,22 @@ public class UserController {
             log.debug("유저 id: {}", userId);
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
+//
+//            GetUserInfoRes getUserInfoRes = userProvider.getUserInfo(userIdx);
 
-            GetUserInfoRes getUserInfoRes = userProvider.getUserInfo(userIdx);
-            return new BaseResponse<>(getUserInfoRes);
+            // 1. user 달성률 정보
+            UserInfoAchieve userInfoAchieve = userService.getUserInfoAchieve(userIdx);
+            System.out.println("userInfoAchieve = " + userInfoAchieve);
+            // 2. user 이번달 목표 정보
+            GetUserGoalRes getUserGoalRes = userService.getUserGoal(userIdx);
+            System.out.println("getUserGoalRes = " + getUserGoalRes);
+            // 3. user 통계 정보
+            UserInfoStat userInfoStat = userService.getUserInfoStat(userIdx);
+            System.out.println("userInfoStat = " + userInfoStat);
+
+            // 4. 1+2+3
+            return new BaseResponse<>(new GetUserInfoRes(userInfoAchieve,getUserGoalRes,userInfoStat));
+//            return new BaseResponse<>(getUserInfoRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
         }

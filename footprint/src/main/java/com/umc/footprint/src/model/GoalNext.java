@@ -41,4 +41,12 @@ public class GoalNext {
         this.createAt = createAt;
         this.updateAt = updateAt;
     }
+
+    public void setWalkGoalTime(Integer walkGoalTime) {
+        this.walkGoalTime = walkGoalTime;
+    }
+
+    public void setWalkTimeSlot(Integer walkTimeSlot) {
+        this.walkTimeSlot = walkTimeSlot;
+    }
 }

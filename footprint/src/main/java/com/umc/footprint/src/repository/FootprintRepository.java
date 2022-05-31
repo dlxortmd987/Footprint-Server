@@ -7,8 +7,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
 public interface FootprintRepository extends JpaRepository<Footprint, Integer> {
     List<String> findCoordinateByWalk(Walk walk);
-
 }
