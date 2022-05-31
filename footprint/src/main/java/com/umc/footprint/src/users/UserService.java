@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.umc.footprint.config.BaseResponseStatus.*;
 
@@ -71,7 +72,7 @@ public class UserService {
                 );
             }
 
-            List<Walk> allByUserIdx = walkRepository.findAllByUserIdxOrderByWalkIdx(userIdx);
+            List<Integer> allByUserIdx = walkRepository.findAllByUserIdxOrderByWalkIdx(userIdx).stream().map(Walk::getWalkIdx).collect(Collectors.toList());
 
             // response 객체
             List<GetTagRes> getTagResList = new ArrayList<>();
@@ -104,7 +105,7 @@ public class UserService {
                                         // 산책 정보
                                         .userDateWalk(
                                                 UserDateWalk.builder()
-                                                        .walkIdx(allByUserIdx.indexOf(walkHashtag.getWalkIdx()))
+                                                        .walkIdx(allByUserIdx.indexOf(walkHashtag.getWalkIdx()) + 1)
                                                         .startTime(walkHashtag.getStartAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                                                         .endTime(walkHashtag.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                                                         .pathImageUrl(new AES128(encryptProperties.getKey()).decrypt(walkHashtag.getPathImageUrl()))
