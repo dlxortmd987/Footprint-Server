@@ -3,16 +3,15 @@ package com.umc.footprint.src.walks;
 import com.umc.footprint.config.BaseException;
 
 import com.umc.footprint.config.EncryptProperties;
-import com.umc.footprint.src.AwsS3Service;
+import com.umc.footprint.src.footprints.FootprintDao;
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
-import com.umc.footprint.src.users.UserService;
 import com.umc.footprint.src.walks.model.*;
 
 import com.umc.footprint.utils.AES128;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Propagation;
@@ -30,10 +29,9 @@ import static com.umc.footprint.config.Constant.MINUTES_TO_SECONDS;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class WalkService {
     private final WalkDao walkDao;
-    private final WalkProvider walkProvider;
-    private final UserService userService;
     private final UserRepository userRepository;
     private final WalkRepository walkRepository;
     private final FootprintRepository footprintRepository;
@@ -43,28 +41,8 @@ public class WalkService {
     private final GoalRepository goalRepository;
     private final UserBadgeRepository userBadgeRepository;
     private final BadgeRepository badgeRepository;
-    private final AwsS3Service awsS3Service;
     private final EncryptProperties encryptProperties;
-    private final GoalNextRepository goalNextRepository;
-
-    @Autowired
-    public WalkService(WalkDao walkDao, WalkProvider walkProvider, UserService userService, UserRepository userRepository, WalkRepository walkRepository, FootprintRepository footprintRepository, PhotoRepository photoRepository, HashtagRepository hashtagRepository, TagRepository tagRepository, GoalRepository goalRepository, UserBadgeRepository userBadgeRepository, BadgeRepository badgeRepository, AwsS3Service awsS3Service, EncryptProperties encryptProperties, GoalNextRepository goalNextRepository) {
-        this.walkDao = walkDao;
-        this.walkProvider = walkProvider;
-        this.userService = userService;
-        this.userRepository = userRepository;
-        this.walkRepository = walkRepository;
-        this.footprintRepository = footprintRepository;
-        this.photoRepository = photoRepository;
-        this.hashtagRepository = hashtagRepository;
-        this.tagRepository = tagRepository;
-        this.goalRepository = goalRepository;
-        this.userBadgeRepository = userBadgeRepository;
-        this.badgeRepository = badgeRepository;
-        this.awsS3Service = awsS3Service;
-        this.encryptProperties = encryptProperties;
-        this.goalNextRepository = goalNextRepository;
-    }
+    private final FootprintDao footprintDao;
 
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public List<PostWalkRes> saveRecord(String userId,PostWalkReq request) throws BaseException {
@@ -373,6 +351,7 @@ public class WalkService {
         }
     }
 
+    @SneakyThrows
     @Transactional(readOnly = true)
     public GetWalkInfo getWalkInfo(int walkIdx) throws BaseException {
         try {
@@ -382,17 +361,17 @@ public class WalkService {
             if(!walk.getStatus().equals("ACTIVE")) {
                 throw new BaseException(INVALID_WALKIDX);
             }
-
+            //TODO : dao to JPA로 refactoring!
             String encryptPathImg = new AES128(encryptProperties.getKey()).decrypt(walk.getPathImageUrl());
             List<ArrayList<Double>> coordinates = convertStringTo2DList(walk.getCoordinate());
             GetWalkTime getWalkTime = walkDao.getWalkTime(walkIdx);
             Integer footCount = walkDao.getFootCount(walkIdx);
-            List<String> strFootCoordinate = footprintRepository.getCoordinateByWalk(walk);
+            List<String> strFootCoordinate = footprintDao.getCoordinates(walkIdx);
 
             List<List<Double>> footCoordinate = new ArrayList<>();
             for(String fc : strFootCoordinate) {
-//                List<Double> = new
-            }//TODOLjiwon
+                footCoordinate.add(convertStringToList(fc));
+            }
 
             GetWalkInfo getWalkInfo = GetWalkInfo.builder()
                     .walkIdx(walk.getWalkIdx())
@@ -400,6 +379,7 @@ public class WalkService {
                     .calorie(walk.getCalorie())
                     .distance(walk.getDistance())
                     .footCount(footCount)
+                    .footCoordinates(footCoordinate)
                     .pathImageUrl(encryptPathImg)
                     .coordinate(coordinates)
                     .build();
@@ -412,22 +392,27 @@ public class WalkService {
 
     // 발자국 좌표 암호화된 문자열을 리스트로 변환하는 함수
     @SneakyThrows
-    public String convertStringToList(String str) {
+    public List<Double> convertStringToList(String str) {
         String test = new AES128(encryptProperties.getKey()).decrypt(str);
+        if(test.startsWith("POINT")) {
+            test = test.substring(5);
+        }
         test = test.substring(1,test.length()-1);
-        return test;
+        String[] sp = test.split(" ");
+        List<Double> list = new ArrayList<>();
+        list.add(Double.parseDouble(sp[0]));
+        list.add(Double.parseDouble(sp[1]));
+        return list;
     }
 
     //yummy path : String -> List<List<Double>>
     @SneakyThrows
     public List<ArrayList<Double>> convertStringTo2DList(String inputString) {
 
-        // inputString은 파라미터로 바꾸기!
         ArrayList<ArrayList<Double>> coordinate = new ArrayList<>();
         String decryptTest = new AES128(encryptProperties.getKey()).decrypt(inputString);
 
-
-        decryptTest = decryptTest.substring(17, decryptTest.length()-2);
+        decryptTest = decryptTest.substring(17, decryptTest.length()-2); //MULTISTRING((, ) split
         String[] strArr = decryptTest.split(",");
 
         for(String coor : strArr) {
@@ -437,10 +422,7 @@ public class WalkService {
             temp.add(Double.parseDouble(coorArr[1]));
             coordinate.add(temp);
         }
-        log.info(String.valueOf(coordinate.get(0).get(0)));
-        log.info(String.valueOf(coordinate.get(0).get(1)));
 
-        System.out.println(coordinate);
         return coordinate;
     }
 }

@@ -101,12 +101,6 @@ public class WalkController {
         }
     }
 
-    @GetMapping("/test")
-    public String testFoot() {
-        String str = "FHcYb92BJCQWkOyQvbAt6dWISAEqgYGSgBdjs2JdtrA=";
-        return walkService.convertStringToList(str);
-    }
-
     //yummy 21
     //해당 산책의 기록(발자국) 전체 삭제
     @ResponseBody
