@@ -34,16 +34,16 @@ public class WeatherController {
     private String serviceKey;
 
     @ResponseBody
-    @GetMapping("")
-    public BaseResponse<PostWeatherRes> GetWeather(@RequestParam(value = "nx") String nx,@RequestParam(value = "ny") String ny) throws IOException {
+    @PostMapping("")
+    public BaseResponse<PostWeatherRes> PostWeather(@RequestBody String request) throws IOException {
 
-
+        PostWeatherReq postWeatherReq = new ObjectMapper().readValue(request, PostWeatherReq.class);
 
         String apiUrl = "https://api.openweathermap.org/data/2.5/weather";
 
         StringBuilder urlBuilder = new StringBuilder(apiUrl);
-        urlBuilder.append("?"+URLEncoder.encode("lat", "UTF-8") + "=" + URLEncoder.encode("37", "UTF-8"));
-        urlBuilder.append("&"+URLEncoder.encode("lon", "UTF-8") + "=" + URLEncoder.encode("127", "UTF-8"));
+        urlBuilder.append("?"+URLEncoder.encode("lat", "UTF-8") + "=" + URLEncoder.encode("37.54", "UTF-8"));
+        urlBuilder.append("&"+URLEncoder.encode("lon", "UTF-8") + "=" + URLEncoder.encode("127.08", "UTF-8"));
         urlBuilder.append("&"+URLEncoder.encode("appid", "UTF-8") + "=" + serviceKey);
         urlBuilder.append("&"+URLEncoder.encode("units", "UTF-8") + "=" + URLEncoder.encode("metric", "UTF-8"));
 
