@@ -53,11 +53,6 @@ public class WalkController {
     @ResponseBody
     @PostMapping("") // (POST) 127.0.0.1:3000/walks/
     @ApiOperation(value = "산책 기록 저장")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "walk", value = "산책 정보", required = true),
-            @ApiImplicitParam(name = "footprintList", value = "발자국 정보", required = false),
-            @ApiImplicitParam(name = "photos", value = "동선 사진 및 발자국에서 남긴 사진들", required = true)
-    })
     public BaseResponse<List<PostWalkRes>> saveRecord(@RequestBody String request) throws BaseException, JsonProcessingException {
 
         ObjectMapper objectMapper = new ObjectMapper();

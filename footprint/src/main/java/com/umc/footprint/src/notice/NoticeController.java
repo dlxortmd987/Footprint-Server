@@ -1,20 +1,14 @@
 package com.umc.footprint.src.notice;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.src.notice.model.*;
-import com.umc.footprint.src.users.model.PostLoginReq;
-import com.umc.footprint.src.users.model.PostLoginRes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -88,4 +82,14 @@ public class NoticeController {
         }
     }
 
+    /**
+     * 버전 조회 API
+     * [GET] /notices/version/:userVersion
+     */
+    @GetMapping("/version/{userVersion}")
+    public BaseResponse<GetVersionCheckRes> checkVersion(@PathVariable("userVersion") String userVersion) {
+        GetVersionCheckRes versionCheck = noticeService.checkVersion(userVersion);
+
+        return new BaseResponse<>(versionCheck);
+    }
 }

@@ -4,6 +4,11 @@ import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.AwsS3Service;
+import com.umc.footprint.src.model.User;
+import com.umc.footprint.src.model.Walk;
+import com.umc.footprint.src.repository.TagRepository;
+import com.umc.footprint.src.repository.UserRepository;
+import com.umc.footprint.src.repository.WalkRepository;
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
 import com.umc.footprint.src.users.model.*;
@@ -33,10 +38,10 @@ public class UserService {
     private final UserDao userDao;
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
+    private final WalkRepository walkRepository;
     private final JwtService jwtService;
     private final AwsS3Service awsS3Service;
     private final EncryptProperties encryptProperties;
-    private final WalkRepository walkRepository;
     private final GoalRepository goalRepository;
     private final GoalNextRepository goalNextRepository;
     private final GoalDayRepository goalDayRepository;
@@ -53,10 +58,10 @@ public class UserService {
         this.userDao = userDao;
         this.userRepository = userRepository;
         this.tagRepository = tagRepository;
+        this.walkRepository = walkRepository;
         this.jwtService = jwtService;
         this.awsS3Service = awsS3Service;
         this.encryptProperties = encryptProperties;
-        this.walkRepository = walkRepository;
         this.goalRepository = goalRepository;
         this.goalNextRepository = goalNextRepository;
         this.goalDayRepository = goalDayRepository;
@@ -89,6 +94,8 @@ public class UserService {
                 );
             }
 
+            List<Integer> allByUserIdx = walkRepository.findAllByUserIdxOrderByWalkIdx(userIdx).stream().map(Walk::getWalkIdx).collect(Collectors.toList());
+
             // response 객체
             List<GetTagRes> getTagResList = new ArrayList<>();
             // response 객체에 저장된 walkIdx (중복 저장 확인용)
@@ -120,7 +127,7 @@ public class UserService {
                                         // 산책 정보
                                         .userDateWalk(
                                                 UserDateWalk.builder()
-                                                        .walkIdx(walkHashtag.getWalkIdx())
+                                                        .walkIdx(allByUserIdx.indexOf(walkHashtag.getWalkIdx()) + 1)
                                                         .startTime(walkHashtag.getStartAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                                                         .endTime(walkHashtag.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                                                         .pathImageUrl(new AES128(encryptProperties.getKey()).decrypt(walkHashtag.getPathImageUrl()))
