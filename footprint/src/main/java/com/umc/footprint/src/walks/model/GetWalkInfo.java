@@ -15,6 +15,7 @@ public class GetWalkInfo {
     private final int calorie;
     private final double distance;
     private final int footCount;
+    private final List<List<Double>> footCoordinates;
     private final String pathImageUrl;
     private final List<ArrayList<Double>> coordinate;
 }
