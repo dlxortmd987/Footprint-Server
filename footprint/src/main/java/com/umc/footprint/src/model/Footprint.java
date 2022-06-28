@@ -79,4 +79,9 @@ public class Footprint {
     public void changeStatus(String status) {
         this.status = status;
     }
+
+    public void recordDecrypt(String decrypt) {
+        this.record = decrypt;
+        this.updateAt = LocalDateTime.now();
+    }
 }

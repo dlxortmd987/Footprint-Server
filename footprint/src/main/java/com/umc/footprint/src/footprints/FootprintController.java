@@ -66,19 +66,9 @@ public class FootprintController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("userId: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
-
-            // Walk 테이블 전체에서 인덱스
-            int wholeWalkIdx = walkProvider.getWalkWholeIdx(walkIdx, userIdx);
-            log.debug("wholeWalkIdx: {}", wholeWalkIdx);
-
-            // Footprint 테이블 전체에서 인덱스
-            int wholeFootprintIdx = footprintProvider.getFootprintWholeIdx(wholeWalkIdx, footprintIdx);
-            log.debug("wholeFootprintIdx: {}", wholeFootprintIdx);
 
             PatchFootprintReq patchFootprintReq = new PatchFootprintReq(footprint.getWrite(), footprint.getPhotos(), footprint.getTagList());
-            footprintService.modifyFootprint(patchFootprintReq, wholeFootprintIdx, userIdx);
+            footprintService.modifyFootprint(patchFootprintReq, walkIdx, footprintIdx, userId);
 
             String result = "발자국이 수정되었습니다.";
             log.debug("result: {}", result);
