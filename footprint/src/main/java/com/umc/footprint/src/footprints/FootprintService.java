@@ -219,13 +219,12 @@ public class FootprintService {
                     decryptPhotoList.add(new AES128(encryptProperties.getKey()).decrypt(photo.getImageUrl()));
                 }
                 for (Tag tag : footprint.getTagList()) {
-                    Optional<Tag> byId = tagRepository.findById(tag.getTagIdx());
-                    decryptTagList.add(new AES128(encryptProperties.getKey()).decrypt(byId.get().getHashtag().getHashtag()));
+                    decryptTagList.add(new AES128(encryptProperties.getKey()).decrypt(tag.getHashtag().getHashtag()));
                 }
                 getFootprintRes.add(GetFootprintRes.builder()
                         .footprintIdx(footprint.getFootprintIdx())
                         .recordAt(footprint.getRecordAt())
-                        .write(footprint.getRecord())
+                        .write(new AES128(encryptProperties.getKey()).decrypt(footprint.getRecord()))
                         .photoList(decryptPhotoList)
                         .tagList(decryptTagList)
                         .onWalk(footprint.getOnWalk())
