@@ -5,7 +5,14 @@ import static com.umc.footprint.config.BaseResponseStatus.*;
 
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.AwsS3Service;
+import com.umc.footprint.src.footprints.model.GetFootprintRes;
 import com.umc.footprint.src.footprints.model.PatchFootprintReq;
+import com.umc.footprint.src.model.Footprint;
+import com.umc.footprint.src.model.Photo;
+import com.umc.footprint.src.model.Tag;
+import com.umc.footprint.src.model.Walk;
+import com.umc.footprint.src.repository.*;
+import com.umc.footprint.src.walks.WalkService;
 import com.umc.footprint.utils.AES128;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,18 +22,31 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class FootprintService {
     private final FootprintDao footprintDao;
     private final FootprintProvider footprintProvider;
+    private final FootprintRepository footprintRepository;
+    private final PhotoRepository photoRepository;
+    private final TagRepository tagRepository;
+    private final HashtagRepository hashtagRepository;
+    private final WalkService walkService;
+    private final UserRepository userRepository;
     private final AwsS3Service awsS3Service;
     private final EncryptProperties encryptProperties;
 
     @Autowired
-    public FootprintService(FootprintDao footprintDao, FootprintProvider footprintProvider, AwsS3Service awsS3Service, EncryptProperties encryptProperties) {
+    public FootprintService(FootprintDao footprintDao, FootprintProvider footprintProvider, FootprintRepository footprintRepository, PhotoRepository photoRepository, TagRepository tagRepository, HashtagRepository hashtagRepository, WalkService walkService, UserRepository userRepository, AwsS3Service awsS3Service, EncryptProperties encryptProperties) {
         this.footprintDao = footprintDao;
         this.footprintProvider = footprintProvider;
+        this.footprintRepository = footprintRepository;
+        this.photoRepository = photoRepository;
+        this.tagRepository = tagRepository;
+        this.hashtagRepository = hashtagRepository;
+        this.walkService = walkService;
+        this.userRepository = userRepository;
         this.awsS3Service = awsS3Service;
         this.encryptProperties = encryptProperties;
     }
@@ -156,5 +176,68 @@ public class FootprintService {
         footprintDao.addPhoto(photoList, userIdx, footprintIdx);
 
         return photoList;
+    }
+
+    // 발자국 조회
+    public List<GetFootprintRes> getFootprints(int walkIdx, String userId) throws BaseException {
+        try {
+            Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
+
+            Walk walkByNumber = walkService.getWalkByNumber(walkIdx, userIdx);
+
+//            List<GetFootprintRes> getFootprintRes = footprintDao.getFootprints(walkIdx);
+
+            List<GetFootprintRes> getFootprintRes = new ArrayList<>();
+
+            List<Footprint> footprintList = footprintRepository.findAllByWalkAndStatus(walkByNumber, "ACTIVE");
+
+            /* 발자국 조회시 복호화를 위한 코드 : write, photo, tag 복호화 필요 */
+
+//            for(GetFootprintRes footprintRes : getFootprintRes){
+//                List<String> decryptPhotoList = new ArrayList<>();
+//                List<String> decryptTagList = new ArrayList<>();
+//
+//                footprintRes.setWrite(new AES128(encryptProperties.getKey()).decrypt(footprintRes.getWrite())); // write 복호화
+//
+//                for(String photo : footprintRes.getPhotoList()){    // photoList 복호화
+//                    decryptPhotoList.add(new AES128(encryptProperties.getKey()).decrypt(photo));
+//                }
+//                footprintRes.setPhotoList(decryptPhotoList);
+//
+//                for(String tag : footprintRes.getTagList()){    // tagList 복호화
+//                    decryptTagList.add(new AES128(encryptProperties.getKey()).decrypt(tag));
+//                }
+//                footprintRes.setTagList(decryptTagList);
+//            }
+
+            for (Footprint footprint : footprintList) {
+                List<String> decryptPhotoList = new ArrayList<>();
+                List<String> decryptTagList = new ArrayList<>();
+
+                List<Photo> photoList = photoRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
+                for (Photo photo : photoList) {
+                    decryptPhotoList.add(new AES128(encryptProperties.getKey()).decrypt(photo.getImageUrl()));
+                }
+                for (Tag tag : footprint.getTagList()) {
+                    Optional<Tag> byId = tagRepository.findById(tag.getTagIdx());
+                    decryptTagList.add(new AES128(encryptProperties.getKey()).decrypt(byId.get().getHashtag().getHashtag()));
+                }
+                getFootprintRes.add(GetFootprintRes.builder()
+                        .footprintIdx(footprint.getFootprintIdx())
+                        .recordAt(footprint.getRecordAt())
+                        .write(footprint.getRecord())
+                        .photoList(decryptPhotoList)
+                        .tagList(decryptTagList)
+                        .onWalk(footprint.getOnWalk())
+                        .build());
+            }
+
+            if (getFootprintRes.isEmpty()){
+                throw new BaseException(NO_FOOTPRINT_IN_WALK); // 산책 기록에 발자국이 없을 때
+            }
+            return getFootprintRes;
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
     }
 }

@@ -75,4 +75,8 @@ public class Footprint {
             walk.getFootprintList().add(this);
         }
     }
+
+    public void changeStatus(String status) {
+        this.status = status;
+    }
 }

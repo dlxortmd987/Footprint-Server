@@ -47,14 +47,8 @@ public class FootprintController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("userId: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
-            // Walk 테이블 전체에서 인덱스
-            int wholeWalkIdx = walkProvider.getWalkWholeIdx(walkIdx, userIdx);
-            log.debug("wholeWalkIdx: {}", wholeWalkIdx);
-
-            List<GetFootprintRes> getFootprintRes = footprintProvider.getFootprints(wholeWalkIdx);
+            List<GetFootprintRes> getFootprintRes = footprintService.getFootprints(walkIdx, userId);
             return new BaseResponse<>(getFootprintRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));

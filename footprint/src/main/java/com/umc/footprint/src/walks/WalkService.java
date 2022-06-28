@@ -12,6 +12,8 @@ import com.umc.footprint.utils.AES128;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Propagation;
@@ -21,6 +23,7 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -343,62 +346,88 @@ public class WalkService {
     }
 
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-    public String deleteWalk(int walkIdx) throws BaseException {
+    public String deleteWalk(int walkIdx, String userId) throws BaseException {
         try {
-            //walkIdx 로 footprintIdx 모두 얻어오기
-            List<Integer> footprintIdxList = walkDao.getFootprintIdxList(walkIdx);
-            for(int footprintIdx : footprintIdxList) {
-                //footprintIdx에 해당하는 photo, tag 모두 INACTIVE
-                walkDao.inactivePhoto(footprintIdx);
-                walkDao.inactiveTag(footprintIdx);
+            Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
+
+            Walk walkByNumber = getWalkByNumber(walkIdx, userIdx);
+
+            List<Footprint> allByWalk = footprintRepository.findAllByWalkAndStatus(walkByNumber, "ACTIVE");
+
+            for (Footprint footprint : allByWalk) {
+                footprint.changeStatus("INACTIVE");
+                List<Photo> photoList = photoRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
+                for (Photo photo : photoList) {
+                    photo.changeStatus("INACTIVE");
+                }
+                photoRepository.saveAll(photoList);
+
+                List<Tag> tagList = tagRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
+                for (Tag tag : tagList) {
+                    tag.changeStatus("INACTIVE");
+                }
+                tagRepository.saveAll(tagList);
             }
+            footprintRepository.saveAll(allByWalk);
+            walkByNumber.changeStatus("INACTIVE");
+            walkRepository.save(walkByNumber);
 
-            String result = walkDao.deleteWalk(walkIdx);
+            //walkIdx 로 footprintIdx 모두 얻어오기
+//            List<Integer> footprintIdxList = walkDao.getFootprintIdxList(walkIdx);
+//            for (int footprintIdx : footprintIdxList) {
+//                //footprintIdx에 해당하는 photo, tag 모두 INACTIVE
+//                walkDao.inactivePhoto(footprintIdx);
+//                walkDao.inactiveTag(footprintIdx);
+//            }
 
-            return result;
+
+
+//            String result = walkDao.deleteWalk(walkIdx);
+
+            return "Success Delete walk record!";
         } catch (Exception exception) { // DB에 이상이 있는 경우 에러 메시지를 보냅니다.
             throw new BaseException(DATABASE_ERROR);
         }
     }
 
-    @SneakyThrows
-    @Transactional(readOnly = true)
-    public GetWalkInfo getWalkInfo(int walkIdx) throws BaseException {
-        try {
-            Walk walk = walkRepository.findByWalkIdx(walkIdx)
-                    .orElseThrow(() -> new BaseException(INVALID_WALKIDX));
-
-            if(!walk.getStatus().equals("ACTIVE")) {
-                throw new BaseException(INVALID_WALKIDX);
-            }
-            //TODO : dao to JPA로 refactoring!
-            String encryptPathImg = new AES128(encryptProperties.getKey()).decrypt(walk.getPathImageUrl());
-            List<ArrayList<Double>> coordinates = convertStringTo2DList(walk.getCoordinate());
-            GetWalkTime getWalkTime = walkDao.getWalkTime(walkIdx);
-            Integer footCount = walkDao.getFootCount(walkIdx);
-            List<String> strFootCoordinate = footprintDao.getCoordinates(walkIdx);
-
-            List<List<Double>> footCoordinate = new ArrayList<>();
-            for(String fc : strFootCoordinate) {
-                footCoordinate.add(convertStringToList(fc));
-            }
-
-            GetWalkInfo getWalkInfo = GetWalkInfo.builder()
-                    .walkIdx(walk.getWalkIdx())
-                    .getWalkTime(getWalkTime)
-                    .calorie(walk.getCalorie())
-                    .distance(walk.getDistance())
-                    .footCount(footCount)
-                    .footCoordinates(footCoordinate)
-                    .pathImageUrl(encryptPathImg)
-                    .coordinate(coordinates)
-                    .build();
-
-            return getWalkInfo;
-        } catch (Exception exception) {
-            throw new BaseException(DATABASE_ERROR);
-        }
-    }
+//    @SneakyThrows
+//    @Transactional(readOnly = true)
+//    public GetWalkInfo getWalkInfo(int walkIdx) throws BaseException {
+//        try {
+//            Walk walk = walkRepository.findByWalkIdx(walkIdx)
+//                    .orElseThrow(() -> new BaseException(INVALID_WALKIDX));
+//
+//            if(!walk.getStatus().equals("ACTIVE")) {
+//                throw new BaseException(INVALID_WALKIDX);
+//            }
+//            //TODO : dao to JPA로 refactoring!
+//            String encryptPathImg = new AES128(encryptProperties.getKey()).decrypt(walk.getPathImageUrl());
+//            List<ArrayList<Double>> coordinates = convertStringTo2DList(walk.getCoordinate());
+//            GetWalkTime getWalkTime = walkDao.getWalkTime(walkIdx);
+//            Integer footCount = walkDao.getFootCount(walkIdx);
+//            List<String> strFootCoordinate = footprintDao.getCoordinates(walkIdx);
+//
+//            List<List<Double>> footCoordinate = new ArrayList<>();
+//            for(String fc : strFootCoordinate) {
+//                footCoordinate.add(convertStringToList(fc));
+//            }
+//
+//            GetWalkInfo getWalkInfo = GetWalkInfo.builder()
+//                    .walkIdx(walk.getWalkIdx())
+//                    .getWalkTime(getWalkTime)
+//                    .calorie(walk.getCalorie())
+//                    .distance(walk.getDistance())
+//                    .footCount(footCount)
+//                    .footCoordinates(footCoordinate)
+//                    .pathImageUrl(encryptPathImg)
+//                    .coordinate(coordinates)
+//                    .build();
+//
+//            return getWalkInfo;
+//        } catch (Exception exception) {
+//            throw new BaseException(DATABASE_ERROR);
+//        }
+//    }
 
     // 발자국 좌표 암호화된 문자열을 리스트로 변환하는 함수
     @SneakyThrows
@@ -422,7 +451,11 @@ public class WalkService {
         ArrayList<ArrayList<Double>> coordinate = new ArrayList<>();
         String decryptTest = new AES128(encryptProperties.getKey()).decrypt(inputString);
 
-        decryptTest = decryptTest.substring(17, decryptTest.length()-2); //MULTISTRING((, ) split
+        if (decryptTest.contains("MULTILINESTRING")) {
+            decryptTest = decryptTest.substring(17, decryptTest.length()-2); //MULTISTRING((, ) split
+        }
+        decryptTest = decryptTest.replace("(", "");
+        decryptTest = decryptTest.replace(")", "");
         String[] strArr = decryptTest.split(",");
 
         for(String coor : strArr) {
@@ -434,5 +467,58 @@ public class WalkService {
         }
 
         return coordinate;
+    }
+
+    public GetWalkInfo getWalkInfo(int walkIdx, String userId) throws BaseException {
+        try {
+            log.debug("walkIdx: {}", walkIdx);
+            Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
+            Walk walkByNumber = getWalkByNumber(walkIdx, userIdx);
+
+            Duration diff = Duration.between(walkByNumber.getStartAt(), walkByNumber.getEndAt());
+            String diffStr = new StringBuilder().append(diff.toMinutesPart()).append(":").append(diff.toSecondsPart()).toString();
+
+            GetWalkTime getWalkTime = GetWalkTime.builder()
+                    .date(walkByNumber.getStartAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")))
+                    .startAt(walkByNumber.getStartAt().format(DateTimeFormatter.ofPattern("HH:mm")))
+                    .endAt(walkByNumber.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")))
+                    .timeString(diffStr)
+                    .build();
+
+            List<List<Double>> footCoordinate = new ArrayList<>();
+
+            List<Footprint> footprintList = footprintRepository.findAllByWalkAndStatus(walkByNumber, "ACTIVE");
+            for (Footprint footprint : footprintList) {
+                footCoordinate.add(convertStringToList(footprint.getCoordinate()));
+            }
+
+            GetWalkInfo getWalkInfo = GetWalkInfo.builder()
+                    .walkIdx(walkByNumber.getWalkIdx())
+                    .getWalkTime(getWalkTime)
+                    .calorie(walkByNumber.getCalorie())
+                    .distance(walkByNumber.getDistance())
+                    .footCount(footprintList.size())
+                    .footCoordinates(footCoordinate)
+                    .pathImageUrl(new AES128(encryptProperties.getKey()).decrypt(walkByNumber.getPathImageUrl()))
+                    .coordinate(convertStringTo2DList(walkByNumber.getCoordinate()))
+                    .build();
+            return getWalkInfo;
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    public Walk getWalkByNumber(int walkIdx, int userIdx) throws BaseException {
+        PageRequest pageRequest = PageRequest.of(walkIdx - 1, 1);
+        try {
+            Page<Walk> walkPage = walkRepository.findByUserIdxAndStatusOrderByStartAtAsc(userIdx, "ACTIVE", pageRequest);
+            if (walkPage.getTotalElements() == 0) {
+                throw new BaseException(DELETED_WALK);
+            }
+            Walk walkByNumber = walkPage.get().collect(Collectors.toList()).get(0);
+            return walkByNumber;
+        } catch (Exception exception) {
+            throw new BaseException(INVALID_WALKIDX);
+        }
     }
 }

@@ -47,4 +47,8 @@ public class Photo {
         this.footprint = footprint;
     }
 
+    public void changeStatus(String status) {
+        this.status = status;
+    }
+
 }
