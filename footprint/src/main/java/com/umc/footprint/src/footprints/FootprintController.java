@@ -103,20 +103,20 @@ public class FootprintController {
     @PatchMapping("/{walkIdx}/{footprintIdx}/status")
     public BaseResponse<String> DeleteFootprint(@PathVariable("walkIdx") int walkIdx, @PathVariable("footprintIdx") int footprintIdx) {
         try {
-            // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
-            String userId = jwtService.getUserId();
-            log.debug("userId: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
+//            // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
+//            String userId = jwtService.getUserId();
+//            log.debug("userId: {}", userId);
+//            // userId로 userIdx 추출
+//            int userIdx = userProvider.getUserIdx(userId);
 
             // Walk 테이블 전체에서 인덱스
-            int wholeWalkIdx = walkProvider.getWalkWholeIdx(walkIdx, userIdx);
+            int wholeWalkIdx = footprintService.getWalkWholeIdx(walkIdx, 15);
             log.debug("wholeWalkIdx: {}", wholeWalkIdx);
 
             // Footprint 테이블 전체에서 인덱스
-            int wholeFootprintIdx = footprintProvider.getFootprintWholeIdx(wholeWalkIdx, footprintIdx);
+            int wholeFootprintIdx = footprintService.getFootprintWholeIdx(wholeWalkIdx, footprintIdx);
             log.debug("wholeFootprintIdx: {}", wholeFootprintIdx);
-            footprintService.deleteFootprint(footprintIdx);
+            footprintService.deleteFootprintJPA(wholeFootprintIdx);
             String result = "발자국을 삭제하였습니다.";
 
             return new BaseResponse<>(result);

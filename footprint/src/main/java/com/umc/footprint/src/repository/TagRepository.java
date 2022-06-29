@@ -1,5 +1,6 @@
 package com.umc.footprint.src.repository;
 
+import com.umc.footprint.src.model.Footprint;
 import com.umc.footprint.src.model.Tag;
 import com.umc.footprint.src.users.model.WalkHashtag;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,6 +26,8 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
             "  )\n" +
             "  and W.userIdx= :userIdx and W.status = 'ACTIVE' and F.status = 'ACTIVE' and T.status = 'ACTIVE'")
     List<WalkHashtag> findAllWalkAndHashtag(@Param("hashtag") String hashtag, @Param("userIdx") int userIdx);
+
+    List<Tag> findByFootprint(Footprint footprint);
 
 
 }
