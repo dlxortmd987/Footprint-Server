@@ -29,5 +29,6 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
 
     List<Tag> findByFootprint(Footprint footprint);
 
+    List<Tag> findAllByUserIdx(int userIdx);
 
 }

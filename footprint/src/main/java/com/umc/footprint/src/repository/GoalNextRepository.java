@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface GoalNextRepository extends JpaRepository<GoalNext, Integer> {
 
     Optional<GoalNext> findByUserIdx(int userIdx);
+
 }

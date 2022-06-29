@@ -43,13 +43,17 @@ public class UserService {
     private final GoalDayNextRepository goalDayNextRepository;
     private final HashtagRepository hashtagRepository;
     private final BadgeRepository badgeRepository;
+    private final UserBadgeRepository userBadgeRepository;
+    private final PhotoRepository photoRepository;
+    private final FootprintRepository footprintRepository;
 
     @Autowired
     public UserService(UserDao userDao, UserRepository userRepository, TagRepository tagRepository,
                        JwtService jwtService, AwsS3Service awsS3Service, EncryptProperties encryptProperties,
                        WalkRepository walkRepository, GoalRepository goalRepository, GoalNextRepository goalNextRepository,
                        GoalDayRepository goalDayRepository, GoalDayNextRepository goalDayNextRepository,
-                       HashtagRepository hashtagRepository, BadgeRepository badgeRepository) {
+                       HashtagRepository hashtagRepository, BadgeRepository badgeRepository, UserBadgeRepository userBadgeRepository,
+                       PhotoRepository photoRepository, FootprintRepository footprintRepository) {
         this.userDao = userDao;
         this.userRepository = userRepository;
         this.tagRepository = tagRepository;
@@ -63,6 +67,9 @@ public class UserService {
         this.goalDayNextRepository = goalDayNextRepository;
         this.hashtagRepository = hashtagRepository;
         this.badgeRepository = badgeRepository;
+        this.userBadgeRepository = userBadgeRepository;
+        this.photoRepository = photoRepository;
+        this.footprintRepository = footprintRepository;
     }
 
 
@@ -446,6 +453,80 @@ public class UserService {
 
             // User 테이블
             userDao.deleteUser(userIdx);
+
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
+    public void deleteUserJPA(int userIdx) throws BaseException {
+        try{
+            // GoalNext 테이블
+            Optional<GoalNext> goalNext = goalNextRepository.findByUserIdx(userIdx);
+            goalNextRepository.deleteById(goalNext.get().getPlanIdx());
+
+            // GoalDayNext 테이블
+            Optional<GoalDayNext> goalDayNext = goalDayNextRepository.findByUserIdx(userIdx);
+            goalDayNextRepository.deleteById(goalDayNext.get().getPlanIdx());
+
+            // Goal 테이블
+            List<Goal> goalList = goalRepository.findByUserIdx(userIdx);
+            for(Goal goal : goalList){
+                goalRepository.deleteById(goal.getPlanIdx());
+            }
+
+            // GoalDay 테이블
+            List<GoalDay> goalDayList = goalDayRepository.findByUserIdx(userIdx);
+            for(GoalDay goalDay : goalDayList){
+                goalDayRepository.deleteById(goalDay.getPlanIdx());
+            }
+
+            // UserBadge 테이블
+            List<UserBadge> userBadgeList = userBadgeRepository.findAllByUserIdx(userIdx);
+            for(UserBadge userBadge: userBadgeList){
+                userBadgeRepository.deleteById(userBadge.getCollectionIdx());
+            }
+
+            // Tag 테이블
+            List<Tag> tagList = tagRepository.findAllByUserIdx(userIdx);
+            for(Tag tag : tagList){
+                tagRepository.deleteById(tag.getTagIdx());
+            }
+
+            // Photo 테이블 -> s3에서 이미지 url 먼저 삭제 후 테이블 삭제 필요
+            List<Photo> photoList = photoRepository.findAllByUserIdx(userIdx);
+            for(Photo photo : photoList){
+                String decryptedImageUrl = new AES128(encryptProperties.getKey()).decrypt(photo.getImageUrl());
+                String fileName = decryptedImageUrl.substring(decryptedImageUrl.lastIndexOf("/")+1); // 파일 이름만 자르기
+                awsS3Service.deleteFile(fileName);
+
+                photoRepository.deleteById(photo.getPhotoIdx());
+            }
+
+
+            // Walk + Footprint 테이블
+            List<Walk> walkList = walkRepository.findAllByUserIdx(userIdx);
+            for(Walk walk : walkList){
+                List<Footprint> footprintList = walk.getFootprintList();
+
+                // Walk에 해당하는 Footprint 모두 삭제
+                for(Footprint footprint : footprintList){
+                    footprintRepository.deleteById(footprint.getFootprintIdx());
+                }
+
+                // Walk 테이블 - 동선 이미지 S3 에서도 삭제
+                String decryptedImageUrl = new AES128(encryptProperties.getKey()).decrypt(walk.getPathImageUrl());
+                String fileName = decryptedImageUrl.substring(decryptedImageUrl.lastIndexOf("/") + 1); // 파일 이름만 자르기
+                awsS3Service.deleteFile(fileName);
+
+                // Walk 삭제
+                walkRepository.deleteById(walk.getWalkIdx());
+            }
+
+
+            // User 테이블
+            userRepository.deleteById(userIdx);
 
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);

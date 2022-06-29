@@ -9,4 +9,6 @@ import java.util.Optional;
 
 public interface UserBadgeRepository extends JpaRepository<UserBadge, Integer> {
     Optional<List<UserBadge>> findAllByUserIdxAndStatus(@Param(value = "userIdx") Integer userIdx, @Param(value = "status") String status);
+
+    List<UserBadge> findAllByUserIdx(int userIdx);
 }

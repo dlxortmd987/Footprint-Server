@@ -12,4 +12,5 @@ public interface FootprintRepository extends JpaRepository<Footprint, Integer> {
 
     Optional<Footprint> findByFootprintIdx(int footprintIdx);
 
+    List<Footprint> findAllBy
 }

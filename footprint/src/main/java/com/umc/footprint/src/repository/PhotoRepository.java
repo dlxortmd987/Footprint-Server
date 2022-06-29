@@ -9,4 +9,6 @@ import java.util.List;
 public interface PhotoRepository extends JpaRepository<Photo, Integer> {
 
     List<Photo> findPhotoByFootprint(Footprint footprint);
+
+    List<Photo> findAllByUserIdx(int userIdx);
 }
