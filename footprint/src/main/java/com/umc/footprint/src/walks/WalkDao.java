@@ -32,23 +32,23 @@ public class WalkDao {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    public GetWalkTime getWalkTime(int walkIdx) {
-        String getTimeQuery = "select date_format(date(startAt), '%Y.%m.%d') as date, \n" +
-                "       date_format(time(startAt),'%H:%i') as startAt,\n" +
-                "       date_format(time(endAt),'%H:%i') as endAt, \n" +
-                "       (timestampdiff(second, startAt, endAt)) as timeString from Walk where walkIdx=? and status='ACTIVE';";
-        GetWalkTime getWalkTime = this.jdbcTemplate.queryForObject(getTimeQuery,
-                (rs, rowNum) -> new GetWalkTime(
-                        rs.getString("date"),
-                        rs.getString("startAt"),
-                        rs.getString("endAt"),
-                        rs.getString("timeString")
-                ),walkIdx);
-
-        getWalkTime.convTimeString();
-
-        return getWalkTime;
-    }
+//    public GetWalkTime getWalkTime(int walkIdx) {
+//        String getTimeQuery = "select date_format(date(startAt), '%Y.%m.%d') as date, \n" +
+//                "       date_format(time(startAt),'%H:%i') as startAt,\n" +
+//                "       date_format(time(endAt),'%H:%i') as endAt, \n" +
+//                "       (timestampdiff(second, startAt, endAt)) as timeString from Walk where walkIdx=? and status='ACTIVE';";
+//        GetWalkTime getWalkTime = this.jdbcTemplate.queryForObject(getTimeQuery,
+//                (rs, rowNum) -> new GetWalkTime(
+//                        rs.getString("date"),
+//                        rs.getString("startAt"),
+//                        rs.getString("endAt"),
+//                        rs.getString("timeString")
+//                ),walkIdx);
+//
+//        getWalkTime.convTimeString();
+//
+//        return getWalkTime;
+//    }
 
     public Integer getFootCount(int walkIdx) {
         String getFootCountQuery = "select count(footprintIdx) as footCount from Footprint where walkIdx=? and status='ACTIVE';";
@@ -58,8 +58,6 @@ public class WalkDao {
     }
 
     public String deleteWalk(int walkIdx) {
-
-
         String deleteFootprintQuery = "update Footprint set status='INACTIVE' where walkIdx=? and status='ACTIVE';"; // 발자국 INACTIVE
         this.jdbcTemplate.update(deleteFootprintQuery, walkIdx);
 

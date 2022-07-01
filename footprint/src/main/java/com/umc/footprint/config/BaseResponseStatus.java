@@ -64,6 +64,7 @@ public enum BaseResponseStatus {
     INVALID_BIRTH(false, 2161, "생년월일 값은 0000-00-00이 될 수 없습니다."),
 
     INVALID_WALKIDX(false, 2200, "잘못된 산책 인덱스입니다."),
+    INVALID_FOOTPRINTIDX(false, 2201, "잘못된 발자국 인덱스입니다."),
     NO_FOOTPRINT_IN_WALK(false, 2221, "해당 산책 기록에는 발자국이 존재하지 않습니다."),
 
     EXCEED_FOOTPRINT_SIZE(false, 2241, "photoMatchNumList를 확인해주십시요."),
@@ -71,6 +72,7 @@ public enum BaseResponseStatus {
     DELETED_FOOTPRINT(false, 2260, "이미 삭제된 발자국입니다."),
     NO_EXIST_FOOTPRINT(false, 2261, "존재하지 않는 발자국입니다."),
     REQUEST_ERROR(false, 2262, "잘못된 산책 인덱스입니다."), // 임시 추가
+    DELETED_WALK(false, 2263, "이미 삭제된 산책입니다."),
 
     INVALID_BADGEIDX(false,2270, "존재하지 않는 뱃지입니다."),
     NOT_EXIST_USER_BADGE(false, 2271, "해당 사용자가 획득하지 못한 뱃지입니다."),
