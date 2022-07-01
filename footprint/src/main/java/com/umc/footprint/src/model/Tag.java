@@ -54,4 +54,8 @@ public class Tag {
             footprint.addTagList(this);
         }
     }
+
+    public void changeStatus(String status) {
+        this.status = status;
+    }
 }

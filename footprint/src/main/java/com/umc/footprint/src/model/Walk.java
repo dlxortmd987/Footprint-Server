@@ -74,4 +74,8 @@ public class Walk {
             footprint.setWalk(this);
         }
     }
+
+    public void changeStatus(String status) {
+        this.status = status;
+    }
 }
