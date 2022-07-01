@@ -167,7 +167,7 @@ public class FootprintService {
                 String imgUrl = awsS3Service.uploadFile(file);
                 urlList.add(new AES128(encryptProperties.getKey()).encrypt(imgUrl));
                 Photo photo = Photo.builder()
-                        .imageUrl(imgUrl)
+                        .imageUrl(new AES128(encryptProperties.getKey()).encrypt(imgUrl))
                         .status("ACTIVE")
                         .userIdx(userIdx)
                         .build();
