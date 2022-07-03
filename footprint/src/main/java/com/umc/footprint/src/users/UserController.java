@@ -273,13 +273,11 @@ public class UserController {
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
             // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
+//            int userIdx = userProvider.getUserIdx(userId);
 
-            LocalDate now = LocalDate.now();
-            int nowYear = now.getYear();
-            int nowMonth = now.getMonthValue();
 
-            GetMonthInfoRes getMonthInfoRes = userProvider.getMonthInfoRes(userIdx, nowYear, nowMonth);
+//            GetMonthInfoRes getMonthInfoRes = userProvider.getMonthInfoRes(userIdx, nowYear, nowMonth);
+            GetMonthInfoRes getMonthInfoRes = userService.getMonthInfoRes(userId);
             return new BaseResponse<>(getMonthInfoRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
