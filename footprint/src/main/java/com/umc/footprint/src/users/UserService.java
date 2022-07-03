@@ -12,7 +12,7 @@ import com.umc.footprint.src.repository.WalkRepository;
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
 import com.umc.footprint.src.users.model.*;
-import com.umc.footprint.src.walks.model.GetFootprintCount;
+import com.umc.footprint.src.walks.model.GetFootprintCountInterface;
 import com.umc.footprint.src.walks.model.GetMonthTotalInterface;
 import com.umc.footprint.utils.AES128;
 import com.umc.footprint.utils.JwtService;
@@ -1202,7 +1202,7 @@ public class UserService {
         return goalDayString;
     }
 
-    public List<GetFootprintCount> getMonthFootprints(String userId, int year, int month) throws BaseException {
+    public List<GetFootprintCountInterface> getMonthFootprints(String userId, int year, int month) throws BaseException {
         try {
             User user = userRepository.getByUserId(userId)
                     .orElseThrow(()-> new BaseException(INVALID_USERIDX));
@@ -1220,7 +1220,7 @@ public class UserService {
                 throw new BaseException(INVALID_DATE);
             }
 
-            List<GetFootprintCount> getMonthFootprints = walkRepository.getMonthFootCountByQuery(
+            List<GetFootprintCountInterface> getMonthFootprints = walkRepository.getMonthFootCountByQuery(
                     user.getUserIdx(),
                     year,
                     month

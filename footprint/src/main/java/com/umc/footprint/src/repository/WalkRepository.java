@@ -2,7 +2,7 @@ package com.umc.footprint.src.repository;
 
 import com.umc.footprint.src.model.Walk;
 import com.umc.footprint.src.users.model.GetDayRateRes;
-import com.umc.footprint.src.walks.model.GetFootprintCount;
+import com.umc.footprint.src.walks.model.GetFootprintCountInterface;
 import com.umc.footprint.src.walks.model.GetMonthTotalInterface;
 import com.umc.footprint.src.walks.model.ObtainedBadgeInterface;
 import org.springframework.data.domain.Page;
@@ -67,8 +67,8 @@ public interface WalkRepository extends JpaRepository<Walk, Integer> {
     @Query(value = "SELECT DAY(startAt) AS day, COUNT(walkIdx) AS walkCount FROM Walk " +
             "WHERE userIdx=:userIdx AND YEAR(startAt)=:yy AND MONTH(startAt)=:mm AND status='ACTIVE' GROUP BY DAY(startAt);",
     nativeQuery = true)
-    List<GetFootprintCount> getMonthFootCountByQuery(@Param(value = "userIdx") int userIdx,
-                                                     @Param(value = "yy") int yy,
-                                                     @Param(value = "mm") int mm);
+    List<GetFootprintCountInterface> getMonthFootCountByQuery(@Param(value = "userIdx") int userIdx,
+                                                              @Param(value = "yy") int yy,
+                                                              @Param(value = "mm") int mm);
 
 }

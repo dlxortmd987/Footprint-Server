@@ -6,7 +6,7 @@ import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.src.users.model.*;
-import com.umc.footprint.src.walks.model.GetFootprintCount;
+import com.umc.footprint.src.walks.model.GetFootprintCountInterface;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
@@ -343,7 +343,7 @@ public class UserController {
      */
     @ResponseBody
     @GetMapping("/months/footprints")
-    public BaseResponse<List<GetFootprintCount>> getMonthFootprints(
+    public BaseResponse<List<GetFootprintCountInterface>> getMonthFootprints(
             @RequestParam(required = true) int year,
             @RequestParam(required = true) int month) throws BaseException
     {
@@ -352,8 +352,7 @@ public class UserController {
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
 
-//            List<GetFootprintCount> getFootprintCounts = userProvider.getMonthFootprints(userIdx, year, month);
-            List<GetFootprintCount> getFootprintCounts = userService.getMonthFootprints(userId, year, month);
+            List<GetFootprintCountInterface> getFootprintCounts = userService.getMonthFootprints(userId, year, month);
             return new BaseResponse<>(getFootprintCounts);
         }
         catch (BaseException exception) {
