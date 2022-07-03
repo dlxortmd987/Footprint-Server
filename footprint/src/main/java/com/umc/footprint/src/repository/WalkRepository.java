@@ -2,6 +2,8 @@ package com.umc.footprint.src.repository;
 
 import com.umc.footprint.src.model.Walk;
 import com.umc.footprint.src.walks.model.ObtainedBadgeInterface;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import java.util.List;
@@ -35,4 +37,8 @@ public interface WalkRepository extends JpaRepository<Walk, Integer> {
     Optional<Walk> findByWalkIdx(Integer walkIdx);
 
     List<Walk> findAllByUserIdxOrderByWalkIdx(Integer userIdx);
+
+    Optional<Walk> findTopByUserIdxAndStatusOrderByStartAtAsc(Integer userIdx, String status);
+
+    Page<Walk> findByUserIdxAndStatusOrderByStartAtAsc(Integer userIdx, String status, Pageable pageable);
 }

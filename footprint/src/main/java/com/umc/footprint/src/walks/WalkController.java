@@ -7,24 +7,15 @@ import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.src.users.UserProvider;
-import com.umc.footprint.src.users.model.GetMonthInfoRes;
-import com.umc.footprint.src.users.model.PostLoginReq;
 import com.umc.footprint.src.walks.model.*;
 
-import com.umc.footprint.utils.AES128;
 import com.umc.footprint.utils.JwtService;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -82,14 +73,10 @@ public class WalkController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("userId: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
             // Walk 테이블 전체에서 인덱스
-            int wholeWalkIdx = walkProvider.getWalkWholeIdx(walkIdx, userIdx);
-            log.debug("wholeWalkIdx: {}", wholeWalkIdx);
+            GetWalkInfo getWalkInfo = walkService.getWalkInfo(walkIdx, userId);
 
-            GetWalkInfo getWalkInfo = walkService.getWalkInfo(wholeWalkIdx);
             return new BaseResponse<>(getWalkInfo);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -105,17 +92,8 @@ public class WalkController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("userId: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
-            // Walk 테이블 전체에서 인덱스
-            int wholeWalkIdx = walkProvider.getWalkWholeIdx(walkIdx, userIdx);
-            log.debug("wholeWalkIdx: {}", wholeWalkIdx);
-
-            if (wholeWalkIdx == 0) {
-                return new BaseResponse<>(BaseResponseStatus.REQUEST_ERROR);
-            }
-            String result = walkService.deleteWalk(wholeWalkIdx);
+            String result = walkService.deleteWalk(walkIdx, userId);
             return new BaseResponse<>(result);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
