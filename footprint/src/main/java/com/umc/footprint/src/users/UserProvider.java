@@ -5,16 +5,12 @@ import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.walks.WalkDao;
 
 import com.umc.footprint.src.users.model.GetUserTodayRes;
-import com.umc.footprint.utils.AES128;
 import com.umc.footprint.utils.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
 import com.umc.footprint.src.users.model.*;
-
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -112,84 +108,6 @@ public class UserProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
-
-
-    //월별 달성률 및 누적 정보 조회 - yummy 4
-    public GetMonthInfoRes getMonthInfoRes(int userIdx, int year, int month) throws BaseException {
-        try {
-            // User 테이블 validation
-            boolean userExist = userDao.checkUser(userIdx, "User");
-            if (userExist == false) {
-                throw new BaseException(INVALID_USERIDX);
-            }
-
-            // 사용자 status 확인
-            String status = userDao.getStatus(userIdx, "User");
-            if (status.equals("INACTIVE")) {
-                throw new BaseException(INACTIVE_USER);
-            }
-            else if (status.equals("BLACK")) {
-                throw new BaseException(BLACK_USER);
-            }
-
-            // Goal 테이블 validation
-            userExist = userDao.checkUser(userIdx, "Goal");
-            if (userExist == false) { //사용자가 목표를 지정하지 않은 경우
-                throw new BaseException(NOT_EXIST_USER_IN_GOAL);
-            }
-
-            // Walk 테이블 validation
-            boolean userWalkExist = userDao.checkWalk(userIdx,year,month);
-
-            GetMonthInfoRes getMonthInfoRes;
-            if(userWalkExist == false) {
-                List<String> getGoalDays = userDao.getUserGoalDays(userIdx);
-                GetMonthTotal getMonthTotal =new GetMonthTotal(0,0,0);
-                getMonthInfoRes = new GetMonthInfoRes(getGoalDays, null, getMonthTotal);
-            } else {
-                getMonthInfoRes = userDao.getMonthInfoRes(userIdx, year, month);
-            }
-
-            return getMonthInfoRes;
-          } catch (Exception exception) {
-            throw new BaseException(DATABASE_ERROR);
-        }
-    }
-
-
-//    // 해당 userIdx를 갖는 유저의 정보 조회
-//    public GetUserRes getUser(int userIdx) throws BaseException {
-//        try {
-//            boolean userExist = userDao.checkUser(userIdx, "User");
-//            // 해당 유저가 존재하지 않음
-//            if (userExist == false) {
-//                throw new BaseException(INVALID_USERIDX);
-//            }
-//
-//            // 유저 상태에 따른 validation
-//            String status = userDao.getStatus(userIdx, "User");
-//            if (status.equals("INACTIVE")) {
-//                throw new BaseException(INACTIVE_USER);
-//            }
-//            else if (status.equals("BLACK")) {
-//                throw new BaseException(BLACK_USER);
-//            }
-//
-//            GetUserRes getUserRes = userDao.getUser(userIdx);
-//            getUserRes.setUsername(new AES128(encryptProperties.getKey()).decrypt(getUserRes.getUsername()));
-//            getUserRes.setEmail(new AES128(encryptProperties.getKey()).decrypt(getUserRes.getEmail()));
-//            if(getUserRes.getBadgeUrl() == null)
-//                getUserRes.setBadgeUrl("");
-//            if(getUserRes.getBirth() == null)
-//                getUserRes.setBirth(Timestamp.valueOf("1900-01-01"));
-//
-//            return getUserRes;
-//        } catch (Exception exception) {
-//            exception.printStackTrace();
-//            throw new BaseException(DATABASE_ERROR);
-//        }
-//    }
-
 
     // yummy 11
     // 사용자 전체 뱃지 조회 API
