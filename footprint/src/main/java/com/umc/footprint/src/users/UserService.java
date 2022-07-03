@@ -12,6 +12,7 @@ import com.umc.footprint.src.repository.WalkRepository;
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
 import com.umc.footprint.src.users.model.*;
+import com.umc.footprint.src.walks.model.GetMonthTotalInterface;
 import com.umc.footprint.utils.AES128;
 import com.umc.footprint.utils.JwtService;
 import lombok.extern.slf4j.Slf4j;
@@ -1128,4 +1129,76 @@ public class UserService {
         }
     }
 
+    public GetMonthInfoRes getMonthInfoRes(String userId) throws BaseException {
+        try {
+            User user = userRepository.getByUserId(userId).orElseThrow(()-> new BaseException(INVALID_USERIDX));
+
+            if (user.getStatus().equals("INACTIVE")) {
+                throw new BaseException(INACTIVE_USER);
+            }
+            else if (user.getStatus().equals("BLACK")) {
+                throw new BaseException(BLACK_USER);
+            }
+
+            LocalDateTime now = LocalDateTime.now();
+            int nowYear = now.getYear();
+            int nowMonth = now.getMonthValue();
+
+            List<String> goalDayList = getUserGoalDays(user.getUserIdx(), nowYear, nowMonth);
+            List<GetDayRateRes> getDayRateRes = walkRepository.getRateByUserIdxAndStartAt(user.getUserIdx(), nowYear, nowMonth);
+            int dayCount = getDayRateRes.toArray().length;
+
+            GetMonthTotalInterface getMonthTotalInterface = walkRepository.getMonthTotalByQuery(
+                    user.getUserIdx(),
+                    nowYear,
+                    nowMonth
+            );
+
+            GetMonthTotal getMonthTotal = new GetMonthTotal(
+                    getMonthTotalInterface.getMonthTotalMin(),
+                    getMonthTotalInterface.getMonthTotalDistance(),
+                    getMonthTotalInterface.getMonthPerCal());
+            getMonthTotal.avgCal(dayCount);
+            getMonthTotal.convertSecToMin();
+
+            return new GetMonthInfoRes(goalDayList, getDayRateRes, getMonthTotal);
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+
+    public List<String> getUserGoalDays(int userIdx, int year, int month) throws BaseException {
+        GoalDay goalDay = goalDayRepository.selectGoalDayByQuery(userIdx, year, month)
+                .orElseThrow(()->new BaseException(NOT_EXIST_USER_IN_GOAL));
+
+        return convertGoalDayBoolToString(goalDay);
+    }
+
+    public List<String> convertGoalDayBoolToString(GoalDay goalDay) {
+        List<String> goalDayString = new ArrayList<>();
+
+        if(goalDay.getSun()==1) {
+            goalDayString.add("SUN");
+        }
+        if(goalDay.getMon()==1) {
+            goalDayString.add("MON");
+        }
+        if(goalDay.getTue()==1) {
+            goalDayString.add("TUE");
+        }
+        if(goalDay.getWed()==1) {
+            goalDayString.add("WED");
+        }
+        if(goalDay.getThu()==1) {
+            goalDayString.add("THU");
+        }
+        if(goalDay.getFri()==1) {
+            goalDayString.add("FRI");
+        }
+        if(goalDay.getSat()==1) {
+            goalDayString.add("SAT");
+        }
+        return goalDayString;
+    }
 }

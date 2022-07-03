@@ -59,43 +59,6 @@ public class UserDao {
                 getMonthResParams);
     }
 
-
-    //월별 달성률 및 누적 정보 조회 - yummy 4
-    public GetMonthInfoRes getMonthInfoRes(int userIdx, int year, int month) {
-        // 사용자 목표 요일 조회
-        List<String> goalDayList = getUserGoalDays(userIdx);
-
-        //이번달 일별 달성률 조회(List)
-        String getDayRateQuery = "select day(startAt) as day, sum(goalRate) as rate from Walk where userIdx=? and status = 'ACTIVE' and year(startAt)=? and month(startAt)=? group by day(startAt);";
-        Object[] getDayRateParams = new Object[]{userIdx, year, month};
-        List<GetDayRateRes> getDayRatesRes = this.jdbcTemplate.query(getDayRateQuery,
-                (rs, rowNum) -> new GetDayRateRes(
-                        rs.getInt("day"),
-                        rs.getFloat("rate")),
-                getDayRateParams);
-
-        //사용자의 이번 달 누적 시간, 거리, 평균 칼로리
-        String getMonthInfoQuery = "select sum((timestampdiff(second,startAt, endAt))) as monthTotalMin,\n" +
-                "                sum(distance) as monthTotalDistance, sum(calorie) as monthPerCal\n" +
-                "                from Walk where userIdx=? and status = 'ACTIVE' and year(startAt)=? and month(startAt)=?;";
-        Object[] getMonthInfoParams = new Object[]{userIdx, year, month};
-        GetMonthTotal getMonthTotal = this.jdbcTemplate.queryForObject(getMonthInfoQuery,
-                (rs, rowNum) -> new GetMonthTotal(
-                        rs.getInt("monthTotalMin"),
-                        rs.getDouble("monthTotalDistance"),
-                        rs.getInt("monthPerCal")),
-                getMonthInfoParams);
-
-        int dayCount = getDayRatesRes.toArray().length;
-        getMonthTotal.avgCal(dayCount); // 산책 날짜 기준 평균 칼로리
-        getMonthTotal.convertSecToMin();
-
-
-        GetMonthInfoRes getMonthInfoRes = new GetMonthInfoRes(goalDayList, getDayRatesRes, getMonthTotal);
-        return getMonthInfoRes;
-    }
-
-
     public List<BadgeInfo> getBadgeList(int userIdx) {
         String getUserBadgesQuery = "select * from Badge where badgeIdx in " +
                 "(select badgeIdx from UserBadge where userIdx=? and status='ACTIVE');";
@@ -159,13 +122,13 @@ public class UserDao {
                 "MONTH(createAt) = MONTH(DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 1 MONTH));";
         GetGoalDays getGoalDays = this.jdbcTemplate.queryForObject(getGoalDayQuery,
                 (rs,rowNum) -> new GetGoalDays(
-                        rs.getBoolean("sun"),
-                        rs.getBoolean("mon"),
-                        rs.getBoolean("tue"),
-                        rs.getBoolean("wed"),
-                        rs.getBoolean("thu"),
-                        rs.getBoolean("fri"),
-                        rs.getBoolean("sat")), userIdx);
+                        rs.getInt("sun"),
+                        rs.getInt("mon"),
+                        rs.getInt("tue"),
+                        rs.getInt("wed"),
+                        rs.getInt("thu"),
+                        rs.getInt("fri"),
+                        rs.getInt("sat")), userIdx);
 
         log.debug("getGoalDays: {}", getGoalDays.toString());
         double count = 0; //저번달의 설정한 목표요일 전체 횟수
@@ -184,25 +147,25 @@ public class UserDao {
         Calendar cal = new GregorianCalendar(year, month, 1);
         do {
             int day = cal.get(Calendar.DAY_OF_WEEK);
-            if (day == Calendar.SUNDAY && getGoalDays.isSun()==true) {
+            if (day == Calendar.SUNDAY && getGoalDays.getSun()==1) {
                 count++;
             }
-            else if (day == Calendar.MONDAY && getGoalDays.isMon()==true) {
+            else if (day == Calendar.MONDAY && getGoalDays.getMon()==1) {
                 count++;
             }
-            else if (day == Calendar.TUESDAY && getGoalDays.isTue()==true) {
+            else if (day == Calendar.TUESDAY && getGoalDays.getTue()==1) {
                 count++;
             }
-            else if (day == Calendar.WEDNESDAY && getGoalDays.isWed()==true) {
+            else if (day == Calendar.WEDNESDAY && getGoalDays.getWed()==1) {
                 count++;
             }
-            else if (day == Calendar.THURSDAY && getGoalDays.isThu()==true) {
+            else if (day == Calendar.THURSDAY && getGoalDays.getThu()==1) {
                 count++;
             }
-            else if (day == Calendar.FRIDAY && getGoalDays.isFri()==true) {
+            else if (day == Calendar.FRIDAY && getGoalDays.getFri()==1) {
                 count++;
             }
-            else if (day == Calendar.SATURDAY && getGoalDays.isSat()==true) {
+            else if (day == Calendar.SATURDAY && getGoalDays.getSat()==1) {
                 count++;
             }
             cal.add(Calendar.DAY_OF_YEAR, 1);
@@ -223,37 +186,37 @@ public class UserDao {
             int walkday = (int) walkDays.get(i);
             switch (walkday) {
                 case 1:
-                    if(getGoalDays.isSun()==true) {
+                    if(getGoalDays.getSun()==1) {
                         walkCount++;
                     }
                     break;
                 case 2:
-                    if(getGoalDays.isMon()==true) {
+                    if(getGoalDays.getMon()==1) {
                         walkCount++;
                     }
                     break;
                 case 3:
-                    if(getGoalDays.isTue()==true) {
+                    if(getGoalDays.getTue()==1) {
                         walkCount++;
                     }
                     break;
                 case 4:
-                    if(getGoalDays.isWed()==true) {
+                    if(getGoalDays.getWed()==1) {
                         walkCount++;
                     }
                     break;
                 case 5:
-                    if(getGoalDays.isThu()==true) {
+                    if(getGoalDays.getThu()==1) {
                         walkCount++;
                     }
                     break;
                 case 6:
-                    if(getGoalDays.isFri()==true) {
+                    if(getGoalDays.getFri()==1) {
                         walkCount++;
                     }
                     break;
                 case 7:
-                    if(getGoalDays.isSat()==true) {
+                    if(getGoalDays.getSat()==1) {
                         walkCount++;
                     }
                     break;
@@ -962,54 +925,54 @@ public class UserDao {
      *** [4] TOOL METHOD
      * */
 
-    // 사용자의 목표 요일을 조회하는 Method
-    public List<String> getUserGoalDays (int userIdx) {
-        // 목표 요일 조회 (boolean)
-        String getGoalDaysQuery = "select G.sun, G.mon, G.tue, G.wed, G.thu, G.fri, G.sat from GoalDay as G " +
-                "where userIdx=? and MONTH(createAt)=MONTH(NOW());";
-        GetGoalDays getGoalDays = this.jdbcTemplate.queryForObject(getGoalDaysQuery,
-                (rs, rowNum) -> new GetGoalDays(
-                        rs.getBoolean("sun"),
-                        rs.getBoolean("mon"),
-                        rs.getBoolean("tue"),
-                        rs.getBoolean("wed"),
-                        rs.getBoolean("thu"),
-                        rs.getBoolean("fri"),
-                        rs.getBoolean("sat")), userIdx);
-
-        List<String> goalDayList = convertGoaldayBoolToString(getGoalDays);
-        return goalDayList;
-    }
+//    // 사용자의 목표 요일을 조회하는 Method
+//    public List<String> getUserGoalDays (int userIdx) {
+//        // 목표 요일 조회 (boolean)
+//        String getGoalDaysQuery = "select G.sun, G.mon, G.tue, G.wed, G.thu, G.fri, G.sat from GoalDay as G " +
+//                "where userIdx=? and MONTH(createAt)=MONTH(NOW());";
+//        GetGoalDays getGoalDays = this.jdbcTemplate.queryForObject(getGoalDaysQuery,
+//                (rs, rowNum) -> new GetGoalDays(
+//                        rs.getBoolean("sun"),
+//                        rs.getBoolean("mon"),
+//                        rs.getBoolean("tue"),
+//                        rs.getBoolean("wed"),
+//                        rs.getBoolean("thu"),
+//                        rs.getBoolean("fri"),
+//                        rs.getBoolean("sat")), userIdx);
+//
+//        List<String> goalDayList = convertGoaldayBoolToString(getGoalDays);
+//        return goalDayList;
+//    }
 
 
     // GoalDay Table의 true인 요일 List<String>으로 return
-    public List<String> convertGoaldayBoolToString(GetGoalDays getGoalDays) {
-        List<String> goalDayString = new ArrayList<String>();
-
-        if(getGoalDays.isSun()) {
-            goalDayString.add("SUN");
-        }
-        if(getGoalDays.isMon()) {
-            goalDayString.add("MON");
-        }
-        if(getGoalDays.isTue()) {
-            goalDayString.add("TUE");
-        }
-        if(getGoalDays.isWed()) {
-            goalDayString.add("WED");
-        }
-        if(getGoalDays.isThu()) {
-            goalDayString.add("THU");
-        }
-        if(getGoalDays.isFri()) {
-            goalDayString.add("FRI");
-        }
-        if(getGoalDays.isSat()) {
-            goalDayString.add("SAT");
-        }
-
-        return goalDayString;
-    }
+//    public List<String> convertGoaldayBoolToString(GetGoalDays getGoalDays) {
+//        List<String> goalDayString = new ArrayList<String>();
+//
+//        if(getGoalDays.isSun()) {
+//            goalDayString.add("SUN");
+//        }
+//        if(getGoalDays.isMon()) {
+//            goalDayString.add("MON");
+//        }
+//        if(getGoalDays.isTue()) {
+//            goalDayString.add("TUE");
+//        }
+//        if(getGoalDays.isWed()) {
+//            goalDayString.add("WED");
+//        }
+//        if(getGoalDays.isThu()) {
+//            goalDayString.add("THU");
+//        }
+//        if(getGoalDays.isFri()) {
+//            goalDayString.add("FRI");
+//        }
+//        if(getGoalDays.isSat()) {
+//            goalDayString.add("SAT");
+//        }
+//
+//        return goalDayString;
+//    }
 
     // true = 유저 있다 & false = 유저 없다.
     public boolean checkUser(int userIdx, String tableName) throws BaseException {

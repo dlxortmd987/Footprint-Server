@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface GoalRepository extends JpaRepository<Goal, Integer> {
 
     List<Goal> findByUserIdx(@Param("userIdx") Integer userIdx);
+
+    Optional<List<Goal>> getByUserIdx(@Param("userIdx") Integer userIdx);
 }
