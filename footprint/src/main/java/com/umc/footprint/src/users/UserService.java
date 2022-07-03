@@ -12,18 +12,17 @@ import com.umc.footprint.src.repository.WalkRepository;
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
 import com.umc.footprint.src.users.model.*;
+import com.umc.footprint.src.walks.model.GetFootprintCount;
 import com.umc.footprint.src.walks.model.GetMonthTotalInterface;
 import com.umc.footprint.utils.AES128;
 import com.umc.footprint.utils.JwtService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.jni.Local;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -35,6 +34,7 @@ import static com.umc.footprint.config.BaseResponseStatus.*;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserDao userDao;
     private final UserRepository userRepository;
@@ -50,26 +50,26 @@ public class UserService {
     private final HashtagRepository hashtagRepository;
     private final BadgeRepository badgeRepository;
 
-    @Autowired
-    public UserService(UserDao userDao, UserRepository userRepository, TagRepository tagRepository,
-                       JwtService jwtService, AwsS3Service awsS3Service, EncryptProperties encryptProperties,
-                       WalkRepository walkRepository, GoalRepository goalRepository, GoalNextRepository goalNextRepository,
-                       GoalDayRepository goalDayRepository, GoalDayNextRepository goalDayNextRepository,
-                       HashtagRepository hashtagRepository, BadgeRepository badgeRepository) {
-        this.userDao = userDao;
-        this.userRepository = userRepository;
-        this.tagRepository = tagRepository;
-        this.walkRepository = walkRepository;
-        this.jwtService = jwtService;
-        this.awsS3Service = awsS3Service;
-        this.encryptProperties = encryptProperties;
-        this.goalRepository = goalRepository;
-        this.goalNextRepository = goalNextRepository;
-        this.goalDayRepository = goalDayRepository;
-        this.goalDayNextRepository = goalDayNextRepository;
-        this.hashtagRepository = hashtagRepository;
-        this.badgeRepository = badgeRepository;
-    }
+//    @Autowired
+//    public UserService(UserDao userDao, UserRepository userRepository, TagRepository tagRepository,
+//                       JwtService jwtService, AwsS3Service awsS3Service, EncryptProperties encryptProperties,
+//                       WalkRepository walkRepository, GoalRepository goalRepository, GoalNextRepository goalNextRepository,
+//                       GoalDayRepository goalDayRepository, GoalDayNextRepository goalDayNextRepository,
+//                       HashtagRepository hashtagRepository, BadgeRepository badgeRepository) {
+//        this.userDao = userDao;
+//        this.userRepository = userRepository;
+//        this.tagRepository = tagRepository;
+//        this.walkRepository = walkRepository;
+//        this.jwtService = jwtService;
+//        this.awsS3Service = awsS3Service;
+//        this.encryptProperties = encryptProperties;
+//        this.goalRepository = goalRepository;
+//        this.goalNextRepository = goalNextRepository;
+//        this.goalDayRepository = goalDayRepository;
+//        this.goalDayNextRepository = goalDayNextRepository;
+//        this.hashtagRepository = hashtagRepository;
+//        this.badgeRepository = badgeRepository;
+//    }
 
 
     // 해당 유저의 산책기록 중 태그를 포함하는 산책기록 조회
@@ -1200,5 +1200,35 @@ public class UserService {
             goalDayString.add("SAT");
         }
         return goalDayString;
+    }
+
+    public List<GetFootprintCount> getMonthFootprints(String userId, int year, int month) throws BaseException {
+        try {
+            User user = userRepository.getByUserId(userId)
+                    .orElseThrow(()-> new BaseException(INVALID_USERIDX));
+
+            if (user.getStatus().equals("INACTIVE")) {
+                throw new BaseException(INACTIVE_USER);
+            }
+            else if (user.getStatus().equals("BLACK")) {
+                throw new BaseException(BLACK_USER);
+            }
+
+            LocalDate nowDate = LocalDate.now();
+            LocalDate paramDate = LocalDate.of(year,month,1);
+            if(nowDate.isBefore(paramDate) || month<1 || month>12) {
+                throw new BaseException(INVALID_DATE);
+            }
+
+            List<GetFootprintCount> getMonthFootprints = walkRepository.getMonthFootCountByQuery(
+                    user.getUserIdx(),
+                    year,
+                    month
+            );
+
+            return getMonthFootprints;
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
     }
 }

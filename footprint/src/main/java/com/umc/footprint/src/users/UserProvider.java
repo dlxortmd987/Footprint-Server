@@ -53,32 +53,32 @@ public class UserProvider {
 
     //yummy 5
     //월별 발자국(일기) 갯수 조회
-    public List<GetFootprintCount> getMonthFootprints(int userIdx, int year, int month) throws BaseException {
-        try {
-            // User 테이블 validation
-            boolean userExist = userDao.checkUser(userIdx, "User");
-            if (userExist == false) {
-                throw new BaseException(INVALID_USERIDX);
-            }
-
-            // 사용자 status 확인
-            String status = userDao.getStatus(userIdx, "User");
-            if (status.equals("INACTIVE")) {
-                throw new BaseException(INACTIVE_USER);
-            }
-            else if (status.equals("BLACK")) {
-                throw new BaseException(BLACK_USER);
-            }
-
-            // 유효한 날짜인지 확인 - year, month validation
-
-
-            List<GetFootprintCount> getMonthFootprints = userDao.getMonthFootprints(userIdx, year, month);
-            return getMonthFootprints;
-        } catch (Exception exception) {
-          throw new BaseException(DATABASE_ERROR);
-        }
-    }
+//    public List<GetFootprintCount> getMonthFootprints(int userIdx, int year, int month) throws BaseException {
+//        try {
+//            // User 테이블 validation
+//            boolean userExist = userDao.checkUser(userIdx, "User");
+//            if (userExist == false) {
+//                throw new BaseException(INVALID_USERIDX);
+//            }
+//
+//            // 사용자 status 확인
+//            String status = userDao.getStatus(userIdx, "User");
+//            if (status.equals("INACTIVE")) {
+//                throw new BaseException(INACTIVE_USER);
+//            }
+//            else if (status.equals("BLACK")) {
+//                throw new BaseException(BLACK_USER);
+//            }
+//
+//            // 유효한 날짜인지 확인 - year, month validation
+//
+//
+//            List<GetFootprintCount> getMonthFootprints = userDao.getMonthFootprints(userIdx, year, month);
+//            return getMonthFootprints;
+//        } catch (Exception exception) {
+//          throw new BaseException(DATABASE_ERROR);
+//        }
+//    }
   
 
     // 해당 userIdx를 갖는 date의 산책 관련 정보 조회

@@ -46,19 +46,6 @@ public class UserDao {
     *** [1] GET METHOD
     * */
 
-    //월별 발자국(일기) 갯수 조회 - yummy 5
-    public List<GetFootprintCount> getMonthFootprints(int userIdx, int year, int month) {
-        String Query = "select day(startAt) as day, count(walkIdx) as walkCount from Walk\n" +
-                "where userIdx=? and year(startAt)=? and month(startAt)=? and status='ACTIVE' group by day(startAt);";
-
-        Object[] getMonthResParams = new Object[]{userIdx, year, month};
-        return this.jdbcTemplate.query(Query,
-                (rs, rowNum) -> new GetFootprintCount(
-                        rs.getInt("day"),
-                        rs.getInt("walkCount")), // RowMapper(위의 링크 참조): 원하는 결과값 형태로 받기
-                getMonthResParams);
-    }
-
     public List<BadgeInfo> getBadgeList(int userIdx) {
         String getUserBadgesQuery = "select * from Badge where badgeIdx in " +
                 "(select badgeIdx from UserBadge where userIdx=? and status='ACTIVE');";
