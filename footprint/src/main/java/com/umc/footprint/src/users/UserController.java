@@ -343,7 +343,7 @@ public class UserController {
      */
     @ResponseBody
     @GetMapping("/months/footprints")
-    public BaseResponse<List<GetFootprintCountInterface>> getMonthFootprints(
+    public BaseResponse<List<GetFootprintCount>> getMonthFootprints(
             @RequestParam(required = true) int year,
             @RequestParam(required = true) int month) throws BaseException
     {
@@ -352,7 +352,7 @@ public class UserController {
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
 
-            List<GetFootprintCountInterface> getFootprintCounts = userService.getMonthFootprints(userId, year, month);
+            List<GetFootprintCount> getFootprintCounts = userService.getMonthFootprints(userId, year, month);
             return new BaseResponse<>(getFootprintCounts);
         }
         catch (BaseException exception) {

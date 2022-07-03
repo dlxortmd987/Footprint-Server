@@ -1202,7 +1202,7 @@ public class UserService {
         return goalDayString;
     }
 
-    public List<GetFootprintCountInterface> getMonthFootprints(String userId, int year, int month) throws BaseException {
+    public List<GetFootprintCount> getMonthFootprints(String userId, int year, int month) throws BaseException {
         try {
             User user = userRepository.getByUserId(userId)
                     .orElseThrow(()-> new BaseException(INVALID_USERIDX));
@@ -1226,7 +1226,14 @@ public class UserService {
                     month
             );
 
-            return getMonthFootprints;
+            List<GetFootprintCount> getFootprintCounts = new ArrayList<>();
+            for(GetFootprintCountInterface i : getMonthFootprints) {
+                getFootprintCounts.add(
+                        new GetFootprintCount(i.getDay(), i.getWalkCount())
+                );
+            }
+
+            return getFootprintCounts;
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
