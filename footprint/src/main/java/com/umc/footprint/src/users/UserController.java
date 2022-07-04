@@ -382,9 +382,6 @@ public class UserController {
         }
     }
 
-
-
-
     /** yummy 11
      * 사용자 전체 뱃지 조회 API
      * [GET] /users/badges
@@ -396,10 +393,9 @@ public class UserController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
-            GetUserBadges getUserBadges = userProvider.getUserBadges(userIdx);
+//            GetUserBadges getUserBadges = userProvider.getUserBadges(userIdx);
+            GetUserBadges getUserBadges = userService.getUserBadges(userId);
             return new BaseResponse<>(getUserBadges);
         }
         catch (BaseException exception) {

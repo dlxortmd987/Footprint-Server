@@ -49,28 +49,7 @@ public class UserService {
     private final GoalDayNextRepository goalDayNextRepository;
     private final HashtagRepository hashtagRepository;
     private final BadgeRepository badgeRepository;
-
-//    @Autowired
-//    public UserService(UserDao userDao, UserRepository userRepository, TagRepository tagRepository,
-//                       JwtService jwtService, AwsS3Service awsS3Service, EncryptProperties encryptProperties,
-//                       WalkRepository walkRepository, GoalRepository goalRepository, GoalNextRepository goalNextRepository,
-//                       GoalDayRepository goalDayRepository, GoalDayNextRepository goalDayNextRepository,
-//                       HashtagRepository hashtagRepository, BadgeRepository badgeRepository) {
-//        this.userDao = userDao;
-//        this.userRepository = userRepository;
-//        this.tagRepository = tagRepository;
-//        this.walkRepository = walkRepository;
-//        this.jwtService = jwtService;
-//        this.awsS3Service = awsS3Service;
-//        this.encryptProperties = encryptProperties;
-//        this.goalRepository = goalRepository;
-//        this.goalNextRepository = goalNextRepository;
-//        this.goalDayRepository = goalDayRepository;
-//        this.goalDayNextRepository = goalDayNextRepository;
-//        this.hashtagRepository = hashtagRepository;
-//        this.badgeRepository = badgeRepository;
-//    }
-
+    private final UserBadgeRepository userBadgeRepository;
 
     // 해당 유저의 산책기록 중 태그를 포함하는 산책기록 조회
     public List<GetTagRes> getTagResult(String userId, String tag) throws BaseException {
@@ -1234,6 +1213,57 @@ public class UserService {
             }
 
             return getFootprintCounts;
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    public GetUserBadges getUserBadges(String userId) throws BaseException {
+        try {
+            User user = userRepository.getByUserId(userId)
+                    .orElseThrow(()-> new BaseException(INVALID_USERIDX));
+
+            if (user.getStatus().equals("INACTIVE")) {
+                throw new BaseException(INACTIVE_USER);
+            }
+            else if (user.getStatus().equals("BLACK")) {
+                throw new BaseException(BLACK_USER);
+            }
+
+            BadgeInfo badgeInfo = new BadgeInfo(badgeRepository.getByBadgeIdx(user.getBadgeIdx())); //대표 뱃지
+            List<UserBadge> userBadges = userBadgeRepository.findAllByUserIdxAndStatus(user.getUserIdx(), "ACTIVE")
+                    .orElseThrow(() -> new BaseException(NO_BADGE_USER));
+
+            List<Badge> badges = badgeRepository.findByBadgeIdx(
+                    userBadges.stream().map(UserBadge::getBadgeIdx).collect(Collectors.toList())
+            );
+
+            List<BadgeOrder> badgeOrders = new ArrayList<>();
+
+            for(Badge b : badges) {
+                int badgeOrderNum = 0;
+                if(b.getBadgeDate().toString().startsWith("1900")) {
+                    if(b.getBadgeIdx()==0) continue;
+                    badgeOrderNum = b.getBadgeIdx()-1;
+                } else {
+                    LocalDate badgeDate = b.getBadgeDate();
+                    if(LocalDate.now().getYear()!= badgeDate.getYear()) continue; //올해 뱃지가 아니면 조회 X
+                    badgeOrderNum = badgeDate.getMonthValue()+7;
+                }
+                badgeOrders.add(
+                        BadgeOrder.builder()
+                                .badgeIdx(b.getBadgeIdx())
+                                .badgeName(b.getBadgeName())
+                                .badgeUrl(b.getBadgeUrl())
+                                .badgeDate(b.getBadgeDate().toString())
+                                .badgeOrder(badgeOrderNum)
+                                .build()
+                );
+            }
+            return GetUserBadges.builder()
+                    .repBadgeInfo(badgeInfo)
+                    .badgeList(badgeOrders)
+                    .build();
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
