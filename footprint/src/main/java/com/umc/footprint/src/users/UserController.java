@@ -394,7 +394,6 @@ public class UserController {
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
 
-//            GetUserBadges getUserBadges = userProvider.getUserBadges(userIdx);
             GetUserBadges getUserBadges = userService.getUserBadges(userId);
             return new BaseResponse<>(getUserBadges);
         }
@@ -405,7 +404,7 @@ public class UserController {
 
     /** yummy 12
      * 사용자 대표 뱃지 수정 API
-     * [GET] /users/badges/title/:badgeidx
+     * [PATCH] /users/badges/title/:badgeidx
      */
     @ResponseBody
     @PatchMapping("/badges/title/{badgeIdx}")
@@ -414,10 +413,8 @@ public class UserController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
-            BadgeInfo patchRepBadgeInfo = userService.modifyRepBadge(userIdx, badgeIdx);
+            BadgeInfo patchRepBadgeInfo = userService.modifyRepBadge(userId, badgeIdx);
             return new BaseResponse<>(patchRepBadgeInfo);
         }
         catch (BaseException exception) {

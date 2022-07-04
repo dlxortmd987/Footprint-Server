@@ -13,4 +13,5 @@ public interface BadgeRepository extends JpaRepository<Badge, Integer> {
     @Query(value = "SELECT * FROM Badge WHERE badgeIdx IN (:badgeIdx)",
             nativeQuery = true)
     List<Badge> findByBadgeIdx(@Param("badgeIdx") List<Integer> badgeIdx);
+    boolean existsByBadgeIdx(int badgeIdx);
 }

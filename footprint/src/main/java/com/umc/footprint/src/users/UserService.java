@@ -135,27 +135,6 @@ public class UserService {
         }
     }
 
-    // yummy 12
-    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-    public BadgeInfo modifyRepBadge(int userIdx, int badgeIdx) throws BaseException {
-        try {
-            // 해당 뱃지가 Badge 테이블에 존재하는 뱃지인지?
-            if(!userDao.badgeCheck(badgeIdx)) {
-                throw new BaseException(INVALID_BADGEIDX);
-            }
-
-            // 유저가 해당 뱃지를 갖고 있고, ACTIVE 뱃지인지?
-            if(!userDao.userBadgeCheck(userIdx, badgeIdx)) {
-                throw new BaseException(NOT_EXIST_USER_BADGE);
-            }
-
-            BadgeInfo patchRepBadgeInfo = userDao.modifyRepBadge(userIdx, badgeIdx);
-            return patchRepBadgeInfo;
-          } catch (Exception exception) {
-            throw new BaseException(DATABASE_ERROR);
-        }
-    }
-
     // 유저 정보 수정(Patch)
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public void modifyUserInfo(int userIdx, PatchUserInfoReq patchUserInfoReq) throws BaseException {
@@ -1110,14 +1089,7 @@ public class UserService {
 
     public GetMonthInfoRes getMonthInfoRes(String userId) throws BaseException {
         try {
-            User user = userRepository.getByUserId(userId).orElseThrow(()-> new BaseException(INVALID_USERIDX));
-
-            if (user.getStatus().equals("INACTIVE")) {
-                throw new BaseException(INACTIVE_USER);
-            }
-            else if (user.getStatus().equals("BLACK")) {
-                throw new BaseException(BLACK_USER);
-            }
+            User user = checkUserStatus(userId);
 
             LocalDateTime now = LocalDateTime.now();
             int nowYear = now.getYear();
@@ -1183,15 +1155,7 @@ public class UserService {
 
     public List<GetFootprintCount> getMonthFootprints(String userId, int year, int month) throws BaseException {
         try {
-            User user = userRepository.getByUserId(userId)
-                    .orElseThrow(()-> new BaseException(INVALID_USERIDX));
-
-            if (user.getStatus().equals("INACTIVE")) {
-                throw new BaseException(INACTIVE_USER);
-            }
-            else if (user.getStatus().equals("BLACK")) {
-                throw new BaseException(BLACK_USER);
-            }
+            User user = checkUserStatus(userId);
 
             LocalDate nowDate = LocalDate.now();
             LocalDate paramDate = LocalDate.of(year,month,1);
@@ -1220,15 +1184,7 @@ public class UserService {
 
     public GetUserBadges getUserBadges(String userId) throws BaseException {
         try {
-            User user = userRepository.getByUserId(userId)
-                    .orElseThrow(()-> new BaseException(INVALID_USERIDX));
-
-            if (user.getStatus().equals("INACTIVE")) {
-                throw new BaseException(INACTIVE_USER);
-            }
-            else if (user.getStatus().equals("BLACK")) {
-                throw new BaseException(BLACK_USER);
-            }
+            User user = checkUserStatus(userId);
 
             BadgeInfo badgeInfo = new BadgeInfo(badgeRepository.getByBadgeIdx(user.getBadgeIdx())); //대표 뱃지
             List<UserBadge> userBadges = userBadgeRepository.findAllByUserIdxAndStatus(user.getUserIdx(), "ACTIVE")
@@ -1268,4 +1224,43 @@ public class UserService {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
+    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
+    public BadgeInfo modifyRepBadge(String userId, int badgeIdx) throws BaseException {
+        try {
+            User user = checkUserStatus(userId);
+
+            // 해당 뱃지가 Badge 테이블에 존재하는 뱃지인지?
+            if(!badgeRepository.existsByBadgeIdx(badgeIdx)) {
+                throw new BaseException(INVALID_BADGEIDX);
+            }
+
+            // 유저가 해당 뱃지를 갖고 있고, ACTIVE 뱃지인지?
+            if(userBadgeRepository.checkUserHasBadge(user.getUserIdx(), badgeIdx)==0) {
+                throw new BaseException(NOT_EXIST_USER_BADGE);
+            }
+
+            user.setBadgeIdx(badgeIdx);
+            userRepository.save(user);
+
+            return new BadgeInfo(badgeRepository.getByBadgeIdx(user.getBadgeIdx()));
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public User checkUserStatus(String userId) throws BaseException{
+        User user = userRepository.getByUserId(userId)
+                .orElseThrow(()-> new BaseException(INVALID_USERIDX));
+
+        if (user.getStatus().equals("INACTIVE")) {
+            throw new BaseException(INACTIVE_USER);
+        }
+        else if (user.getStatus().equals("BLACK")) {
+            throw new BaseException(BLACK_USER);
+        }
+        return user;
+    }
+
 }
