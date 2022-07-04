@@ -2,6 +2,7 @@ package com.umc.footprint.src.repository;
 
 import com.umc.footprint.src.model.UserBadge;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
@@ -13,4 +14,9 @@ public interface UserBadgeRepository extends JpaRepository<UserBadge, Integer> {
             @Param(value = "status") String status
     );
 
+    @Query(value = "SELECT EXISTS (" +
+            "SELECT badgeIdx FROM UserBadge WHERE userIdx=:userIdx AND badgeIdx=:badgeIdx AND status='ACTIVE' limit 1) AS success",
+    nativeQuery = true)
+    int checkUserHasBadge(@Param(value = "userIdx") int userIdx,
+                              @Param(value = "badgeIdx") int badgeIdx);
 }
