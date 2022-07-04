@@ -847,27 +847,6 @@ public class UserDao {
      *** [3] PATCH METHOD
      * */
 
-    //yummy 12
-    //대표 뱃지 수정
-
-    public BadgeInfo modifyRepBadge(int userIdx, int badgeIdx) {
-        //TO DO : badgeIdx의 뱃지가 ACTIVE인지 validation 검사하기
-
-        String patchRepBadgeQuery = "update User set badgeIdx=? where userIdx=?;";
-        Object[] patchRepBadgeParams = new Object[]{badgeIdx, userIdx};
-        this.jdbcTemplate.update(patchRepBadgeQuery, patchRepBadgeParams);
-
-        String repBadgeInfoQuery = "select * from Badge where badgeIdx=(select badgeIdx from User where userIdx=?);";
-        BadgeInfo patchRepBadgeInfo = this.jdbcTemplate.queryForObject(repBadgeInfoQuery,
-                (rs, rowNum) -> new BadgeInfo(
-                        rs.getInt("badgeIdx"),
-                        rs.getString("badgeName"),
-                        rs.getString("badgeUrl"),
-                        rs.getString("badgeDate")
-                ), userIdx);
-
-        return patchRepBadgeInfo;
-    }
 
     // Goal Table에 userIdx에 맞는 walkGoalTime, walkTimeSlot MODIFY
     public int modifyUserGoalTime(int userIdx, PatchUserGoalReq patchUserGoalReq){
