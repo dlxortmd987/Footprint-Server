@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -26,10 +27,10 @@ public class Badge {
     private String badgeUrl;
 
     @Column(name = "badgeDate", length = 30, nullable = false)
-    private LocalDateTime badgeDate;
+    private LocalDate badgeDate;
 
     @Builder
-    public Badge(Integer badgeIdx, String badgeName, String badgeUrl, LocalDateTime badgeDate) {
+    public Badge(Integer badgeIdx, String badgeName, String badgeUrl, LocalDate badgeDate) {
         this.badgeIdx = badgeIdx;
         this.badgeName = badgeName;
         this.badgeUrl = badgeUrl;

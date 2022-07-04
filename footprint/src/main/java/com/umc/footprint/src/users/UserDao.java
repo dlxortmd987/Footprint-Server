@@ -59,7 +59,7 @@ public class UserDao {
 
         return badgeInfoList;
     }
-    public GetUserBadges getUserBadges(int userIdx) {
+    /* public GetUserBadges getUserBadges(int userIdx) {
         //대표 뱃지 조회
         String getRepBadgeQuery = "select * from Badge where badgeIdx=(select badgeIdx from User where userIdx=?);";
         BadgeInfo repBadgeInfo = this.jdbcTemplate.queryForObject(getRepBadgeQuery,
@@ -83,7 +83,7 @@ public class UserDao {
 
         GetUserBadges getUserBadges = new GetUserBadges(repBadgeInfo, badgeInfoList);
         return getUserBadges;
-    }
+    }*/
 
     //yummy
     // 사용자가 얻은 뱃지 등록
@@ -779,10 +779,6 @@ public class UserDao {
         return result;
     }
 
-
-
-
-
     // 해당 userIdx를 갖는 Goal의 Time 정보 & GoalDay의 요일 정보 CREATE
     public int postGoal(int userIdx, PatchUserInfoReq patchUserInfoReq) throws BaseException {
 
@@ -911,55 +907,6 @@ public class UserDao {
     /*
      *** [4] TOOL METHOD
      * */
-
-//    // 사용자의 목표 요일을 조회하는 Method
-//    public List<String> getUserGoalDays (int userIdx) {
-//        // 목표 요일 조회 (boolean)
-//        String getGoalDaysQuery = "select G.sun, G.mon, G.tue, G.wed, G.thu, G.fri, G.sat from GoalDay as G " +
-//                "where userIdx=? and MONTH(createAt)=MONTH(NOW());";
-//        GetGoalDays getGoalDays = this.jdbcTemplate.queryForObject(getGoalDaysQuery,
-//                (rs, rowNum) -> new GetGoalDays(
-//                        rs.getBoolean("sun"),
-//                        rs.getBoolean("mon"),
-//                        rs.getBoolean("tue"),
-//                        rs.getBoolean("wed"),
-//                        rs.getBoolean("thu"),
-//                        rs.getBoolean("fri"),
-//                        rs.getBoolean("sat")), userIdx);
-//
-//        List<String> goalDayList = convertGoaldayBoolToString(getGoalDays);
-//        return goalDayList;
-//    }
-
-
-    // GoalDay Table의 true인 요일 List<String>으로 return
-//    public List<String> convertGoaldayBoolToString(GetGoalDays getGoalDays) {
-//        List<String> goalDayString = new ArrayList<String>();
-//
-//        if(getGoalDays.isSun()) {
-//            goalDayString.add("SUN");
-//        }
-//        if(getGoalDays.isMon()) {
-//            goalDayString.add("MON");
-//        }
-//        if(getGoalDays.isTue()) {
-//            goalDayString.add("TUE");
-//        }
-//        if(getGoalDays.isWed()) {
-//            goalDayString.add("WED");
-//        }
-//        if(getGoalDays.isThu()) {
-//            goalDayString.add("THU");
-//        }
-//        if(getGoalDays.isFri()) {
-//            goalDayString.add("FRI");
-//        }
-//        if(getGoalDays.isSat()) {
-//            goalDayString.add("SAT");
-//        }
-//
-//        return goalDayString;
-//    }
 
     // true = 유저 있다 & false = 유저 없다.
     public boolean checkUser(int userIdx, String tableName) throws BaseException {
