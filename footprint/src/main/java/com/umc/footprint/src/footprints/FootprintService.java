@@ -11,6 +11,7 @@ import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
 import com.umc.footprint.src.walks.WalkService;
 import com.umc.footprint.utils.AES128;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class FootprintService {
     private final FootprintDao footprintDao;
     private final FootprintProvider footprintProvider;
@@ -190,6 +192,7 @@ public class FootprintService {
             Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
 
             Walk walkByNumber = walkService.getWalkByNumber(walkIdx, userIdx);
+            log.debug("walkByNumber: " + walkByNumber.toString());
 
             List<GetFootprintRes> getFootprintRes = new ArrayList<>();
 
@@ -197,17 +200,21 @@ public class FootprintService {
 
             /* 발자국 조회시 복호화를 위한 코드 : write, photo, tag 복호화 필요 */
 
+            log.debug("Footprint Handling");
             for (Footprint footprint : footprintList) {
                 List<String> decryptPhotoList = new ArrayList<>();
                 List<String> decryptTagList = new ArrayList<>();
 
+                log.debug("사진 복호화");
                 List<Photo> photoList = photoRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
                 for (Photo photo : photoList) {
                     decryptPhotoList.add(new AES128(encryptProperties.getKey()).decrypt(photo.getImageUrl()));
                 }
+                log.debug("태그 복호화");
                 for (Tag tag : footprint.getTagList()) {
                     decryptTagList.add(new AES128(encryptProperties.getKey()).decrypt(tag.getHashtag().getHashtag()));
                 }
+                log.debug("response 객체에 추가");
                 getFootprintRes.add(GetFootprintRes.builder()
                         .footprintIdx(footprint.getFootprintIdx())
                         .recordAt(footprint.getRecordAt())
