@@ -14,11 +14,6 @@ public interface UserBadgeRepository extends JpaRepository<UserBadge, Integer> {
 
     List<UserBadge> findAllByUserIdx(int userIdx);
 
-    Optional<List<UserBadge>> findAllByUserIdxAndStatus(
-            @Param(value = "userIdx") Integer userIdx,
-            @Param(value = "status") String status
-    );
-
     @Query(value = "SELECT EXISTS (" +
             "SELECT badgeIdx FROM UserBadge WHERE userIdx=:userIdx AND badgeIdx=:badgeIdx AND status='ACTIVE' limit 1) AS success",
     nativeQuery = true)
