@@ -565,7 +565,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            userService.deleteUser(userIdx);
+            userService.deleteUserJPA(userIdx);
 
             return new BaseResponse<>("탈퇴 성공:(");
         }

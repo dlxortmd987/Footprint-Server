@@ -18,6 +18,7 @@ import com.umc.footprint.utils.AES128;
 import com.umc.footprint.utils.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +51,34 @@ public class UserService {
     private final HashtagRepository hashtagRepository;
     private final BadgeRepository badgeRepository;
     private final UserBadgeRepository userBadgeRepository;
+    private final PhotoRepository photoRepository;
+    private final FootprintRepository footprintRepository;
+
+    @Autowired
+    public UserService(UserDao userDao, UserRepository userRepository, TagRepository tagRepository,
+                       JwtService jwtService, AwsS3Service awsS3Service, EncryptProperties encryptProperties,
+                       WalkRepository walkRepository, GoalRepository goalRepository, GoalNextRepository goalNextRepository,
+                       GoalDayRepository goalDayRepository, GoalDayNextRepository goalDayNextRepository,
+                       HashtagRepository hashtagRepository, BadgeRepository badgeRepository, UserBadgeRepository userBadgeRepository,
+                       PhotoRepository photoRepository, FootprintRepository footprintRepository) {
+        this.userDao = userDao;
+        this.userRepository = userRepository;
+        this.tagRepository = tagRepository;
+        this.jwtService = jwtService;
+        this.awsS3Service = awsS3Service;
+        this.encryptProperties = encryptProperties;
+        this.walkRepository = walkRepository;
+        this.goalRepository = goalRepository;
+        this.goalNextRepository = goalNextRepository;
+        this.goalDayRepository = goalDayRepository;
+        this.goalDayNextRepository = goalDayNextRepository;
+        this.hashtagRepository = hashtagRepository;
+        this.badgeRepository = badgeRepository;
+        this.userBadgeRepository = userBadgeRepository;
+        this.photoRepository = photoRepository;
+        this.footprintRepository = footprintRepository;
+    }
+
 
     // 해당 유저의 산책기록 중 태그를 포함하는 산책기록 조회
     public List<GetTagRes> getTagResult(String userId, String tag) throws BaseException {
@@ -212,9 +241,10 @@ public class UserService {
 
             userGoal.get().setWalkGoalTime(patchUserGoalReq.getWalkGoalTime());
             userGoal.get().setWalkTimeSlot(patchUserGoalReq.getWalkTimeSlot());
+            userGoal.get().setUpdateAt(LocalDateTime.now());
             goalNextRepository.save(userGoal.get());
 
-            /** 2. UPDATE Goal  */
+            /** 2. UPDATE GoalDay  */
             Optional<GoalDayNext> userGoalDay = goalDayNextRepository.findByUserIdx(userIdx);
 
             List<Integer> newDayIdxList = new ArrayList<>(List.of(0,0,0,0,0,0,0));
@@ -231,6 +261,8 @@ public class UserService {
             userGoalDay.get().setThu(newDayIdxList.get(4));
             userGoalDay.get().setFri(newDayIdxList.get(5));
             userGoalDay.get().setSat(newDayIdxList.get(6));
+
+            userGoalDay.get().setUpdateAt(LocalDateTime.now());
 
             goalDayNextRepository.save(userGoalDay.get());
 
@@ -418,6 +450,80 @@ public class UserService {
         }
     }
 
+    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
+    public void deleteUserJPA(int userIdx) throws BaseException {
+        try{
+            // GoalNext 테이블
+            Optional<GoalNext> goalNext = goalNextRepository.findByUserIdx(userIdx);
+            goalNextRepository.deleteById(goalNext.get().getPlanIdx());
+
+            // GoalDayNext 테이블
+            Optional<GoalDayNext> goalDayNext = goalDayNextRepository.findByUserIdx(userIdx);
+            goalDayNextRepository.deleteById(goalDayNext.get().getPlanIdx());
+
+            // Goal 테이블
+            List<Goal> goalList = goalRepository.findByUserIdx(userIdx);
+            for(Goal goal : goalList){
+                goalRepository.deleteById(goal.getPlanIdx());
+            }
+
+            // GoalDay 테이블
+            List<GoalDay> goalDayList = goalDayRepository.findByUserIdx(userIdx);
+            for(GoalDay goalDay : goalDayList){
+                goalDayRepository.deleteById(goalDay.getPlanIdx());
+            }
+
+            // UserBadge 테이블
+            List<UserBadge> userBadgeList = userBadgeRepository.findAllByUserIdx(userIdx);
+            for(UserBadge userBadge: userBadgeList){
+                userBadgeRepository.deleteById(userBadge.getCollectionIdx());
+            }
+
+            // Tag 테이블
+            List<Tag> tagList = tagRepository.findAllByUserIdx(userIdx);
+            for(Tag tag : tagList){
+                tagRepository.deleteById(tag.getTagIdx());
+            }
+
+            // Photo 테이블 -> s3에서 이미지 url 먼저 삭제 후 테이블 삭제 필요
+            List<Photo> photoList = photoRepository.findAllByUserIdx(userIdx);
+            for(Photo photo : photoList){
+                String decryptedImageUrl = new AES128(encryptProperties.getKey()).decrypt(photo.getImageUrl());
+                String fileName = decryptedImageUrl.substring(decryptedImageUrl.lastIndexOf("/")+1); // 파일 이름만 자르기
+                awsS3Service.deleteFile(fileName);
+
+                photoRepository.deleteById(photo.getPhotoIdx());
+            }
+
+
+            // Walk + Footprint 테이블
+            List<Walk> walkList = walkRepository.findAllByUserIdx(userIdx);
+            for(Walk walk : walkList){
+                List<Footprint> footprintList = walk.getFootprintList();
+
+                // Walk에 해당하는 Footprint 모두 삭제
+                for(Footprint footprint : footprintList){
+                    footprintRepository.deleteById(footprint.getFootprintIdx());
+                }
+
+                // Walk 테이블 - 동선 이미지 S3 에서도 삭제
+                String decryptedImageUrl = new AES128(encryptProperties.getKey()).decrypt(walk.getPathImageUrl());
+                String fileName = decryptedImageUrl.substring(decryptedImageUrl.lastIndexOf("/") + 1); // 파일 이름만 자르기
+                awsS3Service.deleteFile(fileName);
+
+                // Walk 삭제
+                walkRepository.deleteById(walk.getWalkIdx());
+            }
+
+
+            // User 테이블
+            userRepository.deleteById(userIdx);
+
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
     public GetUserTodayRes getUserToday(int userIdx){
 
         List<Walk> userWalkList = walkRepository.findAllByStatusAndUserIdx("ACTIVE", userIdx);
@@ -556,7 +662,7 @@ public class UserService {
 
     }
 
-    public GetUserGoalRes getUserGoal(int userIdx){
+    public GetUserGoalRes getUserGoal(int userIdx) throws BaseException{
 
         /** 1. 이번달 정보 구하기 */
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));

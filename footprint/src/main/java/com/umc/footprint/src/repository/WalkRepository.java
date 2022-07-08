@@ -38,8 +38,10 @@ public interface WalkRepository extends JpaRepository<Walk, Integer> {
     boolean existsByUserIdx(Integer userIdx);
 
     List<Walk> findAllByStatusAndUserIdx(String status,int userIdx);
-    
+
     Optional<Walk> findByWalkIdx(Integer walkIdx);
+
+    List<Walk> findAllByUserIdx(int userIdx);
 
     List<Walk> findAllByUserIdxOrderByWalkIdx(Integer userIdx);
 
@@ -70,11 +72,12 @@ public interface WalkRepository extends JpaRepository<Walk, Integer> {
     List<GetFootprintCountInterface> getMonthFootCountByQuery(@Param(value = "userIdx") int userIdx,
                                                               @Param(value = "yy") int yy,
                                                               @Param(value = "mm") int mm);
-
+                                                              
     @Query(value = "SELECT dayofweek(startAt) AS DAY FROM Walk " +
             "WHERE userIdx=:userIdx " +
             "AND status = 'ACTIVE' " +
             "AND MONTH(startAt) = MONTH(DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 1 MONTH));"
     ,nativeQuery = true)
     List<Integer> getDayOfWeekByQuery(@Param(value = "userIdx") int userIdx);
+
 }

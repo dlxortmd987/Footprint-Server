@@ -8,9 +8,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FootprintRepository extends JpaRepository<Footprint, Integer> {
     List<String> findCoordinateByWalk(Walk walk);
+
+    List<Footprint> findAllByWalkWalkIdx(int walkIdx);
+
+    Optional<Footprint> findByFootprintIdx(int footprintIdx);
 
     long countByWalkAndStatus(Walk walk, String status);
 
