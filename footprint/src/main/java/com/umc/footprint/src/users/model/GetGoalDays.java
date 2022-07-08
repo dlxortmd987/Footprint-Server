@@ -1,14 +1,10 @@
 package com.umc.footprint.src.users.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 @Getter
-@Builder
 @RequiredArgsConstructor
 public class GetGoalDays {
     private final int sun;
@@ -18,4 +14,15 @@ public class GetGoalDays {
     private final int thu;
     private final int fri;
     private final int sat;
+
+    @Builder
+    public GetGoalDays(GoalDayInterface goalDayInterface) {
+        this.sun = goalDayInterface.getSun();
+        this.mon = goalDayInterface.getMon();
+        this.tue = goalDayInterface.getTue();
+        this.wed = goalDayInterface.getWed();
+        this.thu = goalDayInterface.getThu();
+        this.fri = goalDayInterface.getFri();
+        this.sat = goalDayInterface.getSat();
+    }
 }

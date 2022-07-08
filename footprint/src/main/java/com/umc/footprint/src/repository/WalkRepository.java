@@ -71,4 +71,10 @@ public interface WalkRepository extends JpaRepository<Walk, Integer> {
                                                               @Param(value = "yy") int yy,
                                                               @Param(value = "mm") int mm);
 
+    @Query(value = "SELECT dayofweek(startAt) AS DAY FROM Walk " +
+            "WHERE userIdx=:userIdx " +
+            "AND status = 'ACTIVE' " +
+            "AND MONTH(startAt) = MONTH(DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 1 MONTH));"
+    ,nativeQuery = true)
+    List<Integer> getDayOfWeekByQuery(@Param(value = "userIdx") int userIdx);
 }

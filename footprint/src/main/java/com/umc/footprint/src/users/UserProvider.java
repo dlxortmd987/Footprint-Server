@@ -142,24 +142,24 @@ public class UserProvider {
         }
     }
 
-    //yummy 13
-    // 이번달 사용자가 얻은 뱃지 조회 (PRO, LOVER, MASTER)
-    public BadgeInfo getMonthlyBadgeStatus(int userIdx) throws BaseException {
-        try {
-            // 이전달 목표 설정 여부 확인
-            if(!userDao.checkPrevGoalDay(userIdx)) {
-                throw new BaseException(NOT_EXIST_USER_IN_PREV_GOAL);
-            }
-
-            BadgeInfo getBadgeInfo = userDao.getMonthlyBadgeStatus(userIdx);
-            if(getBadgeInfo==null) {
-                throw new BaseException(NO_MONTHLY_BADGE);
-           }
-            return getBadgeInfo;
-        } catch (Exception exception) {
-            throw new BaseException(DATABASE_ERROR);
-        }
-    }
+//    //yummy 13
+//    // 이번달 사용자가 얻은 뱃지 조회 (PRO, LOVER, MASTER)
+//    public BadgeInfo getMonthlyBadgeStatus(int userIdx) throws BaseException {
+//        try {
+//            // 이전달 목표 설정 여부 확인
+//            if(!userDao.checkPrevGoalDay(userIdx)) {
+//                throw new BaseException(NOT_EXIST_USER_IN_PREV_GOAL);
+//            }
+//
+//            BadgeInfo getBadgeInfo = userDao.getMonthlyBadgeStatus(userIdx);
+//            if(getBadgeInfo==null) {
+//                throw new BaseException(NO_MONTHLY_BADGE);
+//           }
+//            return getBadgeInfo;
+//        } catch (Exception exception) {
+//            throw new BaseException(DATABASE_ERROR);
+//        }
+//    }
 
     // userId로 userIdx 추출
     public int getUserIdx(String userId) throws BaseException {
