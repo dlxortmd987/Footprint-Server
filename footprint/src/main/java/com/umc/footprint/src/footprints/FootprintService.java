@@ -42,10 +42,6 @@ public class FootprintService {
     private final UserRepository userRepository;
     private final AwsS3Service awsS3Service;
     private final EncryptProperties encryptProperties;
-    private final WalkRepository walkRepository;
-    private final FootprintRepository footprintRepository;
-    private final PhotoRepository photoRepository;
-    private final TagRepository tagRepository;
 
     @Autowired
     public FootprintService(FootprintDao footprintDao, FootprintProvider footprintProvider, WalkRepository walkRepository, FootprintRepository footprintRepository, PhotoRepository photoRepository, TagRepository tagRepository, HashtagRepository hashtagRepository, WalkService walkService, UserRepository userRepository, AwsS3Service awsS3Service, EncryptProperties encryptProperties) {
@@ -60,10 +56,6 @@ public class FootprintService {
         this.userRepository = userRepository;
         this.awsS3Service = awsS3Service;
         this.encryptProperties = encryptProperties;
-        this.walkRepository = walkRepository;
-        this.footprintRepository = footprintRepository;
-        this.photoRepository = photoRepository;
-        this.tagRepository = tagRepository;
     }
 
 
