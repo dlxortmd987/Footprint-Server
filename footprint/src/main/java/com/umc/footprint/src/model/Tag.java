@@ -58,4 +58,8 @@ public class Tag {
     public void setStatus(String status) {
         this.status = status;
     }
+
+    public void changeStatus(String status) {
+        this.status = status;
+    }
 }

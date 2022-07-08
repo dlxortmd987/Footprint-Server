@@ -170,4 +170,9 @@ public class FootprintDao {
                 "order by W.startAt ASC LIMIT ?, 1";
         return this.jdbcTemplate.queryForObject(getFootprintWholeIdxQuery, int.class, walkIdx, footprintIdx-1);
     }
+
+    public List<String> getCoordinates(int walkIdx) {
+        String query = "select coordinate from Footprint where walkIdx = ?";
+        return this.jdbcTemplate.queryForList(query, String.class, walkIdx);
+    }
 }

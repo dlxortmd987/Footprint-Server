@@ -32,23 +32,23 @@ public class WalkDao {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    public GetWalkTime getWalkTime(int walkIdx) {
-        String getTimeQuery = "select date_format(date(startAt), '%Y.%m.%d') as date, \n" +
-                "       date_format(time(startAt),'%H:%i') as startAt,\n" +
-                "       date_format(time(endAt),'%H:%i') as endAt, \n" +
-                "       (timestampdiff(second, startAt, endAt)) as timeString from Walk where walkIdx=? and status='ACTIVE';";
-        GetWalkTime getWalkTime = this.jdbcTemplate.queryForObject(getTimeQuery,
-                (rs, rowNum) -> new GetWalkTime(
-                        rs.getString("date"),
-                        rs.getString("startAt"),
-                        rs.getString("endAt"),
-                        rs.getString("timeString")
-                ),walkIdx);
-
-        getWalkTime.convTimeString();
-
-        return getWalkTime;
-    }
+//    public GetWalkTime getWalkTime(int walkIdx) {
+//        String getTimeQuery = "select date_format(date(startAt), '%Y.%m.%d') as date, \n" +
+//                "       date_format(time(startAt),'%H:%i') as startAt,\n" +
+//                "       date_format(time(endAt),'%H:%i') as endAt, \n" +
+//                "       (timestampdiff(second, startAt, endAt)) as timeString from Walk where walkIdx=? and status='ACTIVE';";
+//        GetWalkTime getWalkTime = this.jdbcTemplate.queryForObject(getTimeQuery,
+//                (rs, rowNum) -> new GetWalkTime(
+//                        rs.getString("date"),
+//                        rs.getString("startAt"),
+//                        rs.getString("endAt"),
+//                        rs.getString("timeString")
+//                ),walkIdx);
+//
+//        getWalkTime.convTimeString();
+//
+//        return getWalkTime;
+//    }
 
     public Integer getFootCount(int walkIdx) {
         String getFootCountQuery = "select count(footprintIdx) as footCount from Footprint where walkIdx=? and status='ACTIVE';";
@@ -58,8 +58,6 @@ public class WalkDao {
     }
 
     public String deleteWalk(int walkIdx) {
-
-
         String deleteFootprintQuery = "update Footprint set status='INACTIVE' where walkIdx=? and status='ACTIVE';"; // 발자국 INACTIVE
         this.jdbcTemplate.update(deleteFootprintQuery, walkIdx);
 
@@ -69,81 +67,6 @@ public class WalkDao {
         return "Success Delete walk record!";
     }
 
-    //Walk 테이블에 insert
-//    public int addWalk(SaveWalk walk, String pathImgUrl) {
-//        KeyHolder keyHolder = new GeneratedKeyHolder();
-//
-//        String walkInsertQuery = "insert into Walk(startAt, endAt, distance, coordinate, pathImageUrl, userIdx, goalRate, calorie) " +
-//                "values (?,?,?,?,?,?,?,?)";
-//
-//        log.debug("walk startAt: {}", walk.getStartAt());
-//        log.debug("walk endAt: {}", walk.getEndAt());
-//        log.debug("walk distance: {}", walk.getDistance());
-//        log.debug("walk userIdx: {}", walk.getUserIdx());
-//        log.debug("walk strCoordinate: {}", walk.getStrCoordinates());
-//        log.debug("walk pathImgUrl: {}", pathImgUrl);
-//        log.debug("walk goalRate: {}", walk.getGoalRate());
-//        log.debug("walk calorie: {}", walk.getCalorie());
-//        log.debug("walk photoMatchNumList: {}", walk.getPhotoMatchNumList());
-//
-//        TimeZone default_time_zone = TimeZone.getTimeZone(ZoneId.of("Asia/Seoul"));
-//
-//        TimeZone.setDefault(default_time_zone);
-//        Timestamp timestampStartAt = Timestamp.valueOf(walk.getStartAt());
-//        Timestamp timestampEndAt = Timestamp.valueOf(walk.getEndAt());
-//
-//        this.jdbcTemplate.update(new PreparedStatementCreator() {
-//            @Override
-//            public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-//                PreparedStatement preparedStatement = con.prepareStatement(walkInsertQuery, Statement.RETURN_GENERATED_KEYS);
-//                preparedStatement.setTimestamp(1, timestampStartAt);
-//                preparedStatement.setTimestamp(2, timestampEndAt);
-//                preparedStatement.setDouble(3, walk.getDistance());
-//                preparedStatement.setString(4, walk.getStrCoordinates());
-//                preparedStatement.setString(5, pathImgUrl);
-//                preparedStatement.setInt(6, walk.getUserIdx());
-//                preparedStatement.setDouble(7, walk.getGoalRate());
-//                preparedStatement.setInt(8, walk.getCalorie());
-//
-//                return preparedStatement;
-//            }
-//        }, keyHolder);
-//
-//        // 생성된 id값 int형으로 변환해서 반환
-//        return keyHolder.getKey().intValue();
-//    }
-
-//    public void addFootprint(List<SaveFootprint> footprintList, int walkIdx) {
-//        KeyHolder keyHolder = new GeneratedKeyHolder();
-//
-//        String footprintInsertQuery = "insert into `Footprint`(`coordinate`, `write`, `recordAt`, `walkIdx`, `updateAt`, `onWalk`)" +
-//                "values (?,?,?,?,?,?)";
-//
-//        for (SaveFootprint footprint : footprintList){
-//            this.jdbcTemplate.update(new PreparedStatementCreator() {
-//                @Override
-//                public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-//                    PreparedStatement preparedStatement = con.prepareStatement(footprintInsertQuery, Statement.RETURN_GENERATED_KEYS);
-//                    preparedStatement.setString(1, footprint.getStrCoordinate());
-//                    preparedStatement.setString(2, footprint.getWrite());
-//                    preparedStatement.setTimestamp(3, Timestamp.valueOf(footprint.getRecordAt()));
-//                    preparedStatement.setInt(4, walkIdx);
-//                    preparedStatement.setTimestamp(5, Timestamp.valueOf(LocalDateTime.now()));
-//                    preparedStatement.setInt(6, footprint.getOnWalk());
-//                    return preparedStatement;
-//                }
-//            }, keyHolder);
-//            // 자동 생성되는 인덱스 리스트에 추가
-//            footprint.setFootprintIdx(keyHolder.getKey().intValue());
-//
-//            log.debug("발자국 인덱스: {}", footprint.getFootprintIdx());
-//            log.debug("발자국 좌표(String): {}", footprint.getStrCoordinate());
-//            log.debug("발자국 내용: {}", footprint.getWrite());
-//            log.debug("발자국 기록 시간: {}", footprint.getRecordAt());
-//            log.debug("발자국 walkIdx: {}", walkIdx);
-//            log.debug("발자국 onWalk: {}", footprint.getOnWalk());
-//        }
-//    }
 
         //Photo 테이블에 insert
     public void addPhoto(int userIdx, List<SaveFootprint> footprintList) {
