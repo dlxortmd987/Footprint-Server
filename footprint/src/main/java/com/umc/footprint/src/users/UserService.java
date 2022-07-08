@@ -253,9 +253,10 @@ public class UserService {
 
             userGoal.get().setWalkGoalTime(patchUserGoalReq.getWalkGoalTime());
             userGoal.get().setWalkTimeSlot(patchUserGoalReq.getWalkTimeSlot());
+            userGoal.get().setUpdateAt(LocalDateTime.now());
             goalNextRepository.save(userGoal.get());
 
-            /** 2. UPDATE Goal  */
+            /** 2. UPDATE GoalDay  */
             Optional<GoalDayNext> userGoalDay = goalDayNextRepository.findByUserIdx(userIdx);
 
             List<Integer> newDayIdxList = new ArrayList<>(List.of(0,0,0,0,0,0,0));
@@ -272,6 +273,8 @@ public class UserService {
             userGoalDay.get().setThu(newDayIdxList.get(4));
             userGoalDay.get().setFri(newDayIdxList.get(5));
             userGoalDay.get().setSat(newDayIdxList.get(6));
+
+            userGoalDay.get().setUpdateAt(LocalDateTime.now());
 
             goalDayNextRepository.save(userGoalDay.get());
 
@@ -671,7 +674,7 @@ public class UserService {
 
     }
 
-    public GetUserGoalRes getUserGoal(int userIdx){
+    public GetUserGoalRes getUserGoal(int userIdx) throws BaseException{
 
         /** 1. 이번달 정보 구하기 */
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
