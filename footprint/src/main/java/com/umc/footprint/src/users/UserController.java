@@ -371,11 +371,9 @@ public class UserController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
-            BadgeInfo getBadgeInfo = userProvider.getMonthlyBadgeStatus(userIdx);
-            return new BaseResponse<>(getBadgeInfo);
+            BadgeInfo badgeInfo = userService.getMonthlyBadgeStatus(userId);
+            return new BaseResponse<>(badgeInfo);
         }
         catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
