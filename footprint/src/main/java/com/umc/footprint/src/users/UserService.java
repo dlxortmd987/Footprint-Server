@@ -639,13 +639,20 @@ public class UserService {
 
             List<Walk> userWalkList = walkRepository.findAllByStatusAndUserIdx("ACTIVE", userIdx);
             List<GetUserDateRes> getUserDateResList = new ArrayList<>();
-
             UserDateWalk userDateWalk;
 
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+            int count = 0;
+
             for (Walk userWalk : userWalkList) {
+                count ++;
+
+                if(!userWalk.getStartAt().toLocalDate().equals(LocalDate.parse(date,formatter)))
+                    continue;
 
                 userDateWalk = UserDateWalk.builder()
-                        .walkIdx(userWalk.getWalkIdx())
+                        .walkIdx(count)
                         .startTime(userWalk.getStartAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                         .endTime(userWalk.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                         .pathImageUrl(new AES128(encryptProperties.getKey()).decrypt(userWalk.getPathImageUrl()))
