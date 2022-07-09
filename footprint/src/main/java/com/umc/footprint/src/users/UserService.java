@@ -4,20 +4,26 @@ import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.AwsS3Service;
+import com.umc.footprint.src.model.User;
+import com.umc.footprint.src.model.Walk;
+import com.umc.footprint.src.repository.TagRepository;
+import com.umc.footprint.src.repository.UserRepository;
+import com.umc.footprint.src.repository.WalkRepository;
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
 import com.umc.footprint.src.users.model.*;
+import com.umc.footprint.src.walks.model.GetFootprintCountInterface;
+import com.umc.footprint.src.walks.model.GetMonthTotalInterface;
 import com.umc.footprint.utils.AES128;
 import com.umc.footprint.utils.JwtService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -29,14 +35,15 @@ import static com.umc.footprint.config.BaseResponseStatus.*;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserDao userDao;
     private final UserRepository userRepository;
     private final TagRepository tagRepository;
+    private final WalkRepository walkRepository;
     private final JwtService jwtService;
     private final AwsS3Service awsS3Service;
     private final EncryptProperties encryptProperties;
-    private final WalkRepository walkRepository;
     private final GoalRepository goalRepository;
     private final GoalNextRepository goalNextRepository;
     private final GoalDayRepository goalDayRepository;
@@ -96,6 +103,8 @@ public class UserService {
                 );
             }
 
+            List<Integer> allByUserIdx = walkRepository.findAllByUserIdxOrderByWalkIdx(userIdx).stream().map(Walk::getWalkIdx).collect(Collectors.toList());
+
             // response 객체
             List<GetTagRes> getTagResList = new ArrayList<>();
             // response 객체에 저장된 walkIdx (중복 저장 확인용)
@@ -127,7 +136,7 @@ public class UserService {
                                         // 산책 정보
                                         .userDateWalk(
                                                 UserDateWalk.builder()
-                                                        .walkIdx(walkHashtag.getWalkIdx())
+                                                        .walkIdx(allByUserIdx.indexOf(walkHashtag.getWalkIdx()) + 1)
                                                         .startTime(walkHashtag.getStartAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                                                         .endTime(walkHashtag.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                                                         .pathImageUrl(new AES128(encryptProperties.getKey()).decrypt(walkHashtag.getPathImageUrl()))
@@ -151,27 +160,6 @@ public class UserService {
             return getTagResList;
         } catch (Exception exception) {
             exception.printStackTrace();
-            throw new BaseException(DATABASE_ERROR);
-        }
-    }
-
-    // yummy 12
-    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-    public BadgeInfo modifyRepBadge(int userIdx, int badgeIdx) throws BaseException {
-        try {
-            // 해당 뱃지가 Badge 테이블에 존재하는 뱃지인지?
-            if(!userDao.badgeCheck(badgeIdx)) {
-                throw new BaseException(INVALID_BADGEIDX);
-            }
-
-            // 유저가 해당 뱃지를 갖고 있고, ACTIVE 뱃지인지?
-            if(!userDao.userBadgeCheck(userIdx, badgeIdx)) {
-                throw new BaseException(NOT_EXIST_USER_BADGE);
-            }
-
-            BadgeInfo patchRepBadgeInfo = userDao.modifyRepBadge(userIdx, badgeIdx);
-            return patchRepBadgeInfo;
-          } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
     }
@@ -1208,6 +1196,332 @@ public class UserService {
 
         } catch (Exception exception) {
             exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    public GetMonthInfoRes getMonthInfoRes(String userId) throws BaseException {
+        try {
+            User user = checkUserStatus(userId);
+
+            LocalDateTime now = LocalDateTime.now();
+            int nowYear = now.getYear();
+            int nowMonth = now.getMonthValue();
+
+            List<String> goalDayList = getUserGoalDays(user.getUserIdx(), nowYear, nowMonth);
+            List<GetDayRateRes> getDayRateRes = walkRepository.getRateByUserIdxAndStartAt(user.getUserIdx(), nowYear, nowMonth);
+            int dayCount = getDayRateRes.toArray().length;
+
+            GetMonthTotalInterface getMonthTotalInterface = walkRepository.getMonthTotalByQuery(
+                    user.getUserIdx(),
+                    nowYear,
+                    nowMonth
+            );
+
+            GetMonthTotal getMonthTotal = new GetMonthTotal(
+                    getMonthTotalInterface.getMonthTotalMin(),
+                    getMonthTotalInterface.getMonthTotalDistance(),
+                    getMonthTotalInterface.getMonthPerCal());
+            getMonthTotal.avgCal(dayCount);
+            getMonthTotal.convertSecToMin();
+
+            return new GetMonthInfoRes(goalDayList, getDayRateRes, getMonthTotal);
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+
+    public List<String> getUserGoalDays(int userIdx, int year, int month) throws BaseException {
+        GetGoalDays goalDay = new GetGoalDays(goalDayRepository.selectOnlyGoalDayByQuery(userIdx, year, month)
+                .orElseThrow(()->new BaseException(NOT_EXIST_USER_IN_GOAL)));
+
+        return convertGoalDayBoolToString(goalDay);
+    }
+
+    public List<String> convertGoalDayBoolToString(GetGoalDays goalDay) {
+        List<String> goalDayString = new ArrayList<>();
+
+        if(goalDay.getSun()==1) {
+            goalDayString.add("SUN");
+        }
+        if(goalDay.getMon()==1) {
+            goalDayString.add("MON");
+        }
+        if(goalDay.getTue()==1) {
+            goalDayString.add("TUE");
+        }
+        if(goalDay.getWed()==1) {
+            goalDayString.add("WED");
+        }
+        if(goalDay.getThu()==1) {
+            goalDayString.add("THU");
+        }
+        if(goalDay.getFri()==1) {
+            goalDayString.add("FRI");
+        }
+        if(goalDay.getSat()==1) {
+            goalDayString.add("SAT");
+        }
+        return goalDayString;
+    }
+
+    public List<GetFootprintCount> getMonthFootprints(String userId, int year, int month) throws BaseException {
+        try {
+            User user = checkUserStatus(userId);
+
+            LocalDate nowDate = LocalDate.now();
+            LocalDate paramDate = LocalDate.of(year,month,1);
+            if(nowDate.isBefore(paramDate) || month<1 || month>12) {
+                throw new BaseException(INVALID_DATE);
+            }
+
+            List<GetFootprintCountInterface> getMonthFootprints = walkRepository.getMonthFootCountByQuery(
+                    user.getUserIdx(),
+                    year,
+                    month
+            );
+
+            List<GetFootprintCount> getFootprintCounts = new ArrayList<>();
+            for(GetFootprintCountInterface i : getMonthFootprints) {
+                getFootprintCounts.add(
+                        new GetFootprintCount(i.getDay(), i.getWalkCount())
+                );
+            }
+
+            return getFootprintCounts;
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    public GetUserBadges getUserBadges(String userId) throws BaseException {
+        try {
+            User user = checkUserStatus(userId);
+
+            BadgeInfo badgeInfo = new BadgeInfo(badgeRepository.getByBadgeIdx(user.getBadgeIdx())); //대표 뱃지
+            List<UserBadge> userBadges = userBadgeRepository.findAllByUserIdxAndStatus(user.getUserIdx(), "ACTIVE")
+                    .orElseThrow(() -> new BaseException(NO_BADGE_USER));
+
+            List<Badge> badges = badgeRepository.findByBadgeIdx(
+                    userBadges.stream().map(UserBadge::getBadgeIdx).collect(Collectors.toList())
+            );
+
+            List<BadgeOrder> badgeOrders = new ArrayList<>();
+
+            for(Badge b : badges) {
+                int badgeOrderNum = 0;
+                if(b.getBadgeDate().toString().startsWith("1900")) {
+                    if(b.getBadgeIdx()==0) continue;
+                    badgeOrderNum = b.getBadgeIdx()-1;
+                } else {
+                    LocalDate badgeDate = b.getBadgeDate();
+                    if(LocalDate.now().getYear()!= badgeDate.getYear()) continue; //올해 뱃지가 아니면 조회 X
+                    badgeOrderNum = badgeDate.getMonthValue()+7;
+                }
+                badgeOrders.add(
+                        BadgeOrder.builder()
+                                .badgeIdx(b.getBadgeIdx())
+                                .badgeName(b.getBadgeName())
+                                .badgeUrl(b.getBadgeUrl())
+                                .badgeDate(b.getBadgeDate().toString())
+                                .badgeOrder(badgeOrderNum)
+                                .build()
+                );
+            }
+            return GetUserBadges.builder()
+                    .repBadgeInfo(badgeInfo)
+                    .badgeList(badgeOrders)
+                    .build();
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
+    public BadgeInfo modifyRepBadge(String userId, int badgeIdx) throws BaseException {
+        try {
+            User user = checkUserStatus(userId);
+
+            // 해당 뱃지가 Badge 테이블에 존재하는 뱃지인지?
+            if(!badgeRepository.existsByBadgeIdx(badgeIdx)) {
+                throw new BaseException(INVALID_BADGEIDX);
+            }
+
+            // 유저가 해당 뱃지를 갖고 있고, ACTIVE 뱃지인지?
+            if(userBadgeRepository.checkUserHasBadge(user.getUserIdx(), badgeIdx)==0) {
+                throw new BaseException(NOT_EXIST_USER_BADGE);
+            }
+
+            user.setBadgeIdx(badgeIdx);
+            userRepository.save(user);
+
+            return new BadgeInfo(badgeRepository.getByBadgeIdx(user.getBadgeIdx()));
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public User checkUserStatus(String userId) throws BaseException{
+        User user = userRepository.getByUserId(userId)
+                .orElseThrow(()-> new BaseException(INVALID_USERIDX));
+
+        if (user.getStatus().equals("INACTIVE")) {
+            throw new BaseException(INACTIVE_USER);
+        }
+        else if (user.getStatus().equals("BLACK")) {
+            throw new BaseException(BLACK_USER);
+        }
+        return user;
+    }
+
+    public BadgeInfo getMonthlyBadgeStatus(String userId) throws BaseException {
+        try {
+            User user = checkUserStatus(userId);
+
+            int rate = calcMonthGoalRate(user.getUserIdx(), 1); //이전달 달성률
+
+            LocalDate now = LocalDate.now();
+            int year = now.getYear();
+            int month = now.getMonthValue();
+
+            if(month == 1) { //지금이 1월이면 저번달은 작년 12월로 조회
+                year--;
+                month = 12;
+            } else {
+                month--;
+            }
+
+            GetGoalDays getGoalDays = new GetGoalDays(
+                    goalDayRepository.selectOnlyGoalDayByQuery(
+                            user.getUserIdx(),
+                            year,
+                            month
+                    ).orElseThrow(()->new BaseException(NOT_EXIST_USER_IN_PREV_GOAL))
+            );
+
+            double goalCount = 0; //저번달의 설정한 목표요일 전체 횟수
+            Calendar cal = new GregorianCalendar(year, month-1, 1); //0-11월로 조회
+            do {
+                int day = cal.get(Calendar.DAY_OF_WEEK);
+                if (day == Calendar.SUNDAY && getGoalDays.getSun()==1) {
+                    goalCount++;
+                }
+                else if (day == Calendar.MONDAY && getGoalDays.getMon()==1) {
+                    goalCount++;
+                }
+                else if (day == Calendar.TUESDAY && getGoalDays.getTue()==1) {
+                    goalCount++;
+                }
+                else if (day == Calendar.WEDNESDAY && getGoalDays.getWed()==1) {
+                    goalCount++;
+                }
+                else if (day == Calendar.THURSDAY && getGoalDays.getThu()==1) {
+                    goalCount++;
+                }
+                else if (day == Calendar.FRIDAY && getGoalDays.getFri()==1) {
+                    goalCount++;
+                }
+                else if (day == Calendar.SATURDAY && getGoalDays.getSat()==1) {
+                    goalCount++;
+                }
+                cal.add(Calendar.DAY_OF_YEAR, 1);
+            }  while (cal.get(Calendar.MONTH) == month);
+
+            // 이번달 산책 날짜의 요일을 받기
+            List<Integer> walkDays = walkRepository.getDayOfWeekByQuery(user.getUserIdx());
+
+            // 목표 요일이랑 비교하기
+            // 산책 요일이 목표 요일이랑 같으면 count
+            double walkCount = 0; //목표요일에 산책한 횟수
+
+            for(int i=0;i<walkDays.size();i++) {
+                int walkday = (int) walkDays.get(i);
+                switch (walkday) {
+                    case 1:
+                        if(getGoalDays.getSun()==1) {
+                            walkCount++;
+                        }
+                        break;
+                    case 2:
+                        if(getGoalDays.getMon()==1) {
+                            walkCount++;
+                        }
+                        break;
+                    case 3:
+                        if(getGoalDays.getTue()==1) {
+                            walkCount++;
+                        }
+                        break;
+                    case 4:
+                        if(getGoalDays.getWed()==1) {
+                            walkCount++;
+                        }
+                        break;
+                    case 5:
+                        if(getGoalDays.getThu()==1) {
+                            walkCount++;
+                        }
+                        break;
+                    case 6:
+                        if(getGoalDays.getFri()==1) {
+                            walkCount++;
+                        }
+                        break;
+                    case 7:
+                        if(getGoalDays.getSat()==1) {
+                            walkCount++;
+                        }
+                        break;
+                }
+            }
+
+            double walkRate = (walkCount/goalCount) * 100;
+
+            /*
+             * MASTER - 목표 요일 중 80% 이상 / 달성률 90%
+             * PRO - 목표 요일 중 50% 이상 / 달성률 70%
+             * LOVER - 목표 요일 고려 안함 / 달성률 50%
+             * */
+            int badgeNum = -1;
+
+            if(rate >= 50) {
+                //LOVER - badgeIdx 0
+                badgeNum=0;
+            }
+            if(rate >= 70 && walkRate >= 50) {
+                //PRO - badgeIdx 1
+                badgeNum=1;
+            }
+            if(rate >= 90 && walkRate >= 80) {
+                //MASTER - badgeIdx 2
+                badgeNum=2;
+            }
+
+            if(badgeNum == -1) { //이번 달에 획득한 뱃지가 없는 경우
+                return null;
+            }
+
+            LocalDate badgeDate = LocalDate.of(year, month, badgeNum); // 획득한 뱃지의 date
+
+            BadgeInfo badgeInfo = new BadgeInfo(badgeRepository.getByBadgeDate(badgeDate));
+
+
+            //TODO: 사용자에게 다른 달 뱃지 있는지 확인 - 한 달에 프로, 러버, 마스터 중 하나만 ACTIVE한 상태여야 함!
+
+
+            //UserBadge 테이블에 얻은 뱃지 추가
+            userBadgeRepository.save(
+                    UserBadge.builder()
+                            .badgeIdx(badgeInfo.getBadgeIdx())
+                            .userIdx(user.getUserIdx())
+                            .status("ACTIVE")
+                    .build()
+            );
+
+            return badgeInfo;
+        } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
     }

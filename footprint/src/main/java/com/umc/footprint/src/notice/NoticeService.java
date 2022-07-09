@@ -4,25 +4,21 @@ import com.umc.footprint.config.BaseException;
 import com.umc.footprint.src.model.Notice;
 import com.umc.footprint.src.notice.model.*;
 import com.umc.footprint.src.repository.NoticeRepository;
-import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
-import static com.umc.footprint.config.BaseResponseStatus.INVALID_BADGEIDX;
 import static com.umc.footprint.config.BaseResponseStatus.INVALID_NOTICE_IDX;
 
 @Slf4j
@@ -30,6 +26,9 @@ import static com.umc.footprint.config.BaseResponseStatus.INVALID_NOTICE_IDX;
 public class NoticeService {
 
     private final NoticeRepository noticeRepository;
+
+    @Value("${application.version}")
+    private String serverVersion;
 
     @Autowired
     public NoticeService(NoticeRepository noticeRepository) {
@@ -170,4 +169,20 @@ public class NoticeService {
         return PostKeyNoticeRes.builder().keyNoticeList(result).build();
     }
 
+    public GetVersionCheckRes checkVersion(String userVersion) {
+//        List<Integer> userVersionToken = Arrays.stream(userVersion.split(".")).map(Integer::parseInt).collect(Collectors.toList());
+//        List<Integer> serverVersionToken = Arrays.stream(serverVersion.split(".")).map(Integer::parseInt).collect(Collectors.toList());
+
+        Boolean whetherUpdate = null;
+        if (userVersion.charAt(0) == serverVersion.charAt(0)) { // 업데이트 불필요
+            whetherUpdate = false;
+        } else { // 업데이트 필요
+            whetherUpdate = true;
+        }
+
+        return GetVersionCheckRes.builder()
+                .whetherUpdate(whetherUpdate)
+                .version(serverVersion)
+                .build();
+    }
 }

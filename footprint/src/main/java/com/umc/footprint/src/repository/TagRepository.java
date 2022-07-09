@@ -31,4 +31,6 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
 
     List<Tag> findAllByUserIdx(int userIdx);
 
+    List<Tag> findAllByFootprintAndStatus(Footprint footprint, String status);
+
 }
