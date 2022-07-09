@@ -254,13 +254,13 @@ public class UserService {
                 newDayIdxList.set(dayIdx-1,1);
             }
 
-            userGoalDay.get().setSun(newDayIdxList.get(0));
-            userGoalDay.get().setMon(newDayIdxList.get(1));
-            userGoalDay.get().setTue(newDayIdxList.get(2));
-            userGoalDay.get().setWed(newDayIdxList.get(3));
-            userGoalDay.get().setThu(newDayIdxList.get(4));
-            userGoalDay.get().setFri(newDayIdxList.get(5));
-            userGoalDay.get().setSat(newDayIdxList.get(6));
+            userGoalDay.get().setMon(newDayIdxList.get(0));
+            userGoalDay.get().setTue(newDayIdxList.get(1));
+            userGoalDay.get().setWed(newDayIdxList.get(2));
+            userGoalDay.get().setThu(newDayIdxList.get(3));
+            userGoalDay.get().setFri(newDayIdxList.get(4));
+            userGoalDay.get().setSat(newDayIdxList.get(5));
+            userGoalDay.get().setSun(newDayIdxList.get(6));
 
             userGoalDay.get().setUpdateAt(LocalDateTime.now());
 
@@ -753,7 +753,7 @@ public class UserService {
 
     }
 
-    public GetUserGoalRes getUserGoalNext(int userIdx){
+    public GetUserGoalRes getUserGoalNext(int userIdx) throws BaseException{
 
         /** 1. 이번달 정보 구하기 */
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
