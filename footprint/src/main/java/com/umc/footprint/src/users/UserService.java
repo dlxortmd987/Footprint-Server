@@ -318,17 +318,24 @@ public class UserService {
                 // status: ACTIVE -> 정보 입력 필요
                 switch (result.getStatus()) {
                     case "NONE":
-                            // 암호화
-                            String jwt = jwtService.createJwt(postLoginReq.getUserId());
-                            // 유저 정보 db에 등록
-                            postLoginReq.setEncryptedInfos(new AES128(encryptProperties.getKey()).encrypt(postLoginReq.getUsername()), encryptEmail);
-                            userRepository.save(postLoginReq.toUserEntity());
+                        // 암호화
+                        String jwt = jwtService.createJwt(postLoginReq.getUserId());
+                        // 유저 정보 db에 등록
+                        postLoginReq.setEncryptedInfos(new AES128(encryptProperties.getKey()).encrypt(postLoginReq.getUsername()), encryptEmail);
+                        userRepository.save(postLoginReq.toUserEntity());
+                        userBadgeRepository.save(
+                                UserBadge.builder()
+                                        .badgeIdx(0)
+                                        .userIdx(userRepository.findByUserId(postLoginReq.getUserId()).getUserIdx())
+                                        .status("ACTIVE")
+                                        .build()
+                        );
 
-                            return PostLoginRes.builder()
-                                    .jwtId(jwt)
-                                    .status("ONGOING")
-                                    .checkMonthChanged(false)
-                                    .build();
+                        return PostLoginRes.builder()
+                                .jwtId(jwt)
+                                .status("ONGOING")
+                                .checkMonthChanged(false)
+                                .build();
                     case "ACTIVE":
                     case "ONGOING":
                         return result;
