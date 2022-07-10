@@ -524,7 +524,7 @@ public class UserService {
         }
     }
 
-    public GetUserTodayRes getUserToday(int userIdx){
+    public GetUserTodayRes getUserToday(int userIdx) throws BaseException{
 
         List<Walk> userWalkList = walkRepository.findAllByStatusAndUserIdx("ACTIVE", userIdx);
 
@@ -562,55 +562,55 @@ public class UserService {
                 break;
             }
         }
-        DayOfWeek dayOfWeek = today.getDayOfWeek();
-        boolean onDay = false;
-
-        switch (dayOfWeek){
-            case MONDAY:
-                if (goalDay.getMon().equals(1)){
-                    onDay = true;
-                } break;
-            case TUESDAY:
-                if (goalDay.getTue().equals(1)){
-                    onDay = true;
-                } break;
-            case WEDNESDAY:
-                if (goalDay.getWed().equals(1)){
-                    onDay = true;
-                } break;
-            case THURSDAY:
-                if (goalDay.getThu().equals(1)){
-                    onDay = true;
-                } break;
-            case FRIDAY:
-                if (goalDay.getFri().equals(1)){
-                    onDay = true;
-                } break;
-            case SATURDAY:
-                if (goalDay.getSat().equals(1)){
-                    onDay = true;
-                } break;
-            case SUNDAY:
-                if (goalDay.getSun().equals(1)){
-                    onDay = true;
-                } break;
-
-        }
-
-        int walkGoalTime = 0;
-        if(onDay == true){
-            List<Goal> userGoalList = goalRepository.findByUserIdx(userIdx);
-            Goal userGoal = Goal.builder().build();
-            for(Goal goal : userGoalList ){
-                LocalDate goalCreateAt = goal.getCreateAt().toLocalDate();
-                if(goalCreateAt.getMonth().equals(LocalDate.now().getMonth()) && goalCreateAt.getYear() == LocalDate.now().getYear()){
-                    userGoal = goal;
-                    break;
-                }
+//        DayOfWeek dayOfWeek = today.getDayOfWeek();
+//        boolean onDay = false;
+//
+//        switch (dayOfWeek){
+//            case MONDAY:
+//                if (goalDay.getMon().equals(1)){
+//                    onDay = true;
+//                } break;
+//            case TUESDAY:
+//                if (goalDay.getTue().equals(1)){
+//                    onDay = true;
+//                } break;
+//            case WEDNESDAY:
+//                if (goalDay.getWed().equals(1)){
+//                    onDay = true;
+//                } break;
+//            case THURSDAY:
+//                if (goalDay.getThu().equals(1)){
+//                    onDay = true;
+//                } break;
+//            case FRIDAY:
+//                if (goalDay.getFri().equals(1)){
+//                    onDay = true;
+//                } break;
+//            case SATURDAY:
+//                if (goalDay.getSat().equals(1)){
+//                    onDay = true;
+//                } break;
+//            case SUNDAY:
+//                if (goalDay.getSun().equals(1)){
+//                    onDay = true;
+//                } break;
+//
+//        }
+//
+//        int walkGoalTime = 0;
+//        if(onDay == true){
+        List<Goal> userGoalList = goalRepository.findByUserIdx(userIdx);
+        Goal userGoal = Goal.builder().build();
+        for(Goal goal : userGoalList ){
+            LocalDate goalCreateAt = goal.getCreateAt().toLocalDate();
+            if(goalCreateAt.getMonth().equals(LocalDate.now().getMonth()) && goalCreateAt.getYear() == LocalDate.now().getYear()){
+                userGoal = goal;
+                break;
             }
-
-            walkGoalTime = userGoal.getWalkGoalTime();
         }
+
+        int walkGoalTime = userGoal.getWalkGoalTime();
+
         return GetUserTodayRes.builder()
                 .goalRate(todayGoalRate)
                 .walkTime(todayTotalTime)
@@ -977,6 +977,20 @@ public class UserService {
         monthlyGoalRate.add(0,avgGoalRate);
 
         return new UserInfoStat(mostWalkDay,userWeekDayRate,thisMonthWalkCount,monthlyWalkCount,monthlyGoalRate.get(6),monthlyGoalRate);
+
+    }
+
+    // UserController
+    // 유저 목표 최신화
+    // GoalNext -> Goal
+    public void updateGoal(){
+
+    }
+
+    // UserController
+    // 유저 목표 요일 최신화
+    // GoalDayNext -> GoalDay
+    public void updateGoalDay(){
 
     }
 
