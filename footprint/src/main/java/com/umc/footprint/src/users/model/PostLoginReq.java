@@ -39,6 +39,7 @@ public class PostLoginReq {
                 .username(username)
                 .email(email)
                 .providerType(providerType)
+                .badgeIdx(0)
                 .build();
     }
 }
