@@ -2,6 +2,7 @@ package com.umc.footprint.src.repository;
 
 import com.umc.footprint.src.model.Walk;
 import com.umc.footprint.src.users.model.GetDayRateRes;
+import com.umc.footprint.src.users.model.GetDayRateResInterface;
 import com.umc.footprint.src.walks.model.GetFootprintCountInterface;
 import com.umc.footprint.src.walks.model.GetMonthTotalInterface;
 import com.umc.footprint.src.walks.model.ObtainedBadgeInterface;
@@ -56,7 +57,7 @@ public interface WalkRepository extends JpaRepository<Walk, Integer> {
             "and month(startAt)=? group by day(startAt)",
             nativeQuery = true
     )
-    List<GetDayRateRes> getRateByUserIdxAndStartAt(int userIdx, int year, int month);
+    List<GetDayRateResInterface> getRateByUserIdxAndStartAt(int userIdx, int year, int month);
 
     @Query(value = "SELECT IFNULL(sum((timestampdiff(SECOND ,startAt, endAt))),0) AS monthTotalMin, " +
             "IFNULL(sum(distance),0) AS monthTotalDistance," +

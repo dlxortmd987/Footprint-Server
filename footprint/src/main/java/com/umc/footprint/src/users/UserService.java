@@ -1216,7 +1216,15 @@ public class UserService {
             int nowMonth = now.getMonthValue();
 
             List<String> goalDayList = getUserGoalDays(user.getUserIdx(), nowYear, nowMonth);
-            List<GetDayRateRes> getDayRateRes = walkRepository.getRateByUserIdxAndStartAt(user.getUserIdx(), nowYear, nowMonth);
+            List<GetDayRateResInterface> getDayRateResInterfaces = walkRepository.getRateByUserIdxAndStartAt(
+                    user.getUserIdx(),
+                    nowYear,
+                    nowMonth);
+
+            List<GetDayRateRes> getDayRateRes = getDayRateResInterfaces.stream()
+                    .map(GetDayRateRes::new)
+                    .collect(Collectors.toList());
+
             int dayCount = getDayRateRes.toArray().length;
 
             GetMonthTotalInterface getMonthTotalInterface = walkRepository.getMonthTotalByQuery(
