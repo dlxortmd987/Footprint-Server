@@ -186,8 +186,8 @@ public class UserService {
 
             Optional<User> user = userRepository.findByUserIdx(userIdx);
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            user.get().setBirth(LocalDateTime.parse(patchUserInfoReq.getBirth(),formatter));
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            user.get().setBirth(LocalDate.parse(patchUserInfoReq.getBirth(),formatter).atStartOfDay());
             user.get().setNickname(patchUserInfoReq.getNickname());
             user.get().setSex(patchUserInfoReq.getSex());
             user.get().setHeight(patchUserInfoReq.getHeight());
