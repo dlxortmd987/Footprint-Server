@@ -987,17 +987,48 @@ public class UserService {
 
     }
 
-    // UserController
+    // UserSchedule
     // 유저 목표 최신화
     // GoalNext -> Goal
     public void updateGoal(){
 
+        // 1. GoalNext 테이블 전체 리스트 추출
+        List<GoalNext> entireGoalNext = goalNextRepository.findAll();
+
+        // 2. Goal 테이블에 1번 추출 결과물 삽입
+        for( GoalNext goalNext : entireGoalNext){
+            goalRepository.save(Goal.builder()
+                    .walkGoalTime(goalNext.getWalkGoalTime())
+                    .walkTimeSlot(goalNext.getWalkTimeSlot())
+                    .userIdx(goalNext.getUserIdx())
+                    .createAt(LocalDateTime.now())
+                    .build());
+        }
+
     }
 
-    // UserController
+    // UserSchedule
     // 유저 목표 요일 최신화
     // GoalDayNext -> GoalDay
     public void updateGoalDay(){
+
+        // 1. GoalDayNext 테이블 전체 리스트 추출
+        List<GoalDayNext> entireGoalDayNext = goalDayNextRepository.findAll();
+
+        // 2. GoalDay 테이블에 1번 추출 결과물 삽입
+        for( GoalDayNext goalDayNext : entireGoalDayNext){
+            goalDayRepository.save(GoalDay.builder()
+                            .mon(goalDayNext.getMon())
+                            .tue(goalDayNext.getTue())
+                            .wed(goalDayNext.getWed())
+                            .thu(goalDayNext.getThu())
+                            .fri(goalDayNext.getFri())
+                            .sat(goalDayNext.getSat())
+                            .sun(goalDayNext.getSun())
+                            .userIdx(goalDayNext.getUserIdx())
+                            .createAt(LocalDateTime.now())
+                            .build());
+        }
 
     }
 
