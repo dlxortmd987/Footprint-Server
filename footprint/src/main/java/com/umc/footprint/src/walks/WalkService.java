@@ -372,62 +372,11 @@ public class WalkService {
             walkByNumber.changeStatus("INACTIVE");
             walkRepository.save(walkByNumber);
 
-            //walkIdx 로 footprintIdx 모두 얻어오기
-//            List<Integer> footprintIdxList = walkDao.getFootprintIdxList(walkIdx);
-//            for (int footprintIdx : footprintIdxList) {
-//                //footprintIdx에 해당하는 photo, tag 모두 INACTIVE
-//                walkDao.inactivePhoto(footprintIdx);
-//                walkDao.inactiveTag(footprintIdx);
-//            }
-
-
-
-//            String result = walkDao.deleteWalk(walkIdx);
-
             return "Success Delete walk record!";
         } catch (Exception exception) { // DB에 이상이 있는 경우 에러 메시지를 보냅니다.
             throw new BaseException(DATABASE_ERROR);
         }
     }
-
-//    @SneakyThrows
-//    @Transactional(readOnly = true)
-//    public GetWalkInfo getWalkInfo(int walkIdx) throws BaseException {
-//        try {
-//            Walk walk = walkRepository.findByWalkIdx(walkIdx)
-//                    .orElseThrow(() -> new BaseException(INVALID_WALKIDX));
-//
-//            if(!walk.getStatus().equals("ACTIVE")) {
-//                throw new BaseException(INVALID_WALKIDX);
-//            }
-//            //TODO : dao to JPA로 refactoring!
-//            String encryptPathImg = new AES128(encryptProperties.getKey()).decrypt(walk.getPathImageUrl());
-//            List<ArrayList<Double>> coordinates = convertStringTo2DList(walk.getCoordinate());
-//            GetWalkTime getWalkTime = walkDao.getWalkTime(walkIdx);
-//            Integer footCount = walkDao.getFootCount(walkIdx);
-//            List<String> strFootCoordinate = footprintDao.getCoordinates(walkIdx);
-//
-//            List<List<Double>> footCoordinate = new ArrayList<>();
-//            for(String fc : strFootCoordinate) {
-//                footCoordinate.add(convertStringToList(fc));
-//            }
-//
-//            GetWalkInfo getWalkInfo = GetWalkInfo.builder()
-//                    .walkIdx(walk.getWalkIdx())
-//                    .getWalkTime(getWalkTime)
-//                    .calorie(walk.getCalorie())
-//                    .distance(walk.getDistance())
-//                    .footCount(footCount)
-//                    .footCoordinates(footCoordinate)
-//                    .pathImageUrl(encryptPathImg)
-//                    .coordinate(coordinates)
-//                    .build();
-//
-//            return getWalkInfo;
-//        } catch (Exception exception) {
-//            throw new BaseException(DATABASE_ERROR);
-//        }
-//    }
 
     // 발자국 좌표 암호화된 문자열을 리스트로 변환하는 함수
     @SneakyThrows
@@ -444,7 +393,6 @@ public class WalkService {
         return list;
     }
 
-    //yummy path : String -> List<List<Double>>
     @SneakyThrows
     public List<ArrayList<Double>> convertStringTo2DList(String inputString) {
 
@@ -454,18 +402,24 @@ public class WalkService {
         if (decryptTest.contains("MULTILINESTRING")) {
             decryptTest = decryptTest.substring(17, decryptTest.length()-2); //MULTISTRING((, ) split
         }
-        decryptTest = decryptTest.replace("(", "");
-        decryptTest = decryptTest.replace(")", "");
-        String[] strArr = decryptTest.split(",");
+
+        decryptTest = decryptTest.substring(1, decryptTest.length()-1); // 앞 뒤 괄호 제거
+        String[] strArr = decryptTest.split("\\),");
 
         for(String coor : strArr) {
-            String[] coorArr = coor.split("\\s"); // 공백 기준 구분
+            log.info("hello loop");
+            coor = coor.replace("(", "");
+            coor = coor.replace(")", "");
+
+            String[] comma = coor.split(",");
             ArrayList<Double> temp = new ArrayList<>();
-            temp.add(Double.parseDouble(coorArr[0]));
-            temp.add(Double.parseDouble(coorArr[1]));
+            for(String com : comma) {
+                String[] space = com.split(" ");
+                temp.add(Double.parseDouble(space[0]));
+                temp.add(Double.parseDouble(space[1]));
+            }
             coordinate.add(temp);
         }
-
         return coordinate;
     }
 
