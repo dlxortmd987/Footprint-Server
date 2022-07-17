@@ -1329,11 +1329,15 @@ public class UserService {
     public List<GetFootprintCount> getMonthFootprints(String userId, int year, int month) throws BaseException {
         try {
             User user = checkUserStatus(userId);
+            List<GetFootprintCount> getFootprintCounts = new ArrayList<>();
 
             LocalDate nowDate = LocalDate.now();
             LocalDate paramDate = LocalDate.of(year,month,1);
-            if(nowDate.isBefore(paramDate) || month<1 || month>12) {
+            if(month<1 || month>12) {
                 throw new BaseException(INVALID_DATE);
+            }
+            if(nowDate.isBefore(paramDate)) {
+                return getFootprintCounts;
             }
 
             List<GetFootprintCountInterface> getMonthFootprints = walkRepository.getMonthFootCountByQuery(
@@ -1342,7 +1346,6 @@ public class UserService {
                     month
             );
 
-            List<GetFootprintCount> getFootprintCounts = new ArrayList<>();
             for(GetFootprintCountInterface i : getMonthFootprints) {
                 getFootprintCounts.add(
                         new GetFootprintCount(i.getDay(), i.getWalkCount())
