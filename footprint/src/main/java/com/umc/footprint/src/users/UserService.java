@@ -74,7 +74,7 @@ public class UserService {
                 );
             }
 
-            List<Integer> allByUserIdx = walkRepository.findAllByUserIdxOrderByWalkIdx(userIdx).stream().map(Walk::getWalkIdx).collect(Collectors.toList());
+            List<Integer> allByUserIdx = walkRepository.findAllByUserIdxAndStatusOrderByWalkIdx(userIdx, "ACTIVE").stream().map(Walk::getWalkIdx).collect(Collectors.toList());
 
             // response 객체
             List<GetTagRes> getTagResList = new ArrayList<>();
