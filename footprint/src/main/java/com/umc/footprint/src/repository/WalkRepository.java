@@ -44,9 +44,9 @@ public interface WalkRepository extends JpaRepository<Walk, Integer> {
 
     Optional<Walk> findByWalkIdx(Integer walkIdx);
 
+    List<Walk> findAllByUserIdxAndStatusOrderByWalkIdx(Integer userIdx, String status);
+    
     List<Walk> findAllByUserIdx(int userIdx);
-
-    List<Walk> findAllByUserIdxOrderByWalkIdx(Integer userIdx);
 
     Optional<Walk> findTopByUserIdxAndStatusOrderByStartAtAsc(Integer userIdx, String status);
 
