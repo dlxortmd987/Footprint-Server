@@ -46,9 +46,14 @@ public class Photo {
     public void setFootprint(Footprint footprint) {
         this.footprint = footprint;
     }
+    
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public void changeStatus(String status) {
         this.status = status;
     }
+
 
 }

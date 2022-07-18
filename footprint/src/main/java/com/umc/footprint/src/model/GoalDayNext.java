@@ -91,4 +91,8 @@ public class GoalDayNext {
     public void setSat(Integer sat) {
         this.sat = sat;
     }
+
+    public void setUpdateAt(LocalDateTime updateAt) {
+        this.updateAt = updateAt;
+    }
 }

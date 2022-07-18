@@ -75,4 +75,5 @@ public class FootprintProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
 }

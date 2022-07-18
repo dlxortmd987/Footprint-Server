@@ -94,13 +94,13 @@ public class FootprintController {
             int userIdx = userProvider.getUserIdx(userId);
 
             // Walk 테이블 전체에서 인덱스
-            int wholeWalkIdx = walkProvider.getWalkWholeIdx(walkIdx, userIdx);
+            int wholeWalkIdx = footprintService.getWalkWholeIdx(walkIdx, userIdx);
             log.debug("wholeWalkIdx: {}", wholeWalkIdx);
 
             // Footprint 테이블 전체에서 인덱스
-            int wholeFootprintIdx = footprintProvider.getFootprintWholeIdx(wholeWalkIdx, footprintIdx);
+            int wholeFootprintIdx = footprintService.getFootprintWholeIdx(wholeWalkIdx, footprintIdx);
             log.debug("wholeFootprintIdx: {}", wholeFootprintIdx);
-            footprintService.deleteFootprint(footprintIdx);
+            footprintService.deleteFootprintJPA(wholeFootprintIdx);
             String result = "발자국을 삭제하였습니다.";
 
             return new BaseResponse<>(result);

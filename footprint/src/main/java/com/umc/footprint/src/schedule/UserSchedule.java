@@ -2,6 +2,7 @@ package com.umc.footprint.src.schedule;
 
 
 import com.umc.footprint.src.users.UserDao;
+import com.umc.footprint.src.users.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -18,10 +19,12 @@ import java.time.ZoneId;
 public class UserSchedule {
 
     private final UserDao userDao;
+    private final UserService userService;
 
     @Autowired
-    public UserSchedule(UserDao userDao){
+    public UserSchedule(UserDao userDao, UserService userService){
         this.userDao = userDao;
+        this.userService = userService;
     }
 
 
@@ -29,22 +32,14 @@ public class UserSchedule {
     @Transactional
     @Scheduled(cron = "0 0 0 1 * ?")
     public void changeMonthGoal(){
-        userDao.updateGoal();
-        userDao.updateGoalDay();
+        userService.updateGoal();
+        userService.updateGoalDay();
     }
 
 //    @Transactional
-//    @Scheduled(cron = "0 45 20 29 * ?")
+//    @Scheduled(cron = "0 25 9 * * ?")
 //    public void changeMonthGoalTest(){
-//
-//        userDao.updateGoal();
-//        userDao.updateGoalDay();
-//
-//        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
-//
-//        log.info("=== Schedule now : {} ===",now);
-//        log.debug("=== Schedule now : {} ===",now);
-//
+//        userService.updateGoalDay();
 //    }
 
 

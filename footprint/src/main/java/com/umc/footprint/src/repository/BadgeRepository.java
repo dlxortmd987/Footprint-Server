@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface BadgeRepository extends JpaRepository<Badge, Integer> {
@@ -14,4 +15,6 @@ public interface BadgeRepository extends JpaRepository<Badge, Integer> {
             nativeQuery = true)
     List<Badge> findByBadgeIdx(@Param("badgeIdx") List<Integer> badgeIdx);
     boolean existsByBadgeIdx(int badgeIdx);
+
+    Badge getByBadgeDate(LocalDate badgeDate);
 }

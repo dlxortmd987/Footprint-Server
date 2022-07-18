@@ -7,9 +7,11 @@ import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.AwsS3Service;
 import com.umc.footprint.src.footprints.model.GetFootprintRes;
 import com.umc.footprint.src.footprints.model.PatchFootprintReq;
+
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
 import com.umc.footprint.src.walks.WalkService;
+
 import com.umc.footprint.utils.AES128;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +24,9 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
 
 @Service
 @Slf4j
@@ -53,6 +57,7 @@ public class FootprintService {
         this.awsS3Service = awsS3Service;
         this.encryptProperties = encryptProperties;
     }
+
 
     // 발자국 수정 (Patch)
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
@@ -157,6 +162,43 @@ public class FootprintService {
         }
     }
 
+    // 발자국 삭제 (PATCH) - 사진 삭제, 태그 삭제, 발자국 기록 삭제
+    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
+    public void deleteFootprintJPA(int footprintIdx) throws BaseException {
+        try {
+            Optional<Footprint> targetFootprint = footprintRepository.findByFootprintIdx(footprintIdx);
+
+            if(targetFootprint.isEmpty()) { // 발자국이 존재하지 않을 때
+                throw new BaseException(NO_EXIST_FOOTPRINT);
+            }
+
+            // Photo status 변경
+            List<Photo> photoByFootprintIdx = photoRepository.findPhotoByFootprint(targetFootprint.get());
+
+            for(Photo photo : photoByFootprintIdx){
+                photo.setStatus("INACTIVE");
+                photoRepository.save(photo);
+            }
+
+            // Hashtag status 변경
+            List<Tag> TagByFootprintIdx = tagRepository.findByFootprint(targetFootprint.get());
+
+            for(Tag tag : TagByFootprintIdx){
+                tag.setStatus("INACTIVE");
+                tagRepository.save(tag);
+            }
+
+            // Footprint status 변경
+            targetFootprint.get().setStatus("INACTIVE");
+            footprintRepository.save(targetFootprint.get());
+
+
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            throw new BaseException(DATABASE_ERROR);
+    }
+    }
+
     // 이미지 URL 생성 > S3 업로드 > Photo 테이블 삽입
     @Transactional(rollbackFor = Exception.class)
     public List<String> uploadImg(List<MultipartFile> photos, int userIdx, Footprint footprint) throws BaseException {
@@ -246,6 +288,33 @@ public class FootprintService {
             return footprint;
         } catch (Exception exception) {
             throw new BaseException(INVALID_FOOTPRINTIDX);
+        }
+    }
+
+    public int getWalkWholeIdx(int walkIdx, int userIdx) throws BaseException {
+        try {
+            List<Walk> walkList = walkRepository.findAllByStatusAndUserIdx("ACTIVE", userIdx);
+            
+//            for(Walk walk : walkList){
+//                System.out.println("walk.getWalkIdx() = " + walk.getWalkIdx());
+//            }
+
+            return walkList.get(walkIdx-1).getWalkIdx();
+
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 산책 내 n번째 발자국 -> 전체에서의 발자국 인덱스
+    public int getFootprintWholeIdx(int walkIdx, int footprintIdx) throws BaseException {
+        try {
+            List<Footprint> footprintList = footprintRepository.findAllByWalkWalkIdx(walkIdx);
+
+            return footprintList.get(footprintIdx-1).getFootprintIdx();
+
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
         }
     }
 }

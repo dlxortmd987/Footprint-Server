@@ -49,4 +49,8 @@ public class GoalNext {
     public void setWalkTimeSlot(Integer walkTimeSlot) {
         this.walkTimeSlot = walkTimeSlot;
     }
+
+    public void setUpdateAt(LocalDateTime updateAt) {
+        this.updateAt = updateAt;
+    }
 }
