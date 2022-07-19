@@ -659,7 +659,9 @@ public class UserService {
                     List<Tag> tagList = footprint.getTagList();
 
                     for (Tag tag : tagList) {
-                        tagString.add(new AES128(encryptProperties.getKey()).decrypt(tag.getHashtag().getHashtag()));
+                        if (tag.getStatus().equals("ACTIVE")) {
+                            tagString.add(new AES128(encryptProperties.getKey()).decrypt(tag.getHashtag().getHashtag()));
+                        }
                     }
                 }
                 getUserDateResList.add(GetUserDateRes.builder()
