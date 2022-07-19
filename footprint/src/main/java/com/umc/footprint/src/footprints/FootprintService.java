@@ -250,11 +250,15 @@ public class FootprintService {
                 log.debug("사진 복호화");
                 List<Photo> photoList = photoRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
                 for (Photo photo : photoList) {
-                    decryptPhotoList.add(new AES128(encryptProperties.getKey()).decrypt(photo.getImageUrl()));
+                    if (photo.getStatus().equals("ACTIVE")) {
+                        decryptPhotoList.add(new AES128(encryptProperties.getKey()).decrypt(photo.getImageUrl()));
+                    }
                 }
                 log.debug("태그 복호화");
                 for (Tag tag : footprint.getTagList()) {
-                    decryptTagList.add(new AES128(encryptProperties.getKey()).decrypt(tag.getHashtag().getHashtag()));
+                    if (tag.getStatus().equals("ACTIVE")) {
+                        decryptTagList.add(new AES128(encryptProperties.getKey()).decrypt(tag.getHashtag().getHashtag()));
+                    }
                 }
                 log.debug("response 객체에 추가");
                 getFootprintRes.add(GetFootprintRes.builder()

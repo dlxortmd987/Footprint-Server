@@ -389,6 +389,9 @@ public class WalkService {
         if(test.startsWith("POINT")) {
             test = test.substring(5);
         }
+        if (test.contains("?")) {
+            return new ArrayList<>();
+        }
         test = test.substring(1,test.length()-1);
         String[] sp = test.split(" ");
         List<Double> list = new ArrayList<>();
