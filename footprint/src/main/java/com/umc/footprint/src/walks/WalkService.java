@@ -334,6 +334,10 @@ public class WalkService {
     public String convertListToString(List<Double> inputList) {
         log.debug("string 형으로 바꿀 list: {} ", inputList);
 
+        if (inputList.isEmpty()) {
+            return "(?  ?)";
+        }
+
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("(");
         stringBuilder.append(inputList.get(0));
