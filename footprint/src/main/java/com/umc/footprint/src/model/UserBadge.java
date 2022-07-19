@@ -34,4 +34,11 @@ public class UserBadge {
         this.badgeIdx = badgeIdx;
         this.status = status;
     }
+
+    @Builder
+    public UserBadge(Integer userIdx, Integer badgeIdx, String status) {
+        this.userIdx = userIdx;
+        this.badgeIdx = badgeIdx;
+        this.status = status;
+    }
 }

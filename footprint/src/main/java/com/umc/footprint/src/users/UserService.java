@@ -18,6 +18,7 @@ import com.umc.footprint.utils.AES128;
 import com.umc.footprint.utils.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +51,34 @@ public class UserService {
     private final HashtagRepository hashtagRepository;
     private final BadgeRepository badgeRepository;
     private final UserBadgeRepository userBadgeRepository;
+    private final PhotoRepository photoRepository;
+    private final FootprintRepository footprintRepository;
+
+    @Autowired
+    public UserService(UserDao userDao, UserRepository userRepository, TagRepository tagRepository,
+                       JwtService jwtService, AwsS3Service awsS3Service, EncryptProperties encryptProperties,
+                       WalkRepository walkRepository, GoalRepository goalRepository, GoalNextRepository goalNextRepository,
+                       GoalDayRepository goalDayRepository, GoalDayNextRepository goalDayNextRepository,
+                       HashtagRepository hashtagRepository, BadgeRepository badgeRepository, UserBadgeRepository userBadgeRepository,
+                       PhotoRepository photoRepository, FootprintRepository footprintRepository) {
+        this.userDao = userDao;
+        this.userRepository = userRepository;
+        this.tagRepository = tagRepository;
+        this.jwtService = jwtService;
+        this.awsS3Service = awsS3Service;
+        this.encryptProperties = encryptProperties;
+        this.walkRepository = walkRepository;
+        this.goalRepository = goalRepository;
+        this.goalNextRepository = goalNextRepository;
+        this.goalDayRepository = goalDayRepository;
+        this.goalDayNextRepository = goalDayNextRepository;
+        this.hashtagRepository = hashtagRepository;
+        this.badgeRepository = badgeRepository;
+        this.userBadgeRepository = userBadgeRepository;
+        this.photoRepository = photoRepository;
+        this.footprintRepository = footprintRepository;
+    }
+
 
     // 해당 유저의 산책기록 중 태그를 포함하는 산책기록 조회
     public List<GetTagRes> getTagResult(String userId, String tag) throws BaseException {
@@ -157,8 +186,8 @@ public class UserService {
 
             Optional<User> user = userRepository.findByUserIdx(userIdx);
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            user.get().setBirth(LocalDateTime.parse(patchUserInfoReq.getBirth(),formatter));
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            user.get().setBirth(LocalDate.parse(patchUserInfoReq.getBirth(),formatter).atStartOfDay());
             user.get().setNickname(patchUserInfoReq.getNickname());
             user.get().setSex(patchUserInfoReq.getSex());
             user.get().setHeight(patchUserInfoReq.getHeight());
@@ -212,9 +241,10 @@ public class UserService {
 
             userGoal.get().setWalkGoalTime(patchUserGoalReq.getWalkGoalTime());
             userGoal.get().setWalkTimeSlot(patchUserGoalReq.getWalkTimeSlot());
+            userGoal.get().setUpdateAt(LocalDateTime.now());
             goalNextRepository.save(userGoal.get());
 
-            /** 2. UPDATE Goal  */
+            /** 2. UPDATE GoalDay  */
             Optional<GoalDayNext> userGoalDay = goalDayNextRepository.findByUserIdx(userIdx);
 
             List<Integer> newDayIdxList = new ArrayList<>(List.of(0,0,0,0,0,0,0));
@@ -224,13 +254,15 @@ public class UserService {
                 newDayIdxList.set(dayIdx-1,1);
             }
 
-            userGoalDay.get().setSun(newDayIdxList.get(0));
-            userGoalDay.get().setMon(newDayIdxList.get(1));
-            userGoalDay.get().setTue(newDayIdxList.get(2));
-            userGoalDay.get().setWed(newDayIdxList.get(3));
-            userGoalDay.get().setThu(newDayIdxList.get(4));
-            userGoalDay.get().setFri(newDayIdxList.get(5));
-            userGoalDay.get().setSat(newDayIdxList.get(6));
+            userGoalDay.get().setMon(newDayIdxList.get(0));
+            userGoalDay.get().setTue(newDayIdxList.get(1));
+            userGoalDay.get().setWed(newDayIdxList.get(2));
+            userGoalDay.get().setThu(newDayIdxList.get(3));
+            userGoalDay.get().setFri(newDayIdxList.get(4));
+            userGoalDay.get().setSat(newDayIdxList.get(5));
+            userGoalDay.get().setSun(newDayIdxList.get(6));
+
+            userGoalDay.get().setUpdateAt(LocalDateTime.now());
 
             goalDayNextRepository.save(userGoalDay.get());
 
@@ -425,7 +457,81 @@ public class UserService {
         }
     }
 
-    public GetUserTodayRes getUserToday(int userIdx){
+    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
+    public void deleteUserJPA(int userIdx) throws BaseException {
+        try{
+            // GoalNext 테이블
+            Optional<GoalNext> goalNext = goalNextRepository.findByUserIdx(userIdx);
+            goalNextRepository.deleteById(goalNext.get().getPlanIdx());
+
+            // GoalDayNext 테이블
+            Optional<GoalDayNext> goalDayNext = goalDayNextRepository.findByUserIdx(userIdx);
+            goalDayNextRepository.deleteById(goalDayNext.get().getPlanIdx());
+
+            // Goal 테이블
+            List<Goal> goalList = goalRepository.findByUserIdx(userIdx);
+            for(Goal goal : goalList){
+                goalRepository.deleteById(goal.getPlanIdx());
+            }
+
+            // GoalDay 테이블
+            List<GoalDay> goalDayList = goalDayRepository.findByUserIdx(userIdx);
+            for(GoalDay goalDay : goalDayList){
+                goalDayRepository.deleteById(goalDay.getPlanIdx());
+            }
+
+            // UserBadge 테이블
+            List<UserBadge> userBadgeList = userBadgeRepository.findAllByUserIdx(userIdx);
+            for(UserBadge userBadge: userBadgeList){
+                userBadgeRepository.deleteById(userBadge.getCollectionIdx());
+            }
+
+            // Tag 테이블
+            List<Tag> tagList = tagRepository.findAllByUserIdx(userIdx);
+            for(Tag tag : tagList){
+                tagRepository.deleteById(tag.getTagIdx());
+            }
+
+            // Photo 테이블 -> s3에서 이미지 url 먼저 삭제 후 테이블 삭제 필요
+            List<Photo> photoList = photoRepository.findAllByUserIdx(userIdx);
+            for(Photo photo : photoList){
+                String decryptedImageUrl = new AES128(encryptProperties.getKey()).decrypt(photo.getImageUrl());
+                String fileName = decryptedImageUrl.substring(decryptedImageUrl.lastIndexOf("/")+1); // 파일 이름만 자르기
+                awsS3Service.deleteFile(fileName);
+
+                photoRepository.deleteById(photo.getPhotoIdx());
+            }
+
+
+            // Walk + Footprint 테이블
+            List<Walk> walkList = walkRepository.findAllByUserIdx(userIdx);
+            for(Walk walk : walkList){
+                List<Footprint> footprintList = walk.getFootprintList();
+
+                // Walk에 해당하는 Footprint 모두 삭제
+                for(Footprint footprint : footprintList){
+                    footprintRepository.deleteById(footprint.getFootprintIdx());
+                }
+
+                // Walk 테이블 - 동선 이미지 S3 에서도 삭제
+                String decryptedImageUrl = new AES128(encryptProperties.getKey()).decrypt(walk.getPathImageUrl());
+                String fileName = decryptedImageUrl.substring(decryptedImageUrl.lastIndexOf("/") + 1); // 파일 이름만 자르기
+                awsS3Service.deleteFile(fileName);
+
+                // Walk 삭제
+                walkRepository.deleteById(walk.getWalkIdx());
+            }
+
+
+            // User 테이블
+            userRepository.deleteById(userIdx);
+
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    public GetUserTodayRes getUserToday(int userIdx) throws BaseException{
 
         List<Walk> userWalkList = walkRepository.findAllByStatusAndUserIdx("ACTIVE", userIdx);
 
@@ -463,55 +569,55 @@ public class UserService {
                 break;
             }
         }
-        DayOfWeek dayOfWeek = today.getDayOfWeek();
-        boolean onDay = false;
-
-        switch (dayOfWeek){
-            case MONDAY:
-                if (goalDay.getMon().equals(1)){
-                    onDay = true;
-                } break;
-            case TUESDAY:
-                if (goalDay.getTue().equals(1)){
-                    onDay = true;
-                } break;
-            case WEDNESDAY:
-                if (goalDay.getWed().equals(1)){
-                    onDay = true;
-                } break;
-            case THURSDAY:
-                if (goalDay.getThu().equals(1)){
-                    onDay = true;
-                } break;
-            case FRIDAY:
-                if (goalDay.getFri().equals(1)){
-                    onDay = true;
-                } break;
-            case SATURDAY:
-                if (goalDay.getSat().equals(1)){
-                    onDay = true;
-                } break;
-            case SUNDAY:
-                if (goalDay.getSun().equals(1)){
-                    onDay = true;
-                } break;
-
-        }
-
-        int walkGoalTime = 0;
-        if(onDay == true){
-            List<Goal> userGoalList = goalRepository.findByUserIdx(userIdx);
-            Goal userGoal = Goal.builder().build();
-            for(Goal goal : userGoalList ){
-                LocalDate goalCreateAt = goal.getCreateAt().toLocalDate();
-                if(goalCreateAt.getMonth().equals(LocalDate.now().getMonth()) && goalCreateAt.getYear() == LocalDate.now().getYear()){
-                    userGoal = goal;
-                    break;
-                }
+//        DayOfWeek dayOfWeek = today.getDayOfWeek();
+//        boolean onDay = false;
+//
+//        switch (dayOfWeek){
+//            case MONDAY:
+//                if (goalDay.getMon().equals(1)){
+//                    onDay = true;
+//                } break;
+//            case TUESDAY:
+//                if (goalDay.getTue().equals(1)){
+//                    onDay = true;
+//                } break;
+//            case WEDNESDAY:
+//                if (goalDay.getWed().equals(1)){
+//                    onDay = true;
+//                } break;
+//            case THURSDAY:
+//                if (goalDay.getThu().equals(1)){
+//                    onDay = true;
+//                } break;
+//            case FRIDAY:
+//                if (goalDay.getFri().equals(1)){
+//                    onDay = true;
+//                } break;
+//            case SATURDAY:
+//                if (goalDay.getSat().equals(1)){
+//                    onDay = true;
+//                } break;
+//            case SUNDAY:
+//                if (goalDay.getSun().equals(1)){
+//                    onDay = true;
+//                } break;
+//
+//        }
+//
+//        int walkGoalTime = 0;
+//        if(onDay == true){
+        List<Goal> userGoalList = goalRepository.findByUserIdx(userIdx);
+        Goal userGoal = Goal.builder().build();
+        for(Goal goal : userGoalList ){
+            LocalDate goalCreateAt = goal.getCreateAt().toLocalDate();
+            if(goalCreateAt.getMonth().equals(LocalDate.now().getMonth()) && goalCreateAt.getYear() == LocalDate.now().getYear()){
+                userGoal = goal;
+                break;
             }
-
-            walkGoalTime = userGoal.getWalkGoalTime();
         }
+
+        int walkGoalTime = userGoal.getWalkGoalTime();
+
         return GetUserTodayRes.builder()
                 .goalRate(todayGoalRate)
                 .walkTime(todayTotalTime)
@@ -528,13 +634,20 @@ public class UserService {
 
             List<Walk> userWalkList = walkRepository.findAllByStatusAndUserIdx("ACTIVE", userIdx);
             List<GetUserDateRes> getUserDateResList = new ArrayList<>();
-
             UserDateWalk userDateWalk;
 
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+            int count = 0;
+
             for (Walk userWalk : userWalkList) {
+                count ++;
+
+                if(!userWalk.getStartAt().toLocalDate().equals(LocalDate.parse(date,formatter)))
+                    continue;
 
                 userDateWalk = UserDateWalk.builder()
-                        .walkIdx(userWalk.getWalkIdx())
+                        .walkIdx(count)
                         .startTime(userWalk.getStartAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                         .endTime(userWalk.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                         .pathImageUrl(new AES128(encryptProperties.getKey()).decrypt(userWalk.getPathImageUrl()))
@@ -563,7 +676,7 @@ public class UserService {
 
     }
 
-    public GetUserGoalRes getUserGoal(int userIdx){
+    public GetUserGoalRes getUserGoal(int userIdx) throws BaseException{
 
         /** 1. 이번달 정보 구하기 */
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
@@ -647,7 +760,7 @@ public class UserService {
 
     }
 
-    public GetUserGoalRes getUserGoalNext(int userIdx){
+    public GetUserGoalRes getUserGoalNext(int userIdx) throws BaseException{
 
         /** 1. 이번달 정보 구하기 */
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
@@ -871,6 +984,51 @@ public class UserService {
         monthlyGoalRate.add(0,avgGoalRate);
 
         return new UserInfoStat(mostWalkDay,userWeekDayRate,thisMonthWalkCount,monthlyWalkCount,monthlyGoalRate.get(6),monthlyGoalRate);
+
+    }
+
+    // UserSchedule
+    // 유저 목표 최신화
+    // GoalNext -> Goal
+    public void updateGoal(){
+
+        // 1. GoalNext 테이블 전체 리스트 추출
+        List<GoalNext> entireGoalNext = goalNextRepository.findAll();
+
+        // 2. Goal 테이블에 1번 추출 결과물 삽입
+        for( GoalNext goalNext : entireGoalNext){
+            goalRepository.save(Goal.builder()
+                    .walkGoalTime(goalNext.getWalkGoalTime())
+                    .walkTimeSlot(goalNext.getWalkTimeSlot())
+                    .userIdx(goalNext.getUserIdx())
+                    .createAt(LocalDateTime.now())
+                    .build());
+        }
+
+    }
+
+    // UserSchedule
+    // 유저 목표 요일 최신화
+    // GoalDayNext -> GoalDay
+    public void updateGoalDay(){
+
+        // 1. GoalDayNext 테이블 전체 리스트 추출
+        List<GoalDayNext> entireGoalDayNext = goalDayNextRepository.findAll();
+
+        // 2. GoalDay 테이블에 1번 추출 결과물 삽입
+        for( GoalDayNext goalDayNext : entireGoalDayNext){
+            goalDayRepository.save(GoalDay.builder()
+                            .mon(goalDayNext.getMon())
+                            .tue(goalDayNext.getTue())
+                            .wed(goalDayNext.getWed())
+                            .thu(goalDayNext.getThu())
+                            .fri(goalDayNext.getFri())
+                            .sat(goalDayNext.getSat())
+                            .sun(goalDayNext.getSun())
+                            .userIdx(goalDayNext.getUserIdx())
+                            .createAt(LocalDateTime.now())
+                            .build());
+        }
 
     }
 
@@ -1103,7 +1261,15 @@ public class UserService {
             int nowMonth = now.getMonthValue();
 
             List<String> goalDayList = getUserGoalDays(user.getUserIdx(), nowYear, nowMonth);
-            List<GetDayRateRes> getDayRateRes = walkRepository.getRateByUserIdxAndStartAt(user.getUserIdx(), nowYear, nowMonth);
+            List<GetDayRateResInterface> getDayRateResInterfaces = walkRepository.getRateByUserIdxAndStartAt(
+                    user.getUserIdx(),
+                    nowYear,
+                    nowMonth);
+
+            List<GetDayRateRes> getDayRateRes = getDayRateResInterfaces.stream()
+                    .map(GetDayRateRes::new)
+                    .collect(Collectors.toList());
+
             int dayCount = getDayRateRes.toArray().length;
 
             GetMonthTotalInterface getMonthTotalInterface = walkRepository.getMonthTotalByQuery(
@@ -1127,13 +1293,13 @@ public class UserService {
 
 
     public List<String> getUserGoalDays(int userIdx, int year, int month) throws BaseException {
-        GoalDay goalDay = goalDayRepository.selectGoalDayByQuery(userIdx, year, month)
-                .orElseThrow(()->new BaseException(NOT_EXIST_USER_IN_GOAL));
+        GetGoalDays goalDay = new GetGoalDays(goalDayRepository.selectOnlyGoalDayByQuery(userIdx, year, month)
+                .orElseThrow(()->new BaseException(NOT_EXIST_USER_IN_GOAL)));
 
         return convertGoalDayBoolToString(goalDay);
     }
 
-    public List<String> convertGoalDayBoolToString(GoalDay goalDay) {
+    public List<String> convertGoalDayBoolToString(GetGoalDays goalDay) {
         List<String> goalDayString = new ArrayList<>();
 
         if(goalDay.getSun()==1) {
@@ -1163,11 +1329,15 @@ public class UserService {
     public List<GetFootprintCount> getMonthFootprints(String userId, int year, int month) throws BaseException {
         try {
             User user = checkUserStatus(userId);
+            List<GetFootprintCount> getFootprintCounts = new ArrayList<>();
 
             LocalDate nowDate = LocalDate.now();
             LocalDate paramDate = LocalDate.of(year,month,1);
-            if(nowDate.isBefore(paramDate) || month<1 || month>12) {
+            if(month<1 || month>12) {
                 throw new BaseException(INVALID_DATE);
+            }
+            if(nowDate.isBefore(paramDate)) {
+                return getFootprintCounts;
             }
 
             List<GetFootprintCountInterface> getMonthFootprints = walkRepository.getMonthFootCountByQuery(
@@ -1176,7 +1346,6 @@ public class UserService {
                     month
             );
 
-            List<GetFootprintCount> getFootprintCounts = new ArrayList<>();
             for(GetFootprintCountInterface i : getMonthFootprints) {
                 getFootprintCounts.add(
                         new GetFootprintCount(i.getDay(), i.getWalkCount())
@@ -1268,6 +1437,156 @@ public class UserService {
             throw new BaseException(BLACK_USER);
         }
         return user;
+    }
+
+    public BadgeInfo getMonthlyBadgeStatus(String userId) throws BaseException {
+        try {
+            User user = checkUserStatus(userId);
+
+            int rate = calcMonthGoalRate(user.getUserIdx(), 1); //이전달 달성률
+
+            LocalDate now = LocalDate.now();
+            int year = now.getYear();
+            int month = now.getMonthValue();
+
+            if(month == 1) { //지금이 1월이면 저번달은 작년 12월로 조회
+                year--;
+                month = 12;
+            } else {
+                month--;
+            }
+
+            GetGoalDays getGoalDays = new GetGoalDays(
+                    goalDayRepository.selectOnlyGoalDayByQuery(
+                            user.getUserIdx(),
+                            year,
+                            month
+                    ).orElseThrow(()->new BaseException(NOT_EXIST_USER_IN_PREV_GOAL))
+            );
+
+            double goalCount = 0; //저번달의 설정한 목표요일 전체 횟수
+            Calendar cal = new GregorianCalendar(year, month-1, 1); //0-11월로 조회
+            do {
+                int day = cal.get(Calendar.DAY_OF_WEEK);
+                if (day == Calendar.SUNDAY && getGoalDays.getSun()==1) {
+                    goalCount++;
+                }
+                else if (day == Calendar.MONDAY && getGoalDays.getMon()==1) {
+                    goalCount++;
+                }
+                else if (day == Calendar.TUESDAY && getGoalDays.getTue()==1) {
+                    goalCount++;
+                }
+                else if (day == Calendar.WEDNESDAY && getGoalDays.getWed()==1) {
+                    goalCount++;
+                }
+                else if (day == Calendar.THURSDAY && getGoalDays.getThu()==1) {
+                    goalCount++;
+                }
+                else if (day == Calendar.FRIDAY && getGoalDays.getFri()==1) {
+                    goalCount++;
+                }
+                else if (day == Calendar.SATURDAY && getGoalDays.getSat()==1) {
+                    goalCount++;
+                }
+                cal.add(Calendar.DAY_OF_YEAR, 1);
+            }  while (cal.get(Calendar.MONTH) == month);
+
+            // 이번달 산책 날짜의 요일을 받기
+            List<Integer> walkDays = walkRepository.getDayOfWeekByQuery(user.getUserIdx());
+
+            // 목표 요일이랑 비교하기
+            // 산책 요일이 목표 요일이랑 같으면 count
+            double walkCount = 0; //목표요일에 산책한 횟수
+
+            for(int i=0;i<walkDays.size();i++) {
+                int walkday = (int) walkDays.get(i);
+                switch (walkday) {
+                    case 1:
+                        if(getGoalDays.getSun()==1) {
+                            walkCount++;
+                        }
+                        break;
+                    case 2:
+                        if(getGoalDays.getMon()==1) {
+                            walkCount++;
+                        }
+                        break;
+                    case 3:
+                        if(getGoalDays.getTue()==1) {
+                            walkCount++;
+                        }
+                        break;
+                    case 4:
+                        if(getGoalDays.getWed()==1) {
+                            walkCount++;
+                        }
+                        break;
+                    case 5:
+                        if(getGoalDays.getThu()==1) {
+                            walkCount++;
+                        }
+                        break;
+                    case 6:
+                        if(getGoalDays.getFri()==1) {
+                            walkCount++;
+                        }
+                        break;
+                    case 7:
+                        if(getGoalDays.getSat()==1) {
+                            walkCount++;
+                        }
+                        break;
+                }
+            }
+
+            double walkRate = (walkCount/goalCount) * 100;
+
+            /*
+             * MASTER - 목표 요일 중 80% 이상 / 달성률 90%
+             * PRO - 목표 요일 중 50% 이상 / 달성률 70%
+             * LOVER - 목표 요일 고려 안함 / 달성률 50%
+             * */
+            int badgeNum = -1;
+
+            if(rate >= 50) {
+                //LOVER - badgeIdx 0
+                badgeNum=0;
+            }
+            if(rate >= 70 && walkRate >= 50) {
+                //PRO - badgeIdx 1
+                badgeNum=1;
+            }
+            if(rate >= 90 && walkRate >= 80) {
+                //MASTER - badgeIdx 2
+                badgeNum=2;
+            }
+
+            if(badgeNum == -1) { //이번 달에 획득한 뱃지가 없는 경우
+                return null;
+            }
+
+            LocalDate badgeDate = LocalDate.of(year, month, badgeNum); // 획득한 뱃지의 date
+
+            BadgeInfo badgeInfo = new BadgeInfo(badgeRepository.getByBadgeDate(badgeDate));
+
+
+            //TODO: 사용자에게 다른 달 뱃지 있는지 확인 - 한 달에 프로, 러버, 마스터 중 하나만 ACTIVE한 상태여야 함!
+
+
+            //UserBadge 테이블에 얻은 뱃지 추가
+            userBadgeRepository.save(
+                    UserBadge.builder()
+                            .badgeIdx(badgeInfo.getBadgeIdx())
+                            .userIdx(user.getUserIdx())
+                            .status("ACTIVE")
+                    .build()
+            );
+
+            return badgeInfo;
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
     }
 
 }

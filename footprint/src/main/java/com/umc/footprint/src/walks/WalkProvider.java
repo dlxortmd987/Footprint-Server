@@ -100,4 +100,5 @@ public class WalkProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
 }
