@@ -534,7 +534,7 @@ public class UserService {
     public GetUserTodayRes getUserToday(int userIdx) throws BaseException{
 
         List<Walk> userWalkList = walkRepository.findAllByStatusAndUserIdx("ACTIVE", userIdx);
-
+        System.out.println("userWalkList.size() = " + userWalkList.size());
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
 
         double todayGoalRate = 0;
@@ -543,13 +543,13 @@ public class UserService {
         int todayTotalCal = 0;
 
         for(Walk userWalk : userWalkList){
-            if(userWalk.getStartAt().toLocalDate() == today){
+            if(userWalk.getStartAt().toLocalDate().isEqual(today)){
                 // 1. 오늘 목표 달성량 추출
                 todayGoalRate += userWalk.getGoalRate();
 
                 // 2. 오늘 산책 누적 시간 추출
                 Duration timeDiff = Duration.between(userWalk.getStartAt(),userWalk.getEndAt());
-                todayTotalTime += Integer.parseInt(timeDiff.toString());
+                todayTotalTime += timeDiff.getSeconds()/60;
 
                 // 3. 오늘 산책 누적 거리 추출
                 todayTotalDist += userWalk.getDistance();
@@ -558,6 +558,12 @@ public class UserService {
                 todayTotalCal += userWalk.getCalorie();
             }
         }
+        // 1-1. 목표 달성량 100 초과시 100으로 설정
+        if(todayGoalRate > 100)
+            todayGoalRate = 100;
+
+        // 3-1. 누적 거리 소수점 셋째자리 절삭
+        todayTotalDist = Math.floor(todayTotalDist*100)/100.0;
 
         // 5. 오늘 산책 목표 시간 추출
         List<GoalDay> userGoalDayList = goalDayRepository.findByUserIdx(userIdx);
@@ -569,6 +575,8 @@ public class UserService {
                 break;
             }
         }
+
+//        /** 목표에 등록한 요일만 목표 시간이 제공되고 그 외에는 목표 시간이 0으로 제공 */
 //        DayOfWeek dayOfWeek = today.getDayOfWeek();
 //        boolean onDay = false;
 //
@@ -606,6 +614,8 @@ public class UserService {
 //
 //        int walkGoalTime = 0;
 //        if(onDay == true){
+
+
         List<Goal> userGoalList = goalRepository.findByUserIdx(userIdx);
         Goal userGoal = Goal.builder().build();
         for(Goal goal : userGoalList ){

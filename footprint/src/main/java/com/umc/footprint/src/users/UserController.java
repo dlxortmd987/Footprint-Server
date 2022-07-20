@@ -116,9 +116,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            System.out.println("Check Point Cont.1");
             GetUserTodayRes userTodayRes = userService.getUserToday(userIdx);
-            System.out.println("Check Point Cont.2");
 
             return new BaseResponse<>(userTodayRes);
         } catch (BaseException exception){
