@@ -27,7 +27,7 @@ public class Walk {
     @Column(name = "distance", nullable = false)
     private Double distance;
 
-    @Column(name = "coordinate", nullable = false)
+    @Column(name = "coordinate", nullable = false, columnDefinition = "LONGTEXT")
     private String coordinate;
 
     @Column(name = "pathImageUrl")
