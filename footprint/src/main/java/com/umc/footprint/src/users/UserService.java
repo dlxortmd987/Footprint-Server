@@ -539,21 +539,16 @@ public class UserService {
             if(userWalk.getStartAt().toLocalDate().isEqual(today)){
                 // 1. 오늘 목표 달성량 추출
                 todayGoalRate += userWalk.getGoalRate();
-                System.out.println("userWalk.getGoalRate() = " + userWalk.getGoalRate());
 
                 // 2. 오늘 산책 누적 시간 추출
                 Duration timeDiff = Duration.between(userWalk.getStartAt(),userWalk.getEndAt());
-                System.out.println("timeDiff = " + timeDiff.getSeconds()/60);
                 todayTotalTime += timeDiff.getSeconds()/60;
-//                System.out.println("timeDiff = " + timeDiff);
 
                 // 3. 오늘 산책 누적 거리 추출
                 todayTotalDist += userWalk.getDistance();
-                System.out.println("userWalk.getDistance() = " + userWalk.getDistance());
 
                 // 4. 오늘 산책 누적 칼로리 추출
                 todayTotalCal += userWalk.getCalorie();
-                System.out.println("userWalk.getCalorie() = " + userWalk.getCalorie());
             }
         }
         // 1-1. 목표 달성량 100 초과시 100으로 설정
