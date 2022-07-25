@@ -441,8 +441,9 @@ public class WalkService {
             if (diff.getSeconds() >= 3600) {
                 String hours = String.format("%02d", diff.toHoursPart());
                 String minutes = String.format("%02d", diff.toMinutesPart());
+                String seconds = String.format("%02d", diff.toSecondsPart());
 
-                diffStr = hours + ":" + minutes;
+                diffStr = hours + ":" + minutes + ":" + seconds;
             } else {
                 String minutes = String.format("%02d", diff.toMinutesPart());
                 String seconds = String.format("%02d", diff.toSecondsPart());
