@@ -27,7 +27,7 @@ public class Notice {
     @Column(name = "image")
     private String image;
 
-    @Column(name = "key")
+    @Column(name = "isKey")
     private boolean key;
 
     @Column(name = "createAt", nullable = false)
