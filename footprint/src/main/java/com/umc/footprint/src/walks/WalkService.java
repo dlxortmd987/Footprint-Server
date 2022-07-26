@@ -1,13 +1,11 @@
 package com.umc.footprint.src.walks;
 
 import com.umc.footprint.config.BaseException;
-
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.footprints.FootprintDao;
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
 import com.umc.footprint.src.walks.model.*;
-
 import com.umc.footprint.utils.AES128;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -15,16 +13,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.umc.footprint.config.BaseResponseStatus.*;
@@ -283,6 +289,7 @@ public class WalkService {
         }
 
     }
+
 
     private ArrayList<List<Double>> changeSafeCoordinate(List<List<Double>> coordinates) {
         ArrayList<List<Double>> safeCoordinate = new ArrayList<>();

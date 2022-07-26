@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
-import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.src.users.UserProvider;
-import com.umc.footprint.src.walks.model.*;
-
+import com.umc.footprint.src.walks.model.GetWalkInfo;
+import com.umc.footprint.src.walks.model.PostWalkReq;
+import com.umc.footprint.src.walks.model.PostWalkRes;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -98,5 +98,4 @@ public class WalkController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
-
 }
