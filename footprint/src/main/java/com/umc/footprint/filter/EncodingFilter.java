@@ -50,6 +50,7 @@ public class EncodingFilter implements Filter{
 
             // encode response body
             String url = req.getServletPath();
+            log.info("url : " + url);
 
             if(!(isEncrypted == null) && !(url.equals("/walks/check/encrypt")) && !(url.equals("/walks/check/decrypt"))){
                 String responseMessage = new String(responseWrapper.getDataStream(), StandardCharsets.UTF_8);
@@ -75,6 +76,7 @@ public class EncodingFilter implements Filter{
 
                 response.getOutputStream().write(finalResponseMessage.toString().getBytes());
             }else{
+                log.info("responseData : " + new String(responseWrapper.getDataStream(), StandardCharsets.UTF_8));
                 response.getOutputStream().write(responseWrapper.getDataStream());
             }
 

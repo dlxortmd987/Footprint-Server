@@ -2,18 +2,14 @@ package com.umc.footprint.src.users.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jdk.jfr.Timespan;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.sql.Timestamp;
 
 
 @Getter
-@Setter
-@AllArgsConstructor
-
+@NoArgsConstructor
 public class GetUserRes {
     private int userIdx;
     private String nickname;
@@ -29,5 +25,20 @@ public class GetUserRes {
     private int weight;
     private int walkNumber;
 
+    @Builder
+    public GetUserRes(int userIdx, String nickname, String username, String email, String status, int badgeIdx, String badgeUrl, Timestamp birth, String sex, int height, int weight, int walkNumber) {
+        this.userIdx = userIdx;
+        this.nickname = nickname;
+        this.username = username;
+        this.email = email;
+        this.status = status;
+        this.badgeIdx = badgeIdx;
+        this.badgeUrl = badgeUrl;
+        this.birth = birth;
+        this.sex = sex;
+        this.height = height;
+        this.weight = weight;
+        this.walkNumber = walkNumber;
+    }
 }
 

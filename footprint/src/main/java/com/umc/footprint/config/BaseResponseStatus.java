@@ -13,6 +13,7 @@ import lombok.Getter;
  *  0 : 공통 오류
  *  1 : users 오류
  *  2 : walks 오류
+ *  3 : notice 오류
  *
  * [10단위]
  *  0~19 : Common
@@ -63,17 +64,21 @@ public enum BaseResponseStatus {
     INVALID_BIRTH(false, 2161, "생년월일 값은 0000-00-00이 될 수 없습니다."),
 
     INVALID_WALKIDX(false, 2200, "잘못된 산책 인덱스입니다."),
+    INVALID_FOOTPRINTIDX(false, 2201, "잘못된 발자국 인덱스입니다."),
     NO_FOOTPRINT_IN_WALK(false, 2221, "해당 산책 기록에는 발자국이 존재하지 않습니다."),
 
-    NOT_MATCH_IMAGE_COUNT(false, 2240, "Footprint 개수와 FootprintImg의 개수가 다릅니다."),
     EXCEED_FOOTPRINT_SIZE(false, 2241, "photoMatchNumList를 확인해주십시요."),
     EMPTY_WALK_PHOTO(false, 2242, "산책 이미지를 입력해주세요."),
     DELETED_FOOTPRINT(false, 2260, "이미 삭제된 발자국입니다."),
     NO_EXIST_FOOTPRINT(false, 2261, "존재하지 않는 발자국입니다."),
     REQUEST_ERROR(false, 2262, "잘못된 산책 인덱스입니다."), // 임시 추가
+    DELETED_WALK(false, 2263, "이미 삭제된 산책입니다."),
 
     INVALID_BADGEIDX(false,2270, "존재하지 않는 뱃지입니다."),
     NOT_EXIST_USER_BADGE(false, 2271, "해당 사용자가 획득하지 못한 뱃지입니다."),
+    NO_BADGE_USER(false, 2272, "사용자가 획득한 뱃지가 없습니다"),
+
+    INVALID_NOTICE_IDX(false,2320,"잘못된 인덱스입니다."),
 
     /**
      * 3000 : Response 오류

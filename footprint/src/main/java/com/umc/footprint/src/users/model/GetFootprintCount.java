@@ -1,13 +1,11 @@
 package com.umc.footprint.src.users.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
-@Setter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class GetFootprintCount {
-    private int day;
-    private int walkCount;
+    private final int day;
+    private final int walkCount;
 }

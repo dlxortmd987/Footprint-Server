@@ -9,19 +9,18 @@ import lombok.*;
 @Getter
 @NoArgsConstructor
 public class GetUserTodayRes {
-    private float goalRate;
+    private double goalRate;
     private int walkGoalTime;
     private int walkTime;
     private double distance;
     private int calorie;
 
     @Builder
-    public GetUserTodayRes(float goalRate, int walkGoalTime, int walkTime, double distance, int calorie){
+    public GetUserTodayRes(double goalRate, int walkGoalTime, int walkTime, double distance, int calorie) {
         this.goalRate = goalRate;
         this.walkGoalTime = walkGoalTime;
         this.walkTime = walkTime;
         this.distance = distance;
         this.calorie = calorie;
     }
-
 }

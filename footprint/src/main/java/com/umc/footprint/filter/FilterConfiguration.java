@@ -22,7 +22,9 @@ public class FilterConfiguration implements WebMvcConfigurer {
         registrationBean.addUrlPatterns("/users/infos/after");
         registrationBean.addUrlPatterns("/users/auth/login");
         registrationBean.addUrlPatterns("/users/goals");
+        registrationBean.addUrlPatterns("/walks");
         registrationBean.addUrlPatterns("/weather");
+        registrationBean.addUrlPatterns("/notices/key");
 
         System.out.println("URL =" + registrationBean.getUrlPatterns());
 
@@ -37,6 +39,7 @@ public class FilterConfiguration implements WebMvcConfigurer {
         registrationBean.addUrlPatterns("/footprints/*");
         registrationBean.addUrlPatterns("/walks/*");
         registrationBean.addUrlPatterns("/weather");
+        registrationBean.addUrlPatterns("/notices/*");
 
 
         System.out.println("URL =" + registrationBean.getUrlPatterns());

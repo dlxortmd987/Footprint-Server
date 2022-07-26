@@ -3,6 +3,7 @@ package com.umc.footprint.src.walks.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,26 +21,26 @@ public class SaveFootprint {
     @ApiModelProperty(example = "발자국 string 좌표", hidden = true)
     private String strCoordinate;
 
-    @ApiModelProperty(example = "글")
-    private String write;
-
     @ApiModelProperty(example = "발자국 작성 시간")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private LocalDateTime recordAt;
 
-    @ApiModelProperty(example = "산책 인덱스", hidden = true)
-    private int walkIdx;
-
-    @ApiModelProperty(example = "산책 활성 여부")
-    private int onWalk;
+    @ApiModelProperty(example = "글")
+    private String write;
 
     private List<String> hashtagList;
 
+    @ApiModelProperty(example = "산책 활성 여부")
+    private Integer onWalk;
+
+    @ApiModelProperty(example = "산책 인덱스", hidden = true)
+    private Integer walkIdx;
+
     // Url 저장
-    private List<String> imgUrlList;
+    private List<String> photos;
 
     @Builder
-    public SaveFootprint(int footprintIdx, List<Double> coordinates, String strCoordinate, String write, LocalDateTime recordAt, int walkIdx, int onWalk, List<String> hashtagList, List<String> imgUrlList) {
+    public SaveFootprint(int footprintIdx, List<Double> coordinates, String strCoordinate, String write, LocalDateTime recordAt, int walkIdx, int onWalk, List<String> hashtagList, List<String> photos) {
         this.footprintIdx = footprintIdx;
         this.coordinates = coordinates;
         this.strCoordinate = strCoordinate;
@@ -48,7 +49,7 @@ public class SaveFootprint {
         this.walkIdx = walkIdx;
         this.onWalk = onWalk;
         this.hashtagList = hashtagList;
-        this.imgUrlList = imgUrlList;
+        this.photos = photos;
     }
 
 

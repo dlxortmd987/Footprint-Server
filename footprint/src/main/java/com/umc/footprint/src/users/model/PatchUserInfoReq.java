@@ -15,6 +15,7 @@ public class PatchUserInfoReq {
     private List<Integer> dayIdx;
     private int walkGoalTime;
     private int walkTimeSlot;
+    private int walkNumber;
 
     @Builder
     public PatchUserInfoReq(String nickname, String sex, String birth, int height, int weight, List<Integer> dayIdx, int walkGoalTime, int walkTimeSlot) {
