@@ -11,13 +11,11 @@ import java.util.List;
 public class PostWalkReq {
     private SaveWalk walk;
     private List<SaveFootprint> footprintList;
-    private List<MultipartFile> photos;
 
     @Builder
-    public PostWalkReq(SaveWalk walk, List<SaveFootprint> footprintList, List<MultipartFile> photos) {
+    public PostWalkReq(SaveWalk walk, List<SaveFootprint> footprintList) {
         this.walk = walk;
         this.footprintList = footprintList;
-        this.photos = photos;
     }
 
     public void setWalkStrCoordinate(SaveWalk newCoordinateWalk) {
@@ -26,9 +24,5 @@ public class PostWalkReq {
 
     public void setConvertedFootprints(ArrayList<SaveFootprint> convertedFootprints) {
         this.footprintList = convertedFootprints;
-    }
-
-    public void setRemovedPathImgPhotos(List<MultipartFile> removedPathImgPhotos) {
-        this.photos = photos;
     }
 }

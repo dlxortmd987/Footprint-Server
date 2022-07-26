@@ -4,18 +4,14 @@ import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.walks.model.*;
 
-import com.umc.footprint.utils.AES128;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.umc.footprint.config.BaseResponseStatus.DATABASE_ERROR;
-import static com.umc.footprint.config.BaseResponseStatus.INVALID_WALKIDX;
-import static com.umc.footprint.config.Constant.MINUTES_TO_SECONDS;
 
 @Slf4j
 @Service
@@ -27,44 +23,6 @@ public class WalkProvider {
     public WalkProvider(WalkDao walkDao, EncryptProperties encryptProperties) {
         this.walkDao = walkDao;
         this.encryptProperties = encryptProperties;
-    }
-
-
-    public GetWalkInfo getWalkInfo(int walkIdx) throws BaseException {
-        try {
-            int check = walkDao.checkWalkVal(walkIdx);
-            if(check!=1) { //산책 INACTIVE
-                throw new BaseException(INVALID_WALKIDX);
-            }
-            GetWalkInfo getWalkInfo = walkDao.getWalkInfo(walkIdx);
-            getWalkInfo.setPathImageUrl(new AES128(encryptProperties.getKey()).decrypt(getWalkInfo.getPathImageUrl()));
-            return getWalkInfo;
-        } catch (Exception exception) {
-            throw new BaseException(DATABASE_ERROR);
-        }
-  }
-
-    //
-    public Double getGoalRate(SaveWalk walk) throws BaseException {
-        try {
-            // 산책 시간
-            Long walkTime = Duration.between(walk.getStartAt(), walk.getEndAt()).getSeconds();
-            log.debug("walkTime: {}", walkTime);
-            // 산책 목표 시간
-            Long walkGoalTime = walkDao.getWalkGoalTime(walk.getUserIdx()) * MINUTES_TO_SECONDS;
-            log.debug("walkGoalTime: {}", walkGoalTime);
-            // (산책 끝 시간 - 산책 시작 시간) / 산책 목표 시간
-            Double goalRate =(walkTime.doubleValue() / walkGoalTime.doubleValue())*100.0;
-
-            // 100퍼 넘을 시 100으로 고정
-            if (goalRate >= 100.0) {
-                goalRate = 100.0;
-            }
-
-            return goalRate;
-        } catch (Exception exception) {
-            throw new BaseException(DATABASE_ERROR);
-        }
     }
 
 
@@ -143,4 +101,5 @@ public class WalkProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
 }

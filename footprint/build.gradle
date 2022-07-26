@@ -69,6 +69,7 @@ dependencies {
 
 	// Jackson
 	implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.1'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
 	// Swagger
 	implementation 'io.springfox:springfox-swagger-ui:2.9.2'

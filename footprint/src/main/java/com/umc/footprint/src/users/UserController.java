@@ -6,6 +6,7 @@ import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.src.users.model.*;
+import com.umc.footprint.src.walks.model.GetFootprintCountInterface;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
@@ -13,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -68,11 +69,8 @@ public class UserController {
             // 사용자 등록 또는 로그인
             PostLoginRes postLoginRes = userService.postUserLogin(postLoginReq);
 
-            // 유저 id로 인덱스 값 추출
-            int userIdx = userProvider.getUserIdx(postLoginReq.getUserId());
-
             // 사용자의 로그인한 날짜 이전 기록과 비교 후 달 바뀌면 true return
-            postLoginRes.setCheckMonthChanged(userService.modifyUserLogAt(userIdx).isCheckMonthChanged());
+            postLoginRes.setCheckMonthChanged(userService.modifyUserLogAt(postLoginReq.getUserId()).isCheckMonthChanged());
 
             return new BaseResponse<>(postLoginRes);
         } catch (BaseException exception) {
@@ -93,11 +91,8 @@ public class UserController {
             jwtService.getJwt();
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
-            PostLoginRes postLoginRes = userService.modifyUserLogAt(userIdx);
-            postLoginRes.setJwtId(jwtService.createJwt(userId));
+            PostLoginRes postLoginRes = userService.modifyUserLogAt(userId);
 
             return new BaseResponse<>(postLoginRes);
         } catch (BaseException exception) {
@@ -121,7 +116,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            GetUserTodayRes userTodayRes = userProvider.getUserToday(userIdx);
+            GetUserTodayRes userTodayRes = userService.getUserToday(userIdx);
 
             return new BaseResponse<>(userTodayRes);
         } catch (BaseException exception){
@@ -151,7 +146,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            List<GetUserDateRes> userDateRes = userProvider.getUserDate(userIdx,date);
+            List<GetUserDateRes> userDateRes = userService.getUserDate(userIdx,date);
 
             return new BaseResponse<>(userDateRes);
         } catch (BaseException exception){
@@ -174,7 +169,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            GetUserRes getUserRes = userProvider.getUser(userIdx);
+            GetUserRes getUserRes = userService.getUser(userIdx);
             return new BaseResponse<>(getUserRes);
         } catch (BaseException exception) {
             exception.printStackTrace();
@@ -207,7 +202,7 @@ public class UserController {
                 throw new BaseException(BaseResponseStatus.INVALID_BIRTH);
             }
 
-            userService.modifyUserInfo(userIdx, patchUserInfoReq);
+            userService.modifyUserInfoJPA(userIdx, patchUserInfoReq);
 
             String result = "유저 정보가 수정되었습니다.";
             
@@ -232,7 +227,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            GetUserGoalRes getUserGoalRes = userProvider.getUserGoal(userIdx);
+            GetUserGoalRes getUserGoalRes = userService.getUserGoal(userIdx);
             return new BaseResponse<>(getUserGoalRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -255,7 +250,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            GetUserGoalRes getUserGoalRes = userProvider.getUserGoalNext(userIdx);
+            GetUserGoalRes getUserGoalRes = userService.getUserGoalNext(userIdx);
             return new BaseResponse<>(getUserGoalRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -275,14 +270,7 @@ public class UserController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
-
-            LocalDate now = LocalDate.now();
-            int nowYear = now.getYear();
-            int nowMonth = now.getMonthValue();
-
-            GetMonthInfoRes getMonthInfoRes = userProvider.getMonthInfoRes(userIdx, nowYear, nowMonth);
+            GetMonthInfoRes getMonthInfoRes = userService.getMonthInfoRes(userId);
             return new BaseResponse<>(getMonthInfoRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -336,7 +324,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            userService.modifyGoal(userIdx, patchUserGoalReq);
+            userService.modifyGoalJPA(userIdx, patchUserGoalReq);
 
             String result ="목표가 수정되었습니다.";
 
@@ -353,15 +341,16 @@ public class UserController {
      */
     @ResponseBody
     @GetMapping("/months/footprints")
-    public BaseResponse<List<GetFootprintCount>> getMonthFootprints(@RequestParam(required = true) int year, @RequestParam(required = true) int month) throws BaseException {
+    public BaseResponse<List<GetFootprintCount>> getMonthFootprints(
+            @RequestParam(required = true) int year,
+            @RequestParam(required = true) int month) throws BaseException
+    {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
-            List<GetFootprintCount> getFootprintCounts = userProvider.getMonthFootprints(userIdx, year, month);
+            List<GetFootprintCount> getFootprintCounts = userService.getMonthFootprints(userId, year, month);
             return new BaseResponse<>(getFootprintCounts);
         }
         catch (BaseException exception) {
@@ -380,19 +369,14 @@ public class UserController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
-            BadgeInfo getBadgeInfo = userProvider.getMonthlyBadgeStatus(userIdx);
-            return new BaseResponse<>(getBadgeInfo);
+            BadgeInfo badgeInfo = userService.getMonthlyBadgeStatus(userId);
+            return new BaseResponse<>(badgeInfo);
         }
         catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
-
-
-
 
     /** yummy 11
      * 사용자 전체 뱃지 조회 API
@@ -405,10 +389,8 @@ public class UserController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
-            GetUserBadges getUserBadges = userProvider.getUserBadges(userIdx);
+            GetUserBadges getUserBadges = userService.getUserBadges(userId);
             return new BaseResponse<>(getUserBadges);
         }
         catch (BaseException exception) {
@@ -418,7 +400,7 @@ public class UserController {
 
     /** yummy 12
      * 사용자 대표 뱃지 수정 API
-     * [GET] /users/badges/title/:badgeidx
+     * [PATCH] /users/badges/title/:badgeidx
      */
     @ResponseBody
     @PatchMapping("/badges/title/{badgeIdx}")
@@ -427,10 +409,8 @@ public class UserController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
-            BadgeInfo patchRepBadgeInfo = userService.modifyRepBadge(userIdx, badgeIdx);
+            BadgeInfo patchRepBadgeInfo = userService.modifyRepBadge(userId, badgeIdx);
             return new BaseResponse<>(patchRepBadgeInfo);
         }
         catch (BaseException exception) {
@@ -453,9 +433,22 @@ public class UserController {
             log.debug("유저 id: {}", userId);
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
+//
+//            GetUserInfoRes getUserInfoRes = userProvider.getUserInfo(userIdx);
 
-            GetUserInfoRes getUserInfoRes = userProvider.getUserInfo(userIdx);
-            return new BaseResponse<>(getUserInfoRes);
+            // 1. user 달성률 정보
+            UserInfoAchieve userInfoAchieve = userService.getUserInfoAchieve(userIdx);
+            System.out.println("userInfoAchieve = " + userInfoAchieve);
+            // 2. user 이번달 목표 정보
+            GetUserGoalRes getUserGoalRes = userService.getUserGoal(userIdx);
+            System.out.println("getUserGoalRes = " + getUserGoalRes);
+            // 3. user 통계 정보
+            UserInfoStat userInfoStat = userService.getUserInfoStat(userIdx);
+            System.out.println("userInfoStat = " + userInfoStat);
+
+            // 4. 1+2+3
+            return new BaseResponse<>(new GetUserInfoRes(userInfoAchieve,getUserGoalRes,userInfoStat));
+//            return new BaseResponse<>(getUserInfoRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
         }
@@ -543,13 +536,12 @@ public class UserController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
             if (tag == null) { // Query String(검색어)를 입력하지 않았을 경우
                 return new BaseResponse<>(new BaseException(BaseResponseStatus.NEED_TAG_INFO).getStatus());
             }
-            List<GetTagRes> tagResult = userProvider.getTagResult(userIdx, tag);
+            List<GetTagRes> tagResult = new ArrayList<>();
+            tagResult = userService.getTagResult(userId, tag);
             return new BaseResponse<>(tagResult);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -571,7 +563,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            userService.deleteUser(userIdx);
+            userService.deleteUserJPA(userIdx);
 
             return new BaseResponse<>("탈퇴 성공:(");
         }
