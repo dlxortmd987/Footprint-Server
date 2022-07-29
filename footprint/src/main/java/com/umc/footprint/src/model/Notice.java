@@ -27,8 +27,8 @@ public class Notice {
     @Column(name = "image")
     private String image;
 
-    @Column(name = "isKey")
-    private boolean key;
+    @Column(name = "keyNotice")
+    private boolean keyNotice;
 
     @Column(name = "createAt", nullable = false)
     private LocalDateTime createAt;
@@ -40,12 +40,12 @@ public class Notice {
     private String status;
 
     @Builder
-    public Notice(int noticeIdx, String title, String notice, String image, boolean key, LocalDateTime createAt, LocalDateTime updateAt, String status) {
+    public Notice(int noticeIdx, String title, String notice, String image, boolean keyNotice, LocalDateTime createAt, LocalDateTime updateAt, String status) {
         this.noticeIdx = noticeIdx;
         this.title = title;
         this.notice = notice;
         this.image = image;
-        this.key = key;
+        this.keyNotice = keyNotice;
         this.createAt = createAt;
         this.updateAt = updateAt;
         this.status = status;
