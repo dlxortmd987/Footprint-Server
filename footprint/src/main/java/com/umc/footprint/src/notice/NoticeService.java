@@ -72,6 +72,8 @@ public class NoticeService {
         // index를 사용하여 notice find
         Optional<Notice> noticeByIdx = noticeRepository.findById(idx);
 
+        System.out.println("noticeByIdx = " + noticeByIdx);
+
         // Check isNewNotice
         boolean isNewNotice;
         if(noticeByIdx.get().getCreateAt().isAfter(LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(5)))
@@ -87,19 +89,23 @@ public class NoticeService {
         for(Notice acticeNotice : activeNoticeList){
             activeNoticeIdxList.add(acticeNotice.getNoticeIdx());
         }
-//        System.out.println("activeNoticeIdxList = " + activeNoticeIdxList);
+        System.out.println("activeNoticeIdxList = " + activeNoticeIdxList);
 
         int nowNoticeIdx = activeNoticeIdxList.indexOf(noticeByIdx.get().getNoticeIdx());
 
+        System.out.println("nowNoticeIdx = " + nowNoticeIdx);
+
         int preNoticeIdx = -1;
         int postNoticeIdx = -1;
-        if(nowNoticeIdx == 0){  // 맨 마지막 Notice를 접근시
-            preNoticeIdx = activeNoticeIdxList.get(nowNoticeIdx+1);
-        }else if(nowNoticeIdx == activeNoticeIdxList.size()-1){ // 맨 처음 Notice를 접근시
-            postNoticeIdx = activeNoticeIdxList.get(nowNoticeIdx-1);
-        }else{
-            preNoticeIdx = activeNoticeIdxList.get(nowNoticeIdx+1);
-            postNoticeIdx = activeNoticeIdxList.get(nowNoticeIdx-1);
+        if(activeNoticeIdxList.size() != 1){
+            if(nowNoticeIdx == 0){  // 맨 마지막 Notice를 접근시
+                preNoticeIdx = activeNoticeIdxList.get(nowNoticeIdx+1);
+            }else if(nowNoticeIdx == activeNoticeIdxList.size()-1){ // 맨 처음 Notice를 접근시
+                postNoticeIdx = activeNoticeIdxList.get(nowNoticeIdx-1);
+            }else{
+                preNoticeIdx = activeNoticeIdxList.get(nowNoticeIdx+1);
+                postNoticeIdx = activeNoticeIdxList.get(nowNoticeIdx-1);
+            }
         }
 
         // 찾은 Notice 정보를 GetNoticeRes DTO로 mapping
@@ -145,7 +151,7 @@ public class NoticeService {
         List<Integer> checkedKeyNoticeIdxList = postKeyNoticeReq.getCheckedKeyNoticeIdxList();
 
         // 전체 주요공지 List
-        List<Notice> keyNoticeList = noticeRepository.findAllByKeyAndStatus(true,"ACTIVE");
+        List<Notice> keyNoticeList = noticeRepository.findAllByKeyNoticeAndStatus(true,"ACTIVE");
 
         // 결과 Notice 들을 담을 ArrayList
         List<GetNoticeRes> result = new ArrayList<>();
