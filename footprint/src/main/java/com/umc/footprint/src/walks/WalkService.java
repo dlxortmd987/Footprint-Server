@@ -429,7 +429,11 @@ public class WalkService {
             ArrayList<Double> temp = new ArrayList<>();
             for(String com : comma) {
                 String[] space = com.split(" ");
-                temp.add(Double.parseDouble(space[0]));
+                double x = Double.parseDouble(space[0]);
+                if (x <= 10) {
+                    x += 30;
+                }
+                temp.add(x);
                 temp.add(Double.parseDouble(space[1]));
             }
             coordinate.add(temp);
