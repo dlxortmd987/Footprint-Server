@@ -155,7 +155,7 @@ public class WalkService {
             }
 
             // 처음 산책인지 확인
-            if (checkFirstWalk(userIdx)) {
+            if (!checkFirstWalk(userIdx)) {
                 User byUserId = userRepository.findByUserId(userId);
                 byUserId.setBadgeIdx(1);
                 userRepository.save(byUserId);
