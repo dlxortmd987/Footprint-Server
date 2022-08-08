@@ -85,10 +85,6 @@ public class UserService {
         try {
             Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
 
-            tag = "#" + tag;
-            // 1. 태그 검색을 위한 키워드 암호화
-//            String encryptedTag = new AES128(encryptProperties.getKey()).encrypt(tag);
-
             // 2. 태그 검색
             List<WalkHashtag> walkAndHashtagList = tagRepository.findAllWalkAndHashtag(tag, userIdx);
 
