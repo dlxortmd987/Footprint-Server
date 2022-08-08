@@ -28,4 +28,7 @@ public class Hashtag {
         this.hashtag = hashtag;
     }
 
+    public void decryptHashtag(String hashtag) {
+        this.hashtag = hashtag;
+    }
 }

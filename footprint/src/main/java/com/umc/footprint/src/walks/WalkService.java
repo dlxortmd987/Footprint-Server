@@ -105,7 +105,7 @@ public class WalkService {
 
                     for (String hashtag : footprint.getHashtagList()) {
                         Hashtag beforeSaveHashtag = Hashtag.builder()
-                                .hashtag(new AES128(encryptProperties.getKey()).encrypt(hashtag))
+                                .hashtag(hashtag)
                                 .build();
                         hashtagRepository.save(beforeSaveHashtag);
                         Tag beforeSaveTag = Tag.builder()
