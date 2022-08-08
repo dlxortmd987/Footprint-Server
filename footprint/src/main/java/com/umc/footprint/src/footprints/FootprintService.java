@@ -106,7 +106,7 @@ public class FootprintService {
                 for(String tag : patchFootprintReq.getTagList()){
                     hashtagList.add(
                             Hashtag.builder()
-                            .hashtag(new AES128(encryptProperties.getKey()).encrypt(tag))
+                            .hashtag(tag)
                             .build()
                     );
                 }
@@ -245,7 +245,7 @@ public class FootprintService {
             log.debug("Footprint Handling");
             for (Footprint footprint : footprintList) {
                 List<String> decryptPhotoList = new ArrayList<>();
-                List<String> decryptTagList = new ArrayList<>();
+                List<String> tagList = new ArrayList<>();
 
                 log.debug("사진 복호화");
                 List<Photo> photoList = photoRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
@@ -254,10 +254,10 @@ public class FootprintService {
                         decryptPhotoList.add(new AES128(encryptProperties.getKey()).decrypt(photo.getImageUrl()));
                     }
                 }
-                log.debug("태그 복호화");
+                log.debug("태그 리스트 초기화");
                 for (Tag tag : footprint.getTagList()) {
                     if (tag.getStatus().equals("ACTIVE")) {
-                        decryptTagList.add(new AES128(encryptProperties.getKey()).decrypt(tag.getHashtag().getHashtag()));
+                        tagList.add(tag.getHashtag().getHashtag());
                     }
                 }
                 log.debug("response 객체에 추가");
@@ -266,7 +266,7 @@ public class FootprintService {
                         .recordAt(footprint.getRecordAt())
                         .write(new AES128(encryptProperties.getKey()).decrypt(footprint.getRecord()))
                         .photoList(decryptPhotoList)
-                        .tagList(decryptTagList)
+                        .tagList(tagList)
                         .onWalk(footprint.getOnWalk())
                         .build());
             }

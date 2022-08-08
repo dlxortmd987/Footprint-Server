@@ -9,7 +9,7 @@ name: Java CI
 
 on:
   push:
-    branches: [ dev, main]
+    branches: [ dev, master ]
   pull_request:
     branches: [ dev ]
 

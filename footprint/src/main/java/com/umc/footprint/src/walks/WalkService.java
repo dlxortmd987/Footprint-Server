@@ -105,7 +105,7 @@ public class WalkService {
 
                     for (String hashtag : footprint.getHashtagList()) {
                         Hashtag beforeSaveHashtag = Hashtag.builder()
-                                .hashtag(new AES128(encryptProperties.getKey()).encrypt(hashtag))
+                                .hashtag(hashtag)
                                 .build();
                         hashtagRepository.save(beforeSaveHashtag);
                         Tag beforeSaveTag = Tag.builder()
@@ -155,7 +155,7 @@ public class WalkService {
             }
 
             // 처음 산책인지 확인
-            if (checkFirstWalk(userIdx)) {
+            if (!checkFirstWalk(userIdx)) {
                 User byUserId = userRepository.findByUserId(userId);
                 byUserId.setBadgeIdx(1);
                 userRepository.save(byUserId);
@@ -429,7 +429,11 @@ public class WalkService {
             ArrayList<Double> temp = new ArrayList<>();
             for(String com : comma) {
                 String[] space = com.split(" ");
-                temp.add(Double.parseDouble(space[0]));
+                double x = Double.parseDouble(space[0]);
+                if (x <= 10) {
+                    x += 30;
+                }
+                temp.add(x);
                 temp.add(Double.parseDouble(space[1]));
             }
             coordinate.add(temp);

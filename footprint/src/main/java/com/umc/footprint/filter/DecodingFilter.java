@@ -39,7 +39,6 @@ public class DecodingFilter implements Filter {
 
             log.info(req.getMethod());
 
-
             if(req.getMethod().equals("POST") || req.getMethod().equals("PATCH")){
                 RequestBodyDecryptWrapper requestWrapper = new RequestBodyDecryptWrapper(req, encryptProperties);
 

@@ -87,10 +87,10 @@ public class UserService {
 
             tag = "#" + tag;
             // 1. 태그 검색을 위한 키워드 암호화
-            String encryptedTag = new AES128(encryptProperties.getKey()).encrypt(tag);
+//            String encryptedTag = new AES128(encryptProperties.getKey()).encrypt(tag);
 
             // 2. 태그 검색
-            List<WalkHashtag> walkAndHashtagList = tagRepository.findAllWalkAndHashtag(encryptedTag, userIdx);
+            List<WalkHashtag> walkAndHashtagList = tagRepository.findAllWalkAndHashtag(tag, userIdx);
 
             // 3. 추출한 값으로 response 객체 초기화
             Set<String> dateSet = new HashSet<>();
@@ -126,7 +126,7 @@ public class UserService {
                         for (WalkHashtag hashtag : walkAndHashtagList) {
                             // 동일한 산책에 있는 지 확인
                             if (walkHashtag.getWalkIdx().equals(hashtag.getWalkIdx())) {
-                                hashtagList.add(new AES128(encryptProperties.getKey()).decrypt(hashtag.getHashtag()));
+                                hashtagList.add(hashtag.getHashtag());
                             }
                         }
 
@@ -651,7 +651,7 @@ public class UserService {
             int count = 0;
 
             for (Walk userWalk : userWalkList) {
-                count ++;
+                count++;
 
                 if(!userWalk.getStartAt().toLocalDate().equals(LocalDate.parse(date,formatter)))
                     continue;
@@ -670,7 +670,7 @@ public class UserService {
 
                     for (Tag tag : tagList) {
                         if (tag.getStatus().equals("ACTIVE")) {
-                            tagString.add(new AES128(encryptProperties.getKey()).decrypt(tag.getHashtag().getHashtag()));
+                            tagString.add(tag.getHashtag().getHashtag());
                         }
                     }
                 }

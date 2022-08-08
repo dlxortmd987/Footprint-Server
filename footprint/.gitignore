@@ -42,3 +42,8 @@ aws.yml
 
 ### Log 파일 ###
 *.log
+
+### Deploy 관련 파일 ###
+appspec.yml
+/.github/**
+/script/**
