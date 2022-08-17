@@ -1,5 +1,6 @@
 package com.umc.footprint.src.model;
 
+import com.umc.footprint.utils.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "Course")
-public class Course {
+public class Course extends BaseEntity {
 
     @Id
     @Column(name = "courseIdx")
@@ -53,17 +54,11 @@ public class Course {
     @Column(name = "likeNum")
     private Integer likeNum;
 
-    @Column(name = "createAt")
-    private LocalDateTime createAt;
-
-    @Column(name = "updateAt")
-    private LocalDateTime updateAt;
-
     @Column(name = "status")
     private String status;
 
     @Builder
-    public Course(Integer courseIdx, String courseName, String courseImg, Point startCoordinate, String coordinate, String address, Float length, LocalDateTime courseTime, Integer walkIdx, String description, Integer markNum, Integer likeNum, LocalDateTime createAt, LocalDateTime updateAt, String status) {
+    public Course(Integer courseIdx, String courseName, String courseImg, Point startCoordinate, String coordinate, String address, Float length, LocalDateTime courseTime, Integer walkIdx, String description, Integer markNum, Integer likeNum, String status) {
         this.courseIdx = courseIdx;
         this.courseName = courseName;
         this.courseImg = courseImg;
@@ -76,8 +71,6 @@ public class Course {
         this.description = description;
         this.markNum = markNum;
         this.likeNum = likeNum;
-        this.createAt = createAt;
-        this.updateAt = updateAt;
         this.status = status;
     }
 }

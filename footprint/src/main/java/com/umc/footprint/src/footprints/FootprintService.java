@@ -263,7 +263,7 @@ public class FootprintService {
                 log.debug("response 객체에 추가");
                 getFootprintRes.add(GetFootprintRes.builder()
                         .footprintIdx(footprint.getFootprintIdx())
-                        .recordAt(footprint.getRecordAt())
+                        .recordAt(footprint.getCreateAt())
                         .write(new AES128(encryptProperties.getKey()).decrypt(footprint.getRecord()))
                         .photoList(decryptPhotoList)
                         .tagList(tagList)
@@ -284,7 +284,7 @@ public class FootprintService {
         Walk walkByNumber = walkService.getWalkByNumber(walkNumber, userIdx);
         PageRequest pageRequest = PageRequest.of(footprintNumber - 1, 1);
         try {
-            Page<Footprint> footprintPage = footprintRepository.findByWalkAndStatusOrderByRecordAtAsc(walkByNumber, "ACTIVE", pageRequest);
+            Page<Footprint> footprintPage = footprintRepository.findByWalkAndStatusOrderByCreateAtAsc(walkByNumber, "ACTIVE", pageRequest);
             if (footprintPage.getTotalElements() == 0) {
                 throw new BaseException(DELETED_FOOTPRINT);
             }

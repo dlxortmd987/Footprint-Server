@@ -10,6 +10,7 @@ import com.umc.footprint.src.walks.model.GetFootprintCountInterface;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -25,19 +26,13 @@ import static com.umc.footprint.utils.ValidationRegax.isRegexEmail;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/users")
 public class UserController {
 
     private final UserProvider userProvider;
     private final UserService userService;
     private final JwtService jwtService;
-
-    @Autowired
-    public UserController(UserProvider userProvider, UserService userService, JwtService jwtService) {
-        this.userProvider = userProvider;
-        this.userService = userService;
-        this.jwtService = jwtService;
-    }
 
     /**
      * 유저 로그인 API

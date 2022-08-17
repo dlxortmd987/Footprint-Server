@@ -237,7 +237,7 @@ public class UserService {
 
             userGoal.get().setWalkGoalTime(patchUserGoalReq.getWalkGoalTime());
             userGoal.get().setWalkTimeSlot(patchUserGoalReq.getWalkTimeSlot());
-            userGoal.get().setUpdateAt(LocalDateTime.now());
+//            userGoal.get().setUpdateAt(LocalDateTime.now());
             goalNextRepository.save(userGoal.get());
 
             /** 2. UPDATE GoalDay  */
@@ -258,7 +258,7 @@ public class UserService {
             userGoalDay.get().setSat(newDayIdxList.get(5));
             userGoalDay.get().setSun(newDayIdxList.get(6));
 
-            userGoalDay.get().setUpdateAt(LocalDateTime.now());
+//            userGoalDay.get().setUpdateAt(LocalDateTime.now());
 
             goalDayNextRepository.save(userGoalDay.get());
 
@@ -1009,7 +1009,7 @@ public class UserService {
                     .walkGoalTime(goalNext.getWalkGoalTime())
                     .walkTimeSlot(goalNext.getWalkTimeSlot())
                     .userIdx(goalNext.getUserIdx())
-                    .createAt(LocalDateTime.now())
+//                    .createAt(LocalDateTime.now())
                     .build());
         }
 
@@ -1034,7 +1034,7 @@ public class UserService {
                             .sat(goalDayNext.getSat())
                             .sun(goalDayNext.getSun())
                             .userIdx(goalDayNext.getUserIdx())
-                            .createAt(LocalDateTime.now())
+//                            .createAt(LocalDateTime.now())
                             .build());
         }
 

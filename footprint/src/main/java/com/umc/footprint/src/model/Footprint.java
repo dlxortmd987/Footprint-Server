@@ -1,6 +1,7 @@
 package com.umc.footprint.src.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.umc.footprint.utils.BaseEntity;
 import lombok.*;
 
 import javax.persistence.*;
@@ -12,7 +13,7 @@ import java.util.List;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "Footprint")
-public class Footprint {
+public class Footprint extends BaseEntity {
 
     @Id
     @Column(name = "footprintIdx")
@@ -25,14 +26,8 @@ public class Footprint {
     @Column(name = "record", columnDefinition = "LONGTEXT")
     private String record;
 
-    @Column(name = "recordAt", nullable = false)
-    private LocalDateTime recordAt;
-
     @Column(name = "status", length = 20, nullable = false)
     private String status;
-
-    @Column(name = "updateAt")
-    private LocalDateTime updateAt;
 
     @Column(name = "onWalk", nullable = false)
     private Integer onWalk;
@@ -46,14 +41,14 @@ public class Footprint {
     private Walk walk;
 
     @Builder
-    public Footprint(Integer footprintIdx, String coordinate, String record, LocalDateTime recordAt, String status, LocalDateTime updateAt, Integer onWalk) {
+    public Footprint(Integer footprintIdx, String coordinate, String record, String status, Integer onWalk, List<Tag> tagList, Walk walk) {
         this.footprintIdx = footprintIdx;
         this.coordinate = coordinate;
         this.record = record;
-        this.recordAt = recordAt;
         this.status = status;
-        this.updateAt = updateAt;
         this.onWalk = onWalk;
+        this.tagList = tagList;
+        this.walk = walk;
     }
 
     @PrePersist
@@ -87,7 +82,6 @@ public class Footprint {
 
     public void recordDecrypt(String decrypt) {
         this.record = decrypt;
-        this.updateAt = LocalDateTime.now();
     }
 
 }
