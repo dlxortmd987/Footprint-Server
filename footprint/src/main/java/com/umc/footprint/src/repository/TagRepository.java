@@ -22,10 +22,12 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
             "join Footprint F on W.walkIdx = F.walk.walkIdx\n" +
             "join Tag T on F.footprintIdx = T.footprint.footprintIdx\n" +
             "join Hashtag H on T.hashtag.hashtagIdx = H.hashtagIdx\n" +
-            "    where H.hashtag = :hashtag and W.status = 'ACTIVE' and F.status = 'ACTIVE' and T.status = 'ACTIVE'\n" +
+            "    where (H.hashtag like %:hashtag%) and W.status = 'ACTIVE' and F.status = 'ACTIVE' and T.status = 'ACTIVE'\n" +
             "  )\n" +
             "  and W.userIdx= :userIdx and W.status = 'ACTIVE' and F.status = 'ACTIVE' and T.status = 'ACTIVE'")
     List<WalkHashtag> findAllWalkAndHashtag(@Param("hashtag") String hashtag, @Param("userIdx") int userIdx);
+
+
 
     List<Tag> findByFootprint(Footprint footprint);
 

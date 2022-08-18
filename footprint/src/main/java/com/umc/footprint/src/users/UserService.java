@@ -85,10 +85,6 @@ public class UserService {
         try {
             Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
 
-            tag = "#" + tag;
-            // 1. 태그 검색을 위한 키워드 암호화
-//            String encryptedTag = new AES128(encryptProperties.getKey()).encrypt(tag);
-
             // 2. 태그 검색
             List<WalkHashtag> walkAndHashtagList = tagRepository.findAllWalkAndHashtag(tag, userIdx);
 
@@ -241,7 +237,7 @@ public class UserService {
 
             userGoal.get().setWalkGoalTime(patchUserGoalReq.getWalkGoalTime());
             userGoal.get().setWalkTimeSlot(patchUserGoalReq.getWalkTimeSlot());
-            userGoal.get().setUpdateAt(LocalDateTime.now());
+//            userGoal.get().setUpdateAt(LocalDateTime.now());
             goalNextRepository.save(userGoal.get());
 
             /** 2. UPDATE GoalDay  */
@@ -262,7 +258,7 @@ public class UserService {
             userGoalDay.get().setSat(newDayIdxList.get(5));
             userGoalDay.get().setSun(newDayIdxList.get(6));
 
-            userGoalDay.get().setUpdateAt(LocalDateTime.now());
+//            userGoalDay.get().setUpdateAt(LocalDateTime.now());
 
             goalDayNextRepository.save(userGoalDay.get());
 
@@ -1013,7 +1009,7 @@ public class UserService {
                     .walkGoalTime(goalNext.getWalkGoalTime())
                     .walkTimeSlot(goalNext.getWalkTimeSlot())
                     .userIdx(goalNext.getUserIdx())
-                    .createAt(LocalDateTime.now())
+//                    .createAt(LocalDateTime.now())
                     .build());
         }
 
@@ -1038,7 +1034,7 @@ public class UserService {
                             .sat(goalDayNext.getSat())
                             .sun(goalDayNext.getSun())
                             .userIdx(goalDayNext.getUserIdx())
-                            .createAt(LocalDateTime.now())
+//                            .createAt(LocalDateTime.now())
                             .build());
         }
 

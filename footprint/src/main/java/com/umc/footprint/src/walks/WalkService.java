@@ -94,9 +94,7 @@ public class WalkService {
                     Footprint beforeSaveFootprint = Footprint.builder()
                             .coordinate(new AES128(encryptProperties.getKey()).encrypt(strCoordinates))
                             .record(new AES128(encryptProperties.getKey()).encrypt(footprint.getWrite()))
-                            .recordAt(footprint.getRecordAt())
                             .onWalk(footprint.getOnWalk())
-                            .updateAt(LocalDateTime.now())
                             .status("ACTIVE")
                             .build();
                     beforeSaveFootprint.setWalk(beforeSaveWalk);
