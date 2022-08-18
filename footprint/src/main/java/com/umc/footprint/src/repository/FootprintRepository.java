@@ -21,5 +21,5 @@ public interface FootprintRepository extends JpaRepository<Footprint, Integer> {
 
     List<Footprint> findAllByWalkAndStatus(Walk walk, String Status);
 
-    Page<Footprint> findByWalkAndStatusOrderByRecordAtAsc(Walk walk, String status, Pageable pageable);
+    Page<Footprint> findByWalkAndStatusOrderByCreateAtAsc(Walk walk, String status, Pageable pageable);
 }

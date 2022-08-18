@@ -1,5 +1,6 @@
 package com.umc.footprint.src.model;
 
+import com.umc.footprint.utils.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "Goal")
-public class Goal {
+public class Goal extends BaseEntity {
 
     @Id
     @Column(name = "planIdx")
@@ -28,20 +29,11 @@ public class Goal {
     @Column(name = "walkTimeSlot", nullable = false)
     private Integer walkTimeSlot;
 
-    @Column(name = "createAt")
-    private LocalDateTime createAt;
-
     @Builder
-    public Goal(Integer planIdx, Integer userIdx, Integer walkGoalTime, Integer walkTimeSlot, LocalDateTime createAt) {
+    public Goal(Integer planIdx, Integer userIdx, Integer walkGoalTime, Integer walkTimeSlot) {
         this.planIdx = planIdx;
         this.userIdx = userIdx;
         this.walkGoalTime = walkGoalTime;
         this.walkTimeSlot = walkTimeSlot;
-        this.createAt = createAt;
-    }
-
-    @PrePersist
-    public void prePersist() {
-        this.createAt = this.createAt == null ? LocalDateTime.now() : this.createAt;
     }
 }

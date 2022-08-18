@@ -1,5 +1,6 @@
 package com.umc.footprint.src.model;
 
+import com.umc.footprint.utils.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "Notice")
-public class Notice {
+public class Notice extends BaseEntity {
     @Id
     @Column(name = "noticeIdx")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,24 +31,16 @@ public class Notice {
     @Column(name = "keyNotice")
     private boolean keyNotice;
 
-    @Column(name = "createAt", nullable = false)
-    private LocalDateTime createAt;
-
-    @Column(name = "updateAt", nullable = false)
-    private LocalDateTime updateAt;
-
     @Column(name = "status", nullable = false)
     private String status;
 
     @Builder
-    public Notice(int noticeIdx, String title, String notice, String image, boolean keyNotice, LocalDateTime createAt, LocalDateTime updateAt, String status) {
+    public Notice(int noticeIdx, String title, String notice, String image, boolean keyNotice, String status) {
         this.noticeIdx = noticeIdx;
         this.title = title;
         this.notice = notice;
         this.image = image;
         this.keyNotice = keyNotice;
-        this.createAt = createAt;
-        this.updateAt = updateAt;
         this.status = status;
     }
 }
