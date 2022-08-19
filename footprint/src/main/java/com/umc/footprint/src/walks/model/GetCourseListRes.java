@@ -8,6 +8,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 public class GetCourseListRes {
+    private int courseIdx;
     private double startLat;
     private double startLong;
     private String courseName;
@@ -20,7 +21,8 @@ public class GetCourseListRes {
     private boolean userCourseLike;
 
     @Builder
-    public GetCourseListRes(double startLat, double startLong, String courseName, double courseDist, int courseTime, int courseMark, int courseLike, List<String> courseTags, String courseImg, boolean userCourseLike) {
+    public GetCourseListRes(int courseIdx, double startLat, double startLong, String courseName, double courseDist, int courseTime, int courseMark, int courseLike, List<String> courseTags, String courseImg, boolean userCourseLike) {
+        this.courseIdx = courseIdx;
         this.startLat = startLat;
         this.startLong = startLong;
         this.courseName = courseName;

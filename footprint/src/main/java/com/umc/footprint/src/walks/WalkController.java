@@ -132,4 +132,18 @@ public class WalkController {
     }
 
 
+    @ResponseBody
+    @GetMapping("/{courseIdx}/infos")
+    public BaseResponse<GetCourseInfoRes> getCourseInfo(@PathVariable int courseIdx){
+
+        try {
+            GetCourseInfoRes courseInfo = walkService.getCourseInfo(courseIdx);
+
+            return new BaseResponse<>(courseInfo);
+        } catch(BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+
+    }
+
 }

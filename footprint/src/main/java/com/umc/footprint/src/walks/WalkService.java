@@ -503,7 +503,7 @@ public class WalkService {
         }
     }
 
-    /** 사용자 디바이스 지도 좌표안에 존재하는 모든 코스들을 가져온다. */
+    /** API.32 사용자 디바이스 지도 좌표안에 존재하는 모든 코스들을 가져온다. */
     public List<GetCourseListRes> getCourseList(GetCourseListReq getCourseListReq, int userIdx){
 
         // response로 보낼 코스 정보를 저장할 List
@@ -537,6 +537,7 @@ public class WalkService {
 
                 // 2-3. courseListResList에 해당 추천 코스 정보 add
                 courseListResList.add(GetCourseListRes.builder()
+                                .courseIdx(course.getCourseIdx())
                                 .startLat(courseLat)
                                 .startLong(courseLong)
                                 .courseName(course.getCourseName())
@@ -552,6 +553,19 @@ public class WalkService {
         }
 
         return courseListResList;
+    }
+
+    /** API.34 원하는 코스의 경로 좌표와 상세 설명을 가져온다. */
+    public GetCourseInfoRes getCourseInfo(int courseIdx) throws BaseException {
+
+        // 1. courseIdx로 코스 정보 가져오기
+        Optional<Course> course = courseRepository.findByCourseIdx(courseIdx);
+
+        // 2. response 생성 후 reutrn(coordinate 복호화)
+        return GetCourseInfoRes.builder()
+                        .coordinate(convertStringTo2DList(course.get().getCoordinate()))
+                        .courseDisc(course.get().getDescription())
+                        .build();
 
     }
 }
