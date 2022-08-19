@@ -10,6 +10,7 @@ import com.umc.footprint.utils.AES128;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.geom.Point;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,9 @@ public class WalkService {
     private final UserBadgeRepository userBadgeRepository;
     private final BadgeRepository badgeRepository;
     private final EncryptProperties encryptProperties;
+    private final CourseRepository courseRepository;
+    private final CourseTagRepository courseTagRepository;
+    private final UserCourseRepository userCourseRepository;
     private final FootprintDao footprintDao;
 
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
@@ -497,5 +501,57 @@ public class WalkService {
         } catch (Exception exception) {
             throw new BaseException(INVALID_WALKIDX);
         }
+    }
+
+    /** 사용자 디바이스 지도 좌표안에 존재하는 모든 코스들을 가져온다. */
+    public List<GetCourseListRes> getCourseList(GetCourseListReq getCourseListReq, int userIdx){
+
+        // response로 보낼 코스 정보를 저장할 List
+        List<GetCourseListRes> courseListResList = new ArrayList<>();
+
+        // 1. DB에 존재하는 모든 코스 정보중에서 디바이스 지도 좌표안에 존재하는 코스 추출
+        List<Course> allCourseInDB = courseRepository.findAll();
+
+        for(Course course : allCourseInDB){
+            double courseLat = course.getStartCoordinate().getX();
+            double courseLong = course.getStartCoordinate().getY();
+
+            // 2. DB에 있는 코스들중 보내준 위도 / 경도 사이에 존재하는 코스들만 추출
+            if(courseLat < getCourseListReq.getNorth() && courseLat > getCourseListReq.getSouth()
+                    && courseLong < getCourseListReq.getEast() && courseLong > getCourseListReq.getWest()){
+
+                // 2-1. 코스 태그 추출
+                // CourseTag 테이블에서 hashtagIdx 추출후 HashTag 테이블에서 인덱스에 해당하는 해시태그들 List화
+                List<CourseTag> courseTagMappingList = courseTagRepository.findAllByCourseIdx(course.getCourseIdx());
+
+                List<String> courseTags = new ArrayList<>();
+                for(CourseTag courseTag: courseTagMappingList){
+                    courseTags.add(hashtagRepository.findByHashtagIdx(courseTag.getHashtagIdx()).get().getHashtag());
+                }
+
+                // 2-2. 유저가 해당 코스를 like 했는지 확인
+                List<UserCourse> userCourseList = userCourseRepository.findByUserIdx(userIdx);
+                boolean userCourseLike = false;
+                if(userCourseList.contains(course.getCourseIdx()))
+                    userCourseLike = true;
+
+                // 2-3. courseListResList에 해당 추천 코스 정보 add
+                courseListResList.add(GetCourseListRes.builder()
+                                .startLat(courseLat)
+                                .startLong(courseLong)
+                                .courseName(course.getCourseName())
+                                .courseDist(course.getLength())
+                                .courseTime(course.getCourseTime())
+                                .courseMark(course.getMarkNum())
+                                .courseLike(course.getLikeNum())
+                                .courseImg(course.getCourseImg())
+                                .courseTags(courseTags)
+                                .userCourseLike(userCourseLike)
+                        .build());
+            }
+        }
+
+        return courseListResList;
+
     }
 }
