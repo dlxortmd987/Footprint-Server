@@ -17,8 +17,8 @@
 
 |      휴고 (박상민)      |      블루 (이택승)     |      야미 (염지원)     |   
 | :-----------------: | :-----------------: | :----------------: |
-| <img src="https://user-images.githubusercontent.com/79418036/185790148-ef55730e-3845-48d3-8c2a-401fd5e83c17.png" width="250"/> |<img src="https://user-images.githubusercontent.com/79418036/185790237-14e4da67-8f8c-46f6-9b01-da33f64865e0.png" width="250"/> |<img src="https://user-images.githubusercontent.com/79418036/185790268-17d1974a-b0ba-4552-b9e4-f30688eb6779.png" width="250"/> |
-|   [휴고](https://github.com/minaver) |   [블루](https://github.com/dlxortmd987) | [염지원](https://github.com/xx10222) |
+| <img src="https://user-images.githubusercontent.com/79418036/185790148-ef55730e-3845-48d3-8c2a-401fd5e83c17.png" height="250"/> |<img src="https://user-images.githubusercontent.com/79418036/185790237-14e4da67-8f8c-46f6-9b01-da33f64865e0.png" width="250"/> |<img src="https://user-images.githubusercontent.com/79418036/185790268-17d1974a-b0ba-4552-b9e4-f30688eb6779.png" height="250"/> |
+|   [휴고](https://github.com/minaver) |   [블루](https://github.com/dlxortmd987) | [야미](https://github.com/xx10222) |
 
 
 ### 🌐 서비스 주소
