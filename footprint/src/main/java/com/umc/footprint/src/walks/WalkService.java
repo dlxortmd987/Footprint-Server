@@ -2,7 +2,6 @@ package com.umc.footprint.src.walks;
 
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.EncryptProperties;
-import com.umc.footprint.src.footprints.FootprintDao;
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
 import com.umc.footprint.src.walks.model.*;
@@ -17,15 +16,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,8 +43,9 @@ public class WalkService {
     private final GoalRepository goalRepository;
     private final UserBadgeRepository userBadgeRepository;
     private final BadgeRepository badgeRepository;
+    private final UserCourseRepository userCourseRepository;
+    private final CourseRepository courseRepository;
     private final EncryptProperties encryptProperties;
-    private final FootprintDao footprintDao;
 
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public List<PostWalkRes> saveRecord(String userId,PostWalkReq request) throws BaseException {
@@ -496,6 +489,37 @@ public class WalkService {
             return walkByNumber;
         } catch (Exception exception) {
             throw new BaseException(INVALID_WALKIDX);
+        }
+    }
+
+    public String modifyMark(int courseIdx, String userId) {
+        Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
+
+        Course savedCourse = courseRepository.findById(courseIdx).get();
+
+        Optional<UserCourse> byCourseIdxAndUserIdx = userCourseRepository.findByCourseIdxAndUserIdx(courseIdx, userIdx);
+
+        if (byCourseIdxAndUserIdx.isPresent()) {
+            UserCourse savedUserCourse = byCourseIdxAndUserIdx.get();
+
+            savedUserCourse.modifyMark();
+
+            userCourseRepository.save(savedUserCourse);
+            if (savedUserCourse.getMark()) {
+                return "찜하기";
+            } else {
+                return "찜하기 취소";
+            }
+        } else {
+            userCourseRepository.save(
+                    UserCourse.builder()
+                            .userIdx(userIdx)
+                            .courseIdx(courseIdx)
+                            .walkIdx(savedCourse.getWalkIdx())
+                            .mark(true)
+                            .courseLike(false)
+                            .build());
+            return "찜하기";
         }
     }
 }

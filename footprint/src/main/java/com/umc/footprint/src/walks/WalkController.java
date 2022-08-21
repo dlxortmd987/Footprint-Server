@@ -91,9 +91,17 @@ public class WalkController {
 
     // API 33
     // 산책 코스 찜하기
-    @PatchMapping("/mark") // (Patch) /walks/mark
-    public BaseResponse<String> modifyMark() {
-        return null;
+    @PatchMapping("/mark/{courseIdx}") // (Patch) /walks/mark/{courseIdx}
+    public BaseResponse<String> modifyMark(@PathVariable("courseIdx") int courseIdx) {
+        try {
+            String userId = jwtService.getUserId();
+            log.debug("userId: {}", userId);
+
+            String result = walkService.modifyMark(courseIdx, userId);
+            return new BaseResponse<>(result);
+        } catch (BaseException exception) {
+            return new BaseResponse<>(exception.getStatus());
+        }
     }
 
     // API 38
