@@ -16,6 +16,12 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -33,7 +39,6 @@ import static com.umc.footprint.config.Constant.MINUTES_TO_SECONDS;
 @Service
 @RequiredArgsConstructor
 public class WalkService {
-    private final WalkDao walkDao;
     private final UserRepository userRepository;
     private final WalkRepository walkRepository;
     private final FootprintRepository footprintRepository;
@@ -520,6 +525,17 @@ public class WalkService {
                             .courseLike(false)
                             .build());
             return "찜하기";
+        }
+    }
+
+    public List<ArrayList<Double>> getPath(int walkNumber, String userId) throws BaseException {
+        Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
+
+        Walk walkByNumber = getWalkByNumber(walkNumber, userIdx);
+        try {
+            return convertStringTo2DList(new AES128(encryptProperties.getKey()).decrypt(walkByNumber.getCoordinate()));
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException | InvalidKeyException exception) {
+            throw new BaseException(INVALID_ENCRYPT_STRING);
         }
     }
 }

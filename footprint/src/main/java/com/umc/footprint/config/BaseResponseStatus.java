@@ -39,6 +39,7 @@ public enum BaseResponseStatus {
     INVALID_JWT(false, 2002, "유효하지 않은 JWT입니다."),
     INVALID_USER_JWT(false,2003,"권한이 없는 유저의 접근입니다."),
     EXPIRED_JWT(false, 2004, "만료된 JWT입니다."),
+    INVALID_ENCRYPT_STRING(false, 2005, "복호화를 할 수 없습니다."),
     INVALID_USERIDX(false,2100,"잘못된 유저 인덱스입니다."),
     NOT_EXIST_USER(false, 2101, "존재하지 않는 유저입니다."),
     NOT_EXIST_USER_IN_PREV_GOAL(false,2118, "이전 달 설정한 목표가 없습니다."),

@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -91,7 +92,7 @@ public class WalkController {
 
     // API 33
     // 산책 코스 찜하기
-    @PatchMapping("/mark/{courseIdx}") // (Patch) /walks/mark/{courseIdx}
+    @PatchMapping("/mark/{courseIdx}") // (Patch) /walks/mark/:courseIdx
     public BaseResponse<String> modifyMark(@PathVariable("courseIdx") int courseIdx) {
         try {
             String userId = jwtService.getUserId();
@@ -106,9 +107,17 @@ public class WalkController {
 
     // API 38
     // 코스 좌표 넘겨주기
-    @GetMapping("/path") // (Get) /walks/path
-    public BaseResponse<String> getPath() {
-        return null;
+    @GetMapping("/path/{walkNumber}") // (Get) /walks/path/:walkNumber
+    public BaseResponse<List<ArrayList<Double>>> getPath(@PathVariable("walkNumber") int walkNumber) {
+        try {
+            String userId = jwtService.getUserId();
+            log.debug("userId: {}", userId);
+
+            List<ArrayList<Double>> path = walkService.getPath(walkNumber, userId);
+            return new BaseResponse<>(path);
+        } catch (BaseException exception) {
+            return new BaseResponse<>(exception.getStatus());
+        }
     }
 
     // API 39
