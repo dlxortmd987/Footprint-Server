@@ -24,18 +24,8 @@ import java.util.List;
 @RequestMapping("/walks")
 public class WalkController {
 
-    private final UserProvider userProvider;
-    private final WalkProvider walkProvider;
     private final WalkService walkService;
     private final JwtService jwtService;
-
-    @Autowired
-    public WalkController(UserProvider userProvider, WalkService walkService, WalkProvider walkProvider, JwtService jwtService) {
-        this.userProvider = userProvider;
-        this.walkService = walkService;
-        this.walkProvider = walkProvider;
-        this.jwtService = jwtService;
-    }
 
     /**
      * 실시간 처리 API
@@ -97,5 +87,40 @@ public class WalkController {
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
         }
+    }
+
+    // API 33
+    // 산책 코스 찜하기
+    @PatchMapping("/mark") // (Patch) /walks/mark
+    public BaseResponse<String> modifyMark() {
+        return null;
+    }
+
+    // API 38
+    // 코스 좌표 넘겨주기
+    @GetMapping("/path") // (Get) /walks/path
+    public BaseResponse<String> getPath() {
+        return null;
+    }
+
+    // API 39
+    // 공유할 코스 세부사항 저장
+    @PostMapping("/recommend") // (Post) /walks/recommend
+    public BaseResponse<String> postCourseDetails() {
+        return null;
+    }
+
+    // API 40
+    // 코스 좋아요 설정
+    @PostMapping("/like") // (Post) /walks/like
+    public BaseResponse<String> postCourseLike() {
+        return null;
+    }
+
+    // API 41
+    // 코스 수정
+    @PatchMapping("/recommend") // (Patch) /walks/recommend
+    public BaseResponse<String> modifyCourseDetails() {
+        return null;
     }
 }
