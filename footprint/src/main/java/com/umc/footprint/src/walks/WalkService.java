@@ -510,9 +510,12 @@ public class WalkService {
         List<GetCourseListRes> courseListResList = new ArrayList<>();
 
         // 1. DB에 존재하는 모든 코스 정보중에서 디바이스 지도 좌표안에 존재하는 코스 추출
-        List<Course> allCourseInDB = courseRepository.findAll();
+        List<Course> allCourseInDB = courseRepository.findAllByStatus("ACTIVE");
 
+        System.out.println("allCourseInDB.size() = " + allCourseInDB.size());
+        
         for(Course course : allCourseInDB){
+            System.out.println("course = " + course);
             double courseLat = course.getStartCoordinate().getX();
             double courseLong = course.getStartCoordinate().getY();
 
@@ -530,10 +533,18 @@ public class WalkService {
                 }
 
                 // 2-2. 유저가 해당 코스를 like 했는지 확인
+                System.out.println("Check Point 3");
                 List<UserCourse> userCourseList = userCourseRepository.findByUserIdx(userIdx);
                 boolean userCourseLike = false;
                 if(userCourseList.contains(course.getCourseIdx()))
                     userCourseLike = true;
+
+                // 2-3. 해당 코스에 사진이 들어있는지 확인
+                // 사진이 없다면 기본 이미지 URL 입력
+                String courseImgUrl = course.getCourseImg();
+                if(courseImgUrl.isBlank()){
+                    courseImgUrl = "https://mystepsbucket.s3.ap-northeast-2.amazonaws.com/BaseImage/%E1%84%8F%E1%85%A9%E1%84%89%E1%85%B3%E1%84%80%E1%85%B5%E1%84%87%E1%85%A9%E1%86%AB%E1%84%8B%E1%85%B5%E1%84%86%E1%85%B5%E1%84%8C%E1%85%B5.png"; //* 기본 이미지 URL
+                }
 
                 // 2-3. courseListResList에 해당 추천 코스 정보 add
                 courseListResList.add(GetCourseListRes.builder()
@@ -545,7 +556,7 @@ public class WalkService {
                                 .courseTime(course.getCourseTime())
                                 .courseMark(course.getMarkNum())
                                 .courseLike(course.getLikeNum())
-                                .courseImg(course.getCourseImg())
+                                .courseImg(courseImgUrl)
                                 .courseTags(courseTags)
                                 .userCourseLike(userCourseLike)
                         .build());

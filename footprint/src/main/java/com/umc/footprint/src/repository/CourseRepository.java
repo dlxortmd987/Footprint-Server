@@ -8,6 +8,8 @@ import java.util.Optional;
 
 public interface CourseRepository extends JpaRepository<Course, Integer> {
 
+    List<Course> findAllByStatus(String status);
+
     Optional<Course> findByCourseIdx(int courseIdx);
 
 }

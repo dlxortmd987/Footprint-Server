@@ -100,36 +100,22 @@ public class WalkController {
 
     @ResponseBody
     @PostMapping("/list")
-    public BaseResponse<List<GetCourseListRes>> getCourseList(@RequestBody String request) {
+    public BaseResponse<List<GetCourseListRes>> getCourseList(@RequestBody String request) throws BaseException, JsonProcessingException {
 
-        try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.registerModule(new JavaTimeModule());
-
-            GetCourseListReq getWalkListReq = objectMapper.readValue(request, GetCourseListReq.class);
+            GetCourseListReq getWalkListReq = new ObjectMapper().readValue(request, GetCourseListReq.class);
 
             List<GetCourseListRes> courseList = walkService.getCourseList(getWalkListReq,userIdx);
 
             return new BaseResponse<>(courseList);
-
-        } catch (JsonMappingException exception) {
-            exception.printStackTrace();
-            return new BaseResponse<>(null);
-        } catch (JsonProcessingException jsonProcessingException) {
-            jsonProcessingException.printStackTrace();
-            return new BaseResponse<>(null);
-        } catch (BaseException exception) {
-            exception.printStackTrace();
-            return new BaseResponse<>(null);
-        }
-
     }
+
+
 
 
     @ResponseBody
