@@ -1,14 +1,13 @@
 package com.umc.footprint.src.walks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.src.users.UserProvider;
-import com.umc.footprint.src.walks.model.GetWalkInfo;
-import com.umc.footprint.src.walks.model.PostWalkReq;
-import com.umc.footprint.src.walks.model.PostWalkRes;
+import com.umc.footprint.src.walks.model.*;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -98,4 +97,39 @@ public class WalkController {
             return new BaseResponse<>((exception.getStatus()));
         }
     }
+
+    @ResponseBody
+    @PostMapping("/list")
+    public BaseResponse<List<GetCourseListRes>> getCourseList(@RequestBody String request) throws BaseException, JsonProcessingException {
+
+            // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
+            String userId = jwtService.getUserId();
+            log.debug("유저 id: {}", userId);
+            // userId로 userIdx 추출
+            int userIdx = userProvider.getUserIdx(userId);
+
+            GetCourseListReq getWalkListReq = new ObjectMapper().readValue(request, GetCourseListReq.class);
+
+            List<GetCourseListRes> courseList = walkService.getCourseList(getWalkListReq,userIdx);
+
+            return new BaseResponse<>(courseList);
+    }
+
+
+
+
+    @ResponseBody
+    @GetMapping("/{courseIdx}/infos")
+    public BaseResponse<GetCourseInfoRes> getCourseInfo(@PathVariable int courseIdx){
+
+        try {
+            GetCourseInfoRes courseInfo = walkService.getCourseInfo(courseIdx);
+
+            return new BaseResponse<>(courseInfo);
+        } catch(BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+
+    }
+
 }
