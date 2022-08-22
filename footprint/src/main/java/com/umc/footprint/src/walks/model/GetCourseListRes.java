@@ -12,7 +12,7 @@ public class GetCourseListRes {
     private double startLat;
     private double startLong;
     private String courseName;
-    private double courseDist;
+    private Float courseDist;
     private int courseTime;
     private int courseMark;
     private int courseLike;
@@ -21,7 +21,7 @@ public class GetCourseListRes {
     private boolean userCourseLike;
 
     @Builder
-    public GetCourseListRes(int courseIdx, double startLat, double startLong, String courseName, double courseDist, int courseTime, int courseMark, int courseLike, List<String> courseTags, String courseImg, boolean userCourseLike) {
+    public GetCourseListRes(int courseIdx, double startLat, double startLong, String courseName, Float courseDist, int courseTime, int courseMark, int courseLike, List<String> courseTags, String courseImg, boolean userCourseLike) {
         this.courseIdx = courseIdx;
         this.startLat = startLat;
         this.startLong = startLong;
