@@ -197,7 +197,10 @@ public class WalkController {
         }
 
         try {
-            walkService.modifyCourseDetails(postCourseDetailsReq, userId);
+            String result = walkService.modifyCourseDetails(postCourseDetailsReq, userId);
+            return new BaseResponse<>(result);
+        } catch (BaseException exception) {
+            return new BaseResponse<>(exception.getStatus());
         }
         return null;
     }
