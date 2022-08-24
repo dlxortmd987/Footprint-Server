@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Getter
 @Entity
@@ -15,22 +16,27 @@ public class CourseTag {
     @Id
     @Column(name = "courseTagIdx")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer badgeIdx;
+    private Integer courseTagIdx;
 
-    @Column(name = "courseIdx")
-    private Integer courseIdx;
+    @OneToOne(targetEntity = Course.class, fetch = FetchType.LAZY)
+    @JoinColumn(name = "courseIdx")
+    private Course course;
 
-    @Column(name = "hashtagIdx")
-    private Integer hashtagIdx;
+    @OneToMany(targetEntity = Hashtag.class, fetch = FetchType.LAZY, mappedBy = "hashtag")
+    private List<Hashtag> hashtagList;
 
     @Column(name = "status")
     private String status;
 
     @Builder
-    public CourseTag(Integer badgeIdx, Integer courseIdx, Integer hashtagIdx, String status) {
-        this.badgeIdx = badgeIdx;
-        this.courseIdx = courseIdx;
-        this.hashtagIdx = hashtagIdx;
+    public CourseTag(Integer courseTagIdx, Course course, List<Hashtag> hashtagList, String status) {
+        this.courseTagIdx = courseTagIdx;
+        this.course = course;
+        this.hashtagList = hashtagList;
         this.status = status;
+    }
+
+    public void addHashtag(Hashtag hashtag) {
+        this.hashtagList.add(hashtag);
     }
 }

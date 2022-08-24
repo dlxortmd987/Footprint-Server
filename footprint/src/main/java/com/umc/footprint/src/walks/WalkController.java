@@ -5,18 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
-import com.umc.footprint.src.users.UserProvider;
-import com.umc.footprint.src.walks.model.GetWalkInfo;
-import com.umc.footprint.src.walks.model.PostWalkReq;
-import com.umc.footprint.src.walks.model.PostWalkRes;
+import com.umc.footprint.config.BaseResponseStatus;
+import com.umc.footprint.src.walks.model.*;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -105,38 +101,63 @@ public class WalkController {
         }
     }
 
-    // API 38
-    // 코스 좌표 넘겨주기
+    /**
+     * API 38
+     * 코스 정보 넘겨주기
+     * @param walkNumber 몇 번째 산책인지
+     * @return path 산책 좌표
+     */
     @GetMapping("/path/{walkNumber}") // (Get) /walks/path/:walkNumber
-    public BaseResponse<List<ArrayList<Double>>> getPath(@PathVariable("walkNumber") int walkNumber) {
+    public BaseResponse<GetCourseInfoRes> getCourseInfo(@PathVariable("walkNumber") int walkNumber) {
         try {
             String userId = jwtService.getUserId();
             log.debug("userId: {}", userId);
 
-            List<ArrayList<Double>> path = walkService.getPath(walkNumber, userId);
-            return new BaseResponse<>(path);
+             GetCourseInfoRes getCourseInfoRes = walkService.getCourseInfo(walkNumber, userId);
+            return new BaseResponse<>(getCourseInfoRes);
         } catch (BaseException exception) {
             return new BaseResponse<>(exception.getStatus());
         }
     }
 
-    // API 39
-    // 공유할 코스 세부사항 저장
     @PostMapping("/recommend") // (Post) /walks/recommend
-    public BaseResponse<String> postCourseDetails() {
-        return null;
+    public BaseResponse<String> postCourseDetails(@RequestBody String request) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
+        PostCourseDetailsReq postCourseDetailsReq;
+        try {
+            postCourseDetailsReq = objectMapper.readValue(request, PostCourseDetailsReq.class);
+        } catch (Exception exception) {
+            return new BaseResponse<>(BaseResponseStatus.MODIFY_OBJECT_FAIL);
+        }
+
+        try {
+            String result = walkService.postCourseDetails(postCourseDetailsReq);
+            return new BaseResponse<>(result);
+        } catch (BaseException exception) {
+            return new BaseResponse<>(exception.getStatus());
+        }
     }
 
     // API 40
     // 코스 좋아요 설정
-    @PostMapping("/like") // (Post) /walks/like
-    public BaseResponse<String> postCourseLike() {
-        return null;
+    @PatchMapping("/like/:courseIdx") // (Post) /walks/like
+    public BaseResponse<String> modifyCourseLike(@PathVariable(name = "courseIdx") Integer courseIdx) throws BaseException {
+        String userId = jwtService.getUserId();
+        log.debug("userId: {}", userId);
+
+        try {
+            String result = walkService.modifyCourseLike(courseIdx, userId);
+            return new BaseResponse<>(result);
+        } catch (BaseException exception) {
+            return new BaseResponse<>(exception.getStatus());
+        }
     }
 
     // API 41
     // 코스 수정
-    @PatchMapping("/recommend") // (Patch) /walks/recommend
+    @GetMapping("/recommend") // (Patch) /walks/recommend
     public BaseResponse<String> modifyCourseDetails() {
         return null;
     }

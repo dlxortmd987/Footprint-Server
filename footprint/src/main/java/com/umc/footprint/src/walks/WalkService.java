@@ -9,6 +9,9 @@ import com.umc.footprint.utils.AES128;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.WKTReader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -48,6 +51,7 @@ public class WalkService {
     private final GoalRepository goalRepository;
     private final UserBadgeRepository userBadgeRepository;
     private final BadgeRepository badgeRepository;
+    private final CourseTagRepository courseTagRepository;
     private final UserCourseRepository userCourseRepository;
     private final CourseRepository courseRepository;
     private final EncryptProperties encryptProperties;
@@ -528,14 +532,169 @@ public class WalkService {
         }
     }
 
-    public List<ArrayList<Double>> getPath(int walkNumber, String userId) throws BaseException {
+    /**
+     *
+     * @param walkNumber
+     * @param userId
+     * @return 코스로 만들 산책 상세 정보들
+     * @throws BaseException
+     */
+    public GetCourseInfoRes getCourseInfo(int walkNumber, String userId) throws BaseException {
         Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
 
         Walk walkByNumber = getWalkByNumber(walkNumber, userIdx);
+
+        List<ArrayList<Double>> coordinates = new ArrayList<>();
+
+        // 좌표 변환
         try {
-            return convertStringTo2DList(new AES128(encryptProperties.getKey()).decrypt(walkByNumber.getCoordinate()));
+            coordinates = convertStringTo2DList(new AES128(encryptProperties.getKey()).decrypt(walkByNumber.getCoordinate()));
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException | InvalidKeyException exception) {
             throw new BaseException(INVALID_ENCRYPT_STRING);
         }
+
+        ArrayList<HashtagVO> hashtags = new ArrayList<>();
+        ArrayList<String> photos = new ArrayList<>();
+        for (Footprint footprint : walkByNumber.getFootprintList()) {
+            // 해시태그 불러오기
+            List<Tag> savedTags = tagRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
+            for (Tag savedTag : savedTags) {
+                hashtags.add(HashtagVO.builder()
+                                .hashtagIdx(savedTag.getHashtag().getHashtagIdx())
+                                .hashtag(savedTag.getHashtag().getHashtag())
+                        .build());
+            }
+
+            // 사진 불러오기
+            List<Photo> savedPhotos = photoRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
+            for (Photo savedPhoto : savedPhotos) {
+                photos.add(savedPhoto.getImageUrl());
+            }
+        }
+        return GetCourseInfoRes.builder()
+                .walkIdx(walkByNumber.getWalkIdx())
+                .startAt(walkByNumber.getStartAt())
+                .endAt(walkByNumber.getEndAt())
+                .distance(walkByNumber.getDistance())
+                .coordinates(coordinates)
+                .hashtags(hashtags)
+                .photos(photos)
+                .build();
+    }
+
+    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
+    public String postCourseDetails(PostCourseDetailsReq postCourseDetailsReq) throws BaseException {
+
+        String encryptedCoordinates;
+
+        try {
+            encryptedCoordinates = new AES128(encryptProperties.getKey()).encrypt(convert2DListToString(postCourseDetailsReq.getCoordinates()));
+        } catch (Exception exception) {
+            throw new BaseException(ENCRYPT_FAIL);
+        }
+
+
+
+
+        // Course Entity 에 저장
+        Course savedCourse = courseRepository.save(Course.builder()
+                .courseName(postCourseDetailsReq.getCourseName())
+                .courseImg(postCourseDetailsReq.getCourseImg())
+                .startCoordinate(extractStartCoordinate(postCourseDetailsReq.getCoordinates()))
+                .coordinate(encryptedCoordinates)
+                .address(postCourseDetailsReq.getAddress())
+                .length(postCourseDetailsReq.getLength())
+                .courseTime(postCourseDetailsReq.getCourseTime())
+                .description(postCourseDetailsReq.getDescription())
+                .markNum(0)
+                .likeNum(0)
+                .status("ACTIVE")
+                .build());
+
+
+        // CourseTag Entity 에 저장
+        CourseTag courseTag = CourseTag.builder()
+                .course(savedCourse)
+                .status("ACTIVE")
+                .build();
+        for (HashtagVO hashtagVO : postCourseDetailsReq.getHashtags()) {
+            courseTag.addHashtag(
+                    Hashtag.builder()
+                            .hashtagIdx(hashtagVO.getHashtagIdx())
+                            .hashtag(hashtagVO.getHashtag())
+                            .build()
+            );
+        }
+        CourseTag savedCourseTag = courseTagRepository.save(courseTag);
+
+        if (savedCourseTag != null && savedCourse != null) {
+            return "코스가 등록되었습니다.";
+        } else {
+            return "코스 저장을 실패했습니다.";
+        }
+    }
+
+    public Point extractStartCoordinate(List<List<Double>> coordinates) throws BaseException {
+        List<Double> firstSection = coordinates.get(0);
+
+        if (firstSection == null) {
+            throw new BaseException(INVALID_COORDINATES);
+        }
+
+        StringBuilder st = new StringBuilder();
+        st.append("Point")
+                .append(" (").append(firstSection.get(0)).append(" ").append(firstSection.get(1)).append(")");
+        return (Point) wktToGeometry(st.toString());
+    }
+
+    public Geometry wktToGeometry(String wellKnownText) throws BaseException {
+        try {
+            return new WKTReader().read(wellKnownText);
+        } catch (Exception exception) {
+            log.info("잘못된 well known text 입니다.");
+            throw new BaseException(MODIFY_WKT_FAIL);
+        }
+    }
+
+    public String modifyCourseLike(Integer courseIdx, String userId) throws BaseException {
+        Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
+
+        if (userIdx == null) {
+            throw new BaseException(NOT_EXIST_USER);
+        }
+
+        Optional<Course> savedCourse = courseRepository.findById(courseIdx);
+
+        if (savedCourse.isEmpty()) {
+            throw new BaseException(NOT_EXIST_COURSE);
+        }
+
+        Optional<UserCourse> byCourseIdxAndUserIdx = userCourseRepository.findByCourseIdxAndUserIdx(courseIdx, userIdx);
+
+        UserCourse savedUserCourse;
+
+        if (byCourseIdxAndUserIdx.isPresent()) {
+            UserCourse userCourse = byCourseIdxAndUserIdx.get();
+            userCourse.modifyCourseLike();
+
+            savedUserCourse = userCourseRepository.save(userCourse);
+
+        } else {
+            savedUserCourse = userCourseRepository.save(
+                    UserCourse.builder()
+                            .userIdx(userIdx)
+                            .courseIdx(courseIdx)
+                            .walkIdx(savedCourse.get().getWalkIdx())
+                            .mark(false)
+                            .courseLike(true)
+                            .build()
+            );
+        }
+
+        if (savedUserCourse == null) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+
+        return "좋아요";
     }
 }

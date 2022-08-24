@@ -44,9 +44,15 @@ public class UserCourse {
 
     public void modifyMark() {
         if (this.mark) {
-            mark = false;
+            this.mark = false;
         } else {
-            mark = true;
+            this.mark = true;
+        }
+    }
+
+    public void modifyCourseLike() {
+        if (!this.courseLike) {
+            this.courseLike = true;
         }
     }
 }

@@ -42,6 +42,7 @@ public enum BaseResponseStatus {
     INVALID_ENCRYPT_STRING(false, 2005, "복호화를 할 수 없습니다."),
     INVALID_USERIDX(false,2100,"잘못된 유저 인덱스입니다."),
     NOT_EXIST_USER(false, 2101, "존재하지 않는 유저입니다."),
+    NOT_EXIST_COURSE(false, 2102, "존재하지 않는 코스입니다."),
     NOT_EXIST_USER_IN_PREV_GOAL(false,2118, "이전 달 설정한 목표가 없습니다."),
     NOT_EXIST_USER_IN_GOAL(false,2119, "아직 목표 설정을 하지 않은 사용자입니다."),
     NOT_EXIST_USER_IN_WALK(false,2120, "아직 산책 기록이 없는 사용자입니다."),
@@ -66,6 +67,7 @@ public enum BaseResponseStatus {
 
     INVALID_WALKIDX(false, 2200, "잘못된 산책 인덱스입니다."),
     INVALID_FOOTPRINTIDX(false, 2201, "잘못된 발자국 인덱스입니다."),
+    INVALID_COORDINATES(false, 2202, "잘못된 산책 인덱스입니다."),
     NO_FOOTPRINT_IN_WALK(false, 2221, "해당 산책 기록에는 발자국이 존재하지 않습니다."),
 
     EXCEED_FOOTPRINT_SIZE(false, 2241, "photoMatchNumList를 확인해주십시요."),
@@ -91,6 +93,9 @@ public enum BaseResponseStatus {
      */
     DATABASE_ERROR(false, 4000, "데이터베이스 연결에 실패하였습니다."),
     SERVER_ERROR(false, 4001, "서버와의 연결에 실패하였습니다."),
+    MODIFY_WKT_FAIL(false, 4002, "WKT 변환을 실패하였습니다."),
+    ENCRYPT_FAIL(false, 4003, "암호화를 실패하였습다."),
+    MODIFY_OBJECT_FAIL(false, 4004, "Request 객체 변환에 실패하였습니다."),
     S3UPLOAD_ERROR(false, 4080, "파일 업로드에 실패하였습니다."),
     MODIFY_USER_GOAL_FAIL(false,4160,"사용자 목표 변경에 실패하였습니다."),
     MODIFY_USERINFO_FAIL(false,4161,"유저 정보 변경에 실패하였습니다."),
