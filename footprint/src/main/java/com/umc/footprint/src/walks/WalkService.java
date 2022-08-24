@@ -501,8 +501,8 @@ public class WalkService {
         }
     }
 
-    public String modifyMark(int courseIdx, String userId) {
-        Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
+    public String modifyMark(int courseIdx, String userId) throws BaseException {
+        Integer userIdx = getUserIdx(userId);
 
         Course savedCourse = courseRepository.findById(courseIdx).get();
 
@@ -534,28 +534,40 @@ public class WalkService {
 
     /**
      *
-     * @param walkNumber
-     * @param userId
-     * @return 코스로 만들 산책 상세 정보들
+     * @param courseName String
+     * @param userId String
+     * @return 코스 상세 정보들
      * @throws BaseException
      */
-    public GetCourseInfoRes getCourseInfo(int walkNumber, String userId) throws BaseException {
+    public GetCourseInfoRes getCourseInfo(String courseName, String userId) throws BaseException {
         Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
 
-        Walk walkByNumber = getWalkByNumber(walkNumber, userIdx);
+        Course savedCourse = courseRepository.findByCourseNameAndStatus(courseName, "ACTIVE");
 
-        List<ArrayList<Double>> coordinates = new ArrayList<>();
+        if (savedCourse == null) {
+            log.info("코스 이름에 해당하는 코스가 없습니다.");
+            throw new BaseException(NOT_EXIST_COURSE);
+        }
+
+        Walk savedWalk = walkRepository.findById(savedCourse.getWalkIdx()).get();
+
+        if (savedWalk.getStatus().equals("INACTIVE")) {
+            log.info("삭제된 산책입니다.");
+            throw new BaseException(DELETED_WALK);
+        }
+
+        List<ArrayList<Double>> coordinates;
 
         // 좌표 변환
         try {
-            coordinates = convertStringTo2DList(new AES128(encryptProperties.getKey()).decrypt(walkByNumber.getCoordinate()));
+            coordinates = convertStringTo2DList(new AES128(encryptProperties.getKey()).decrypt(savedCourse.getCoordinate()));
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException | InvalidKeyException exception) {
             throw new BaseException(INVALID_ENCRYPT_STRING);
         }
 
         ArrayList<HashtagVO> hashtags = new ArrayList<>();
         ArrayList<String> photos = new ArrayList<>();
-        for (Footprint footprint : walkByNumber.getFootprintList()) {
+        for (Footprint footprint : savedWalk.getFootprintList()) {
             // 해시태그 불러오기
             List<Tag> savedTags = tagRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
             for (Tag savedTag : savedTags) {
@@ -572,10 +584,11 @@ public class WalkService {
             }
         }
         return GetCourseInfoRes.builder()
-                .walkIdx(walkByNumber.getWalkIdx())
-                .startAt(walkByNumber.getStartAt())
-                .endAt(walkByNumber.getEndAt())
-                .distance(walkByNumber.getDistance())
+                .courseIdx(savedCourse.getCourseIdx())
+                .walkIdx(savedWalk.getWalkIdx())
+                .startAt(savedWalk.getStartAt())
+                .endAt(savedWalk.getEndAt())
+                .distance(savedWalk.getDistance())
                 .coordinates(coordinates)
                 .hashtags(hashtags)
                 .photos(photos)
@@ -616,6 +629,11 @@ public class WalkService {
                 .status("ACTIVE")
                 .build());
 
+        if (savedCourse == null) {
+            log.info("Course 저장 실패");
+            throw new BaseException(DATABASE_ERROR);
+        }
+
         // CourseTag Entity 에 저장
         CourseTag courseTag = CourseTag.builder()
                 .course(savedCourse)
@@ -631,17 +649,19 @@ public class WalkService {
         }
         CourseTag savedCourseTag = courseTagRepository.save(courseTag);
 
-        if (savedCourseTag != null && savedCourse != null) {
-            return "코스가 등록되었습니다.";
-        } else {
-            return "코스 저장을 실패했습니다.";
+        if (savedCourseTag == null) {
+            log.info("CourseTag 저장 실패");
+            throw new BaseException(DATABASE_ERROR);
         }
+
+        return "코스가 등록되었습니다.";
     }
 
     public Point extractStartCoordinate(List<List<Double>> coordinates) throws BaseException {
         List<Double> firstSection = coordinates.get(0);
 
         if (firstSection == null) {
+            log.info("잘못된 좌표입니다.");
             throw new BaseException(INVALID_COORDINATES);
         }
 
@@ -661,11 +681,7 @@ public class WalkService {
     }
 
     public String modifyCourseLike(Integer courseIdx, String userId) throws BaseException {
-        Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
-
-        if (userIdx == null) {
-            throw new BaseException(NOT_EXIST_USER);
-        }
+        Integer userIdx = getUserIdx(userId);
 
         Optional<Course> savedCourse = courseRepository.findById(courseIdx);
 
@@ -696,9 +712,100 @@ public class WalkService {
         }
 
         if (savedUserCourse == null) {
+            log.info("UserCourse 저장 실패");
             throw new BaseException(DATABASE_ERROR);
         }
 
         return "좋아요";
+    }
+
+    public String modifyCourseDetails(PatchCourseDetailsReq patchCourseDetailsReq, String userId) throws BaseException {
+        Integer userIdx = getUserIdx(userId);
+
+        Course savedCourse = courseRepository.findById(patchCourseDetailsReq.getCourseIdx()).get();
+
+        if (savedCourse == null) {
+            throw new BaseException(NOT_EXIST_COURSE);
+        }
+
+        String encryptedCoordinates;
+
+        // 좌표 암호화
+        try {
+            encryptedCoordinates = new AES128(encryptProperties.getKey()).encrypt(convert2DListToString(patchCourseDetailsReq.getCoordinates()));
+        } catch (Exception exception) {
+            log.info("좌표 암호화 실패");
+            throw new BaseException(ENCRYPT_FAIL);
+        }
+
+        // 코스 이름 변경 시 중복 확인
+        if (savedCourse.getCourseName().equals(patchCourseDetailsReq.getCourseName())) {
+            if (courseRepository.existsByCourseNameAndStatus(patchCourseDetailsReq.getCourseName(), "ACTIVE")) {
+                log.info("코스 이름 중복");
+                throw new BaseException(DUPLICATED_COURSE_NAME);
+            }
+        }
+
+        // Course Entity 에 저장
+        Point startCoordinate = extractStartCoordinate(patchCourseDetailsReq.getCoordinates());
+        log.info("start coordinate: {}", startCoordinate.toString());
+        Course beforeSavedCourse = Course.builder()
+                .courseIdx(savedCourse.getCourseIdx())
+                .courseName(patchCourseDetailsReq.getCourseName())
+                .courseImg(patchCourseDetailsReq.getCourseImg())
+                .startCoordinate(startCoordinate)
+                .coordinate(encryptedCoordinates)
+                .address(patchCourseDetailsReq.getAddress())
+                .length(patchCourseDetailsReq.getLength())
+                .courseTime(patchCourseDetailsReq.getCourseTime())
+                .description(patchCourseDetailsReq.getDescription())
+                .markNum(0)
+                .likeNum(0)
+                .status("ACTIVE")
+                .build();
+        Course modifiedCourse = courseRepository.save(beforeSavedCourse);
+
+        if (modifiedCourse == null) {
+            log.info("수정된 코스 저장 실패");
+            throw new BaseException(DATABASE_ERROR);
+        }
+
+        // 해당 코스 태그 entity 불러오기
+        CourseTag savedCourseTag = courseTagRepository.findByCourseAndStatus(modifiedCourse, "ACTIVE");
+
+        // CourseTag Entity 에 저장
+        CourseTag beforeSavedCourseTag = CourseTag.builder()
+                .courseTagIdx(savedCourseTag.getCourseTagIdx())
+                .course(modifiedCourse)
+                .status("ACTIVE")
+                .build();
+
+        // 코스, 해시 태그 매핑
+        for (HashtagVO hashtagVO : patchCourseDetailsReq.getHashtags()) {
+            beforeSavedCourseTag.addHashtag(
+                    Hashtag.builder()
+                            .hashtagIdx(hashtagVO.getHashtagIdx())
+                            .hashtag(hashtagVO.getHashtag())
+                            .build()
+            );
+        }
+        CourseTag modifiedCourseTag = courseTagRepository.save(beforeSavedCourseTag);
+
+        if (modifiedCourseTag == null) {
+            log.info("수정된 코스 태그 저장 실패");
+            throw new BaseException(DATABASE_ERROR);
+        }
+
+        return "코스가 수정되었습니다.";
+    }
+
+    public Integer getUserIdx(String userId) throws BaseException {
+        Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
+
+        if (userIdx == null) {
+            throw new BaseException(NOT_EXIST_USER);
+        }
+
+        return userIdx;
     }
 }

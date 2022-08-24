@@ -10,6 +10,7 @@ import java.util.List;
 @Builder
 @RequiredArgsConstructor
 public class GetCourseInfoRes {
+    private final Integer courseIdx;
     private final Integer walkIdx;
     private final LocalDateTime startAt;
     private final LocalDateTime endAt;

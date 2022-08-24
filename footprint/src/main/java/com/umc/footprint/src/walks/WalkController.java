@@ -86,9 +86,14 @@ public class WalkController {
         }
     }
 
-    // API 33
-    // 산책 코스 찜하기
-    @PatchMapping("/mark/{courseIdx}") // (Patch) /walks/mark/:courseIdx
+    /**
+     * API 33
+     * 산책 코스 찜하기
+     * [Patch] /walks/mark/:courseIdx
+     * @param courseIdx
+     * @return 찜하기 or 찜하기 취소
+     */
+    @PatchMapping("/mark/{courseIdx}")
     public BaseResponse<String> modifyMark(@PathVariable("courseIdx") int courseIdx) {
         try {
             String userId = jwtService.getUserId();
@@ -104,23 +109,31 @@ public class WalkController {
     /**
      * API 38
      * 코스 정보 넘겨주기
-     * @param walkNumber 몇 번째 산책인지
-     * @return path 산책 좌표
+     * [Get] /walks/path?courseName=
+     * @param courseName 코스 이름
+     * @return GetCourseInfoRes 코스 정보
      */
-    @GetMapping("/path/{walkNumber}") // (Get) /walks/path/:walkNumber
-    public BaseResponse<GetCourseInfoRes> getCourseInfo(@PathVariable("walkNumber") int walkNumber) {
+    @GetMapping("/path")
+    public BaseResponse<GetCourseInfoRes> getCourseInfo(@RequestParam(name = "courseName") String courseName) {
         try {
             String userId = jwtService.getUserId();
             log.debug("userId: {}", userId);
 
-             GetCourseInfoRes getCourseInfoRes = walkService.getCourseInfo(walkNumber, userId);
+             GetCourseInfoRes getCourseInfoRes = walkService.getCourseInfo(courseName, userId);
             return new BaseResponse<>(getCourseInfoRes);
         } catch (BaseException exception) {
             return new BaseResponse<>(exception.getStatus());
         }
     }
 
-    @PostMapping("/recommend") // (Post) /walks/recommend
+    /**
+     * API 39
+     * 코스 저장
+     * [Post] /walks/recommend
+     * @param request
+     * @return 코스 등록 or 코스 등록 실패
+     */
+    @PostMapping("/recommend")
     public BaseResponse<String> postCourseDetails(@RequestBody String request) {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
@@ -140,9 +153,15 @@ public class WalkController {
         }
     }
 
-    // API 40
-    // 코스 좋아요 설정
-    @PatchMapping("/like/:courseIdx") // (Post) /walks/like
+    /**
+     * API 40
+     * 코스 좋아요 설정
+     * [POST] /walks/like/:courseIdx
+     * @param courseIdx
+     * @return 좋아요
+     * @throws BaseException
+     */
+    @PatchMapping("/like/{courseIdx}")
     public BaseResponse<String> modifyCourseLike(@PathVariable(name = "courseIdx") Integer courseIdx) throws BaseException {
         String userId = jwtService.getUserId();
         log.debug("userId: {}", userId);
@@ -155,10 +174,31 @@ public class WalkController {
         }
     }
 
-    // API 41
-    // 코스 수정
-    @GetMapping("/recommend") // (Patch) /walks/recommend
-    public BaseResponse<String> modifyCourseDetails() {
+    /**
+     * API 41
+     * 코스 수정
+     * [GET] /walks/recommend?courseName=""
+     * @param request
+     * @return
+     */
+    @PatchMapping("/recommend")
+    public BaseResponse<String> modifyCourseDetails(@RequestBody String request) throws BaseException {
+        String userId = jwtService.getUserId();
+        log.debug("userId: {}", userId);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+
+        PatchCourseDetailsReq postCourseDetailsReq;
+        try {
+            postCourseDetailsReq = objectMapper.readValue(request, PatchCourseDetailsReq.class);
+        } catch (Exception exception) {
+            return new BaseResponse<>(BaseResponseStatus.MODIFY_OBJECT_FAIL);
+        }
+
+        try {
+            walkService.modifyCourseDetails(postCourseDetailsReq, userId);
+        }
         return null;
     }
 }
