@@ -587,14 +587,19 @@ public class WalkService {
 
         String encryptedCoordinates;
 
+        // 좌표 암호화
         try {
             encryptedCoordinates = new AES128(encryptProperties.getKey()).encrypt(convert2DListToString(postCourseDetailsReq.getCoordinates()));
         } catch (Exception exception) {
+            log.info("좌표 암호화 실패");
             throw new BaseException(ENCRYPT_FAIL);
         }
 
-
-
+        // 코스 이름 중복 확인
+        if (courseRepository.existsByCourseNameAndStatus(postCourseDetailsReq.getCourseName(), "ACTIVE")) {
+            log.info("코스 이름 중복");
+            throw new BaseException(DUPLICATED_COURSE_NAME);
+        }
 
         // Course Entity 에 저장
         Course savedCourse = courseRepository.save(Course.builder()
@@ -610,7 +615,6 @@ public class WalkService {
                 .likeNum(0)
                 .status("ACTIVE")
                 .build());
-
 
         // CourseTag Entity 에 저장
         CourseTag courseTag = CourseTag.builder()

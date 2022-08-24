@@ -62,6 +62,7 @@ public enum BaseResponseStatus {
     POST_USERS_EMPTY_EMAIL(false, 2148, "이메일을 입력해주세요."),
     POST_USERS_INVALID_EMAIL(false, 2149, "이메일 형식을 확인해주세요."),
     POST_USERS_EMPTY_USERID(false, 2150, "유저 ID를 입력해주세요."),
+    DUPLICATED_COURSE_NAME(false, 2151, "중복된 코스 이름입니다."),
     MAX_NICKNAME_LENGTH(false, 2160, "닉네임은 8자를 초과할 수 없습니다."),
     INVALID_BIRTH(false, 2161, "생년월일 값은 0000-00-00이 될 수 없습니다."),
 
