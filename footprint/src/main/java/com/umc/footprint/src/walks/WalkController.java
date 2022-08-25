@@ -202,6 +202,5 @@ public class WalkController {
         } catch (BaseException exception) {
             return new BaseResponse<>(exception.getStatus());
         }
-        return null;
     }
 }
