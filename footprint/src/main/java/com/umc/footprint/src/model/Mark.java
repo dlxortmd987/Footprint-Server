@@ -9,12 +9,12 @@ import javax.persistence.*;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "UserCourse")
-public class UserCourse {
+@Table(name = "Mark")
+public class Mark {
     @Id
-    @Column(name = "userCourseIdx")
+    @Column(name = "markIdx")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer userCourseIdx;
+    private Integer markIdx;
 
     @Column(name = "userIdx")
     private Integer userIdx;
@@ -22,9 +22,7 @@ public class UserCourse {
     @Column(name = "courseIdx")
     private Integer courseIdx;
 
-    @Column(name = "walkIdx")
-    private Integer walkIdx;
+    @Column(name = "mark")
+    private Boolean mark;
 
-    @Column(name = "courseCount")
-    private Boolean courseCount;
 }

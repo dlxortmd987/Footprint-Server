@@ -45,6 +45,9 @@ public class Course extends BaseEntity {
     @Column(name = "walkIdx")
     private Integer walkIdx;
 
+    @Column(name = "userIdx")
+    private Integer userIdx;
+
     @Column(name = "description", columnDefinition = "text")
     private String description;
 
@@ -58,7 +61,7 @@ public class Course extends BaseEntity {
     private String status;
 
     @Builder
-    public Course(Integer courseIdx, String courseName, String courseImg, Point startCoordinate, String coordinate, String address, Float length, Integer courseTime, Integer walkIdx, String description, Integer markNum, Integer likeNum, String status) {
+    public Course(Integer courseIdx, String courseName, String courseImg, Point startCoordinate, String coordinate, String address, Float length, Integer courseTime, Integer walkIdx, Integer userIdx, String description, Integer markNum, Integer likeNum, String status) {
         this.courseIdx = courseIdx;
         this.courseName = courseName;
         this.courseImg = courseImg;
@@ -68,6 +71,7 @@ public class Course extends BaseEntity {
         this.length = length;
         this.courseTime = courseTime;
         this.walkIdx = walkIdx;
+        this.userIdx = userIdx;
         this.description = description;
         this.markNum = markNum;
         this.likeNum = likeNum;
