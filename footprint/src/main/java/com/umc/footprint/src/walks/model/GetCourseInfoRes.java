@@ -1,21 +1,19 @@
 package com.umc.footprint.src.walks.model;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Builder
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class GetCourseInfoRes {
-    private final Integer courseIdx;
-    private final Integer walkIdx;
-    private final LocalDateTime startAt;
-    private final LocalDateTime endAt;
-    private final Double distance;
-    private final List<ArrayList<Double>> coordinates;
-    private final List<HashtagVO> hashtags;
-    private final List<String> photos;
+    private List<ArrayList<Double>> coordinate;
+    private String courseDisc;
+
+    @Builder
+    public GetCourseInfoRes(List<ArrayList<Double>> coordinate, String courseDisc) {
+        this.coordinate = coordinate;
+        this.courseDisc = courseDisc;
+    }
 }
