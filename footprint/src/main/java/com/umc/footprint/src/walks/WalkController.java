@@ -108,15 +108,15 @@ public class WalkController {
 
     /**
      * API 38
-     * 코스 정보 넘겨주기
+     * 코스 정보 넘겨주기 (코스 -> 코스, 코스 수정 시)
      * [Get] /walks/path?courseName=
      * @param courseName 코스 이름
      * @return GetCourseInfoRes 코스 정보
      */
     @GetMapping("/path")
-    public BaseResponse<GetCourseDetailsRes> getCourseInfo(@RequestParam(name = "courseName") String courseName) {
+    public BaseResponse<GetCourseDetailsRes> getCourseDetails(@RequestParam(name = "courseName") String courseName) {
         try {
-            GetCourseDetailsRes getCourseInfoRes = walkService.getCourseInfo(courseName);
+            GetCourseDetailsRes getCourseInfoRes = walkService.getCourseDetails(courseName);
             return new BaseResponse<>(getCourseInfoRes);
         } catch (BaseException exception) {
             return new BaseResponse<>(exception.getStatus());
@@ -201,4 +201,26 @@ public class WalkController {
             return new BaseResponse<>(exception.getStatus());
         }
     }
+
+    /**
+     * API 44
+     * 코스 정보 넘겨주기 (산책 -> 코스)
+     * [Get] /walks/path?courseName=
+     *
+     * @param walkNumber 사용자의 n 번째 산책
+     * @return GetWalkDetailsRes 산책 정보
+     */
+    @GetMapping("/path")
+    public BaseResponse<GetWalkDetailsRes> getWalkDetails(@RequestParam(name = "walkNumber") Integer walkNumber) throws BaseException {
+        String userId = jwtService.getUserId();
+        log.debug("userId: {}", userId);
+
+        try {
+            GetWalkDetailsRes getWalkDetailsRes = walkService.getWalkDetails(walkNumber, userId);
+            return new BaseResponse<>(getWalkDetailsRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>(exception.getStatus());
+        }
+    }
+
 }

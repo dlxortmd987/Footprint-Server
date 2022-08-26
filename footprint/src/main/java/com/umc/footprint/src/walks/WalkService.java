@@ -488,8 +488,8 @@ public class WalkService {
         }
     }
 
-    public Walk getWalkByNumber(int walkIdx, int userIdx) throws BaseException {
-        PageRequest pageRequest = PageRequest.of(walkIdx - 1, 1);
+    public Walk getWalkByNumber(int walkNumber, int userIdx) throws BaseException {
+        PageRequest pageRequest = PageRequest.of(walkNumber - 1, 1);
         try {
             Page<Walk> walkPage = walkRepository.findByUserIdxAndStatusOrderByStartAtAsc(userIdx, "ACTIVE", pageRequest);
             if (walkPage.getTotalElements() == 0) {
@@ -498,6 +498,7 @@ public class WalkService {
             Walk walkByNumber = walkPage.get().collect(Collectors.toList()).get(0);
             return walkByNumber;
         } catch (Exception exception) {
+            log.info("삭제된 산책입니다.");
             throw new BaseException(INVALID_WALKIDX);
         }
     }
@@ -542,7 +543,7 @@ public class WalkService {
      * @return 코스 상세 정보들
      * @throws BaseException
      */
-    public GetCourseDetailsRes getCourseInfo(String courseName) throws BaseException {
+    public GetCourseDetailsRes getCourseDetails(String courseName) throws BaseException {
 
         Course savedCourse = courseRepository.findByCourseNameAndStatus(courseName, "ACTIVE");
 
@@ -827,5 +828,55 @@ public class WalkService {
         }
 
         return userIdx;
+    }
+
+    public GetWalkDetailsRes getWalkDetails(Integer walkNumber, String userId) throws BaseException {
+//        Course savedCourse = courseRepository.findByCourseNameAndStatus(courseName, "ACTIVE");
+
+        Integer userIdx = getUserIdx(userId);
+
+        Walk savedWalk = getWalkByNumber(walkNumber, userIdx);
+
+        if (savedWalk == null) {
+            log.info("{} 번째 산책을 찾을 수 없습니다.", walkNumber);
+            throw new BaseException(NOT_EXIST_WALK);
+        }
+
+        List<ArrayList<Double>> coordinates;
+
+        // 좌표 변환
+        try {
+            coordinates = convertStringTo2DList(new AES128(encryptProperties.getKey()).decrypt(savedWalk.getCoordinate()));
+        } catch (Exception exception) {
+            throw new BaseException(INVALID_ENCRYPT_STRING);
+        }
+
+        ArrayList<HashtagVO> hashtags = new ArrayList<>();
+        ArrayList<String> photos = new ArrayList<>();
+        for (Footprint footprint : savedWalk.getFootprintList()) {
+            // 해시태그 불러오기
+            List<Tag> savedTags = tagRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
+            for (Tag savedTag : savedTags) {
+                hashtags.add(HashtagVO.builder()
+                        .hashtagIdx(savedTag.getHashtag().getHashtagIdx())
+                        .hashtag(savedTag.getHashtag().getHashtag())
+                        .build());
+            }
+
+            // 사진 불러오기
+            List<Photo> savedPhotos = photoRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
+            for (Photo savedPhoto : savedPhotos) {
+                photos.add(savedPhoto.getImageUrl());
+            }
+        }
+        return GetWalkDetailsRes.builder()
+                .walkIdx(savedWalk.getWalkIdx())
+                .startAt(savedWalk.getStartAt())
+                .endAt(savedWalk.getEndAt())
+                .distance(savedWalk.getDistance())
+                .coordinates(coordinates)
+                .hashtags(hashtags)
+                .photos(photos)
+                .build();
     }
 }
