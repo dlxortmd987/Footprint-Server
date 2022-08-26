@@ -53,6 +53,7 @@ public class WalkService {
     private final BadgeRepository badgeRepository;
     private final CourseTagRepository courseTagRepository;
     private final UserCourseRepository userCourseRepository;
+    private final MarkRepository markRepository;
     private final CourseRepository courseRepository;
     private final EncryptProperties encryptProperties;
 
@@ -502,32 +503,35 @@ public class WalkService {
     }
 
     public String modifyMark(int courseIdx, String userId) throws BaseException {
+        // userIdx 추출
         Integer userIdx = getUserIdx(userId);
 
+        // 저장된 코스 불러오기
         Course savedCourse = courseRepository.findById(courseIdx).get();
 
-        Optional<UserCourse> byCourseIdxAndUserIdx = userCourseRepository.findByCourseIdxAndUserIdx(courseIdx, userIdx);
+        Optional<Mark> optionalMark = markRepository.findByCourseIdxAndUserIdx(courseIdx, userIdx);
+//        Optional<UserCourse> byCourseIdxAndUserIdx = userCourseRepository.findByCourseIdxAndUserIdx(courseIdx, userIdx);
 
-        if (byCourseIdxAndUserIdx.isPresent()) {
-            UserCourse savedUserCourse = byCourseIdxAndUserIdx.get();
+        if (optionalMark.isPresent()) {
+            Mark savedMark = optionalMark.get();
 
-            savedUserCourse.modifyMark();
+            savedMark.modifyMark();
 
-            userCourseRepository.save(savedUserCourse);
-            if (savedUserCourse.getMark()) {
+            Mark modifiedMark = markRepository.save(savedMark);
+            if (modifiedMark.getMark()) {
                 return "찜하기";
             } else {
                 return "찜하기 취소";
             }
         } else {
-            userCourseRepository.save(
-                    UserCourse.builder()
-                            .userIdx(userIdx)
-                            .courseIdx(courseIdx)
-                            .walkIdx(savedCourse.getWalkIdx())
-                            .mark(true)
-                            .courseLike(false)
-                            .build());
+            Mark newMark = Mark.builder()
+                    .courseIdx(courseIdx)
+                    .userIdx(userIdx)
+                    .mark(true)
+                    .build();
+
+            markRepository.save(newMark);
+
             return "찜하기";
         }
     }
@@ -535,12 +539,10 @@ public class WalkService {
     /**
      *
      * @param courseName String
-     * @param userId String
      * @return 코스 상세 정보들
      * @throws BaseException
      */
-    public GetCourseDetailsRes getCourseInfo(String courseName, String userId) throws BaseException {
-        Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
+    public GetCourseDetailsRes getCourseInfo(String courseName) throws BaseException {
 
         Course savedCourse = courseRepository.findByCourseNameAndStatus(courseName, "ACTIVE");
 
@@ -680,7 +682,7 @@ public class WalkService {
         }
     }
 
-    public String modifyCourseLike(Integer courseIdx, String userId) throws BaseException {
+    public String modifyCourseLike(Integer courseIdx, String userId, Integer evaluate) throws BaseException {
         Integer userIdx = getUserIdx(userId);
 
         Optional<Course> savedCourse = courseRepository.findById(courseIdx);
@@ -693,20 +695,38 @@ public class WalkService {
 
         UserCourse savedUserCourse;
 
+        Boolean isLike;
+        if (evaluate == 1) {// 좋았어요
+            isLike = true;
+        } else {
+            isLike = false;
+        }
+
         if (byCourseIdxAndUserIdx.isPresent()) {
-            UserCourse userCourse = byCourseIdxAndUserIdx.get();
-            userCourse.modifyCourseLike();
+            UserCourse rawUserCourse = byCourseIdxAndUserIdx.get();
 
-            savedUserCourse = userCourseRepository.save(userCourse);
+            if (rawUserCourse.getCourseLike()) { // 이미 코스에 좋아요를 남긴 경우
+                isLike = true;
+            }
 
+            UserCourse modifiedUserCourse = UserCourse.builder()
+                    .userCourseIdx(rawUserCourse.getUserCourseIdx())
+                    .userIdx(rawUserCourse.getUserIdx())
+                    .courseIdx(rawUserCourse.getCourseIdx())
+                    .walkIdx(rawUserCourse.getWalkIdx())
+                    .courseLike(isLike)
+                    .courseCount(rawUserCourse.getCourseCount() + 1L)
+                    .build();
+
+            savedUserCourse = userCourseRepository.save(modifiedUserCourse);
         } else {
             savedUserCourse = userCourseRepository.save(
                     UserCourse.builder()
                             .userIdx(userIdx)
                             .courseIdx(courseIdx)
                             .walkIdx(savedCourse.get().getWalkIdx())
-                            .mark(false)
-                            .courseLike(true)
+                            .courseLike(isLike)
+                            .courseCount(1L)
                             .build()
             );
         }
@@ -807,83 +827,5 @@ public class WalkService {
         }
 
         return userIdx;
-    }
-
-    /** API.32 사용자 디바이스 지도 좌표안에 존재하는 모든 코스들을 가져온다. */
-    public List<GetCourseListRes> getCourseList(GetCourseListReq getCourseListReq, int userIdx){
-
-        // response로 보낼 코스 정보를 저장할 List
-        List<GetCourseListRes> courseListResList = new ArrayList<>();
-
-        // 1. DB에 존재하는 모든 코스 정보중에서 디바이스 지도 좌표안에 존재하는 코스 추출
-        List<Course> allCourseInDB = courseRepository.findAllByStatus("ACTIVE");
-
-        System.out.println("allCourseInDB.size() = " + allCourseInDB.size());
-        
-        for(Course course : allCourseInDB){
-            System.out.println("course = " + course);
-            double courseLat = course.getStartCoordinate().getX();
-            double courseLong = course.getStartCoordinate().getY();
-
-            // 2. DB에 있는 코스들중 보내준 위도 / 경도 사이에 존재하는 코스들만 추출
-            if(courseLat < getCourseListReq.getNorth() && courseLat > getCourseListReq.getSouth()
-                    && courseLong < getCourseListReq.getEast() && courseLong > getCourseListReq.getWest()){
-
-                // 2-1. 코스 태그 추출
-                // CourseTag 테이블에서 hashtagIdx 추출후 HashTag 테이블에서 인덱스에 해당하는 해시태그들 List화
-                List<CourseTag> courseTagMappingList = courseTagRepository.findAllByCourseIdx(course.getCourseIdx());
-
-//                List<String> courseTags = new ArrayList<>();
-//                for(CourseTag courseTag: courseTagMappingList){
-//                    courseTags.add(hashtagRepository.findByHashtagIdx(courseTag.getHashtagIdx()).get().getHashtag());
-//                }
-
-
-                // 2-2. 유저가 해당 코스를 like 했는지 확인
-                System.out.println("Check Point 3");
-                List<UserCourse> userCourseList = userCourseRepository.findByUserIdx(userIdx);
-                boolean userCourseLike = false;
-                if(userCourseList.contains(course.getCourseIdx()))
-                    userCourseLike = true;
-
-                // 2-3. 해당 코스에 사진이 들어있는지 확인
-                // 사진이 없다면 기본 이미지 URL 입력
-                String courseImgUrl = course.getCourseImg();
-                if(courseImgUrl.isBlank()){
-                    courseImgUrl = "https://mystepsbucket.s3.ap-northeast-2.amazonaws.com/BaseImage/%E1%84%8F%E1%85%A9%E1%84%89%E1%85%B3%E1%84%80%E1%85%B5%E1%84%87%E1%85%A9%E1%86%AB%E1%84%8B%E1%85%B5%E1%84%86%E1%85%B5%E1%84%8C%E1%85%B5.png"; //* 기본 이미지 URL
-                }
-
-                // 2-3. courseListResList에 해당 추천 코스 정보 add
-                courseListResList.add(GetCourseListRes.builder()
-                                .courseIdx(course.getCourseIdx())
-                                .startLat(courseLat)
-                                .startLong(courseLong)
-                                .courseName(course.getCourseName())
-                                .courseDist(course.getLength())
-                                .courseTime(course.getCourseTime())
-                                .courseMark(course.getMarkNum())
-                                .courseLike(course.getLikeNum())
-                                .courseImg(courseImgUrl)
-//                                .courseTags(courseTags)
-                                .userCourseLike(userCourseLike)
-                        .build());
-            }
-        }
-
-        return courseListResList;
-    }
-
-    /** API.34 원하는 코스의 경로 좌표와 상세 설명을 가져온다. */
-    public GetCourseInfoRes getCourseInfo(int courseIdx) throws BaseException {
-
-        // 1. courseIdx로 코스 정보 가져오기
-        Optional<Course> course = courseRepository.findByCourseIdx(courseIdx);
-
-        // 2. response 생성 후 reutrn(coordinate 복호화)
-        return GetCourseInfoRes.builder()
-                        .coordinate(convertStringTo2DList(course.get().getCoordinate()))
-                        .courseDisc(course.get().getDescription())
-                        .build();
-
     }
 }

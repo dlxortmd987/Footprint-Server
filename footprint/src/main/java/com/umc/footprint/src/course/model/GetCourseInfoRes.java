@@ -1,4 +1,4 @@
-package com.umc.footprint.src.walks.model;
+package com.umc.footprint.src.course.model;
 
 import lombok.Builder;
 import lombok.NoArgsConstructor;

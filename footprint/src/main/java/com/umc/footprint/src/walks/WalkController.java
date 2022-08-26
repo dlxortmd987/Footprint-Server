@@ -116,10 +116,7 @@ public class WalkController {
     @GetMapping("/path")
     public BaseResponse<GetCourseDetailsRes> getCourseInfo(@RequestParam(name = "courseName") String courseName) {
         try {
-            String userId = jwtService.getUserId();
-            log.debug("userId: {}", userId);
-
-            GetCourseDetailsRes getCourseInfoRes = walkService.getCourseInfo(courseName, userId);
+            GetCourseDetailsRes getCourseInfoRes = walkService.getCourseInfo(courseName);
             return new BaseResponse<>(getCourseInfoRes);
         } catch (BaseException exception) {
             return new BaseResponse<>(exception.getStatus());
@@ -156,18 +153,19 @@ public class WalkController {
     /**
      * API 40
      * 코스 좋아요 설정
-     * [POST] /walks/like/:courseIdx
+     * [POST] /walks/like/:courseIdx/:evaluate
      * @param courseIdx
+     * @param evaluate
      * @return 좋아요
      * @throws BaseException
      */
-    @PatchMapping("/like/{courseIdx}")
-    public BaseResponse<String> modifyCourseLike(@PathVariable(name = "courseIdx") Integer courseIdx) throws BaseException {
+    @PatchMapping("/like/{courseIdx}/{evaluate}")
+    public BaseResponse<String> modifyCourseLike(@PathVariable(name = "courseIdx") Integer courseIdx, @PathVariable(name = "evaluate") Integer evaluate) throws BaseException {
         String userId = jwtService.getUserId();
         log.debug("userId: {}", userId);
 
         try {
-            String result = walkService.modifyCourseLike(courseIdx, userId);
+            String result = walkService.modifyCourseLike(courseIdx, userId, evaluate);
             return new BaseResponse<>(result);
         } catch (BaseException exception) {
             return new BaseResponse<>(exception.getStatus());
@@ -203,38 +201,4 @@ public class WalkController {
             return new BaseResponse<>(exception.getStatus());
         }
     }
-    @ResponseBody
-    @PostMapping("/list")
-    public BaseResponse<List<GetCourseListRes>> getCourseList(@RequestBody String request) throws BaseException, JsonProcessingException {
-
-            // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
-            String userId = jwtService.getUserId();
-            log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = walkService.getUserIdx(userId);
-
-            GetCourseListReq getWalkListReq = new ObjectMapper().readValue(request, GetCourseListReq.class);
-
-            List<GetCourseListRes> courseList = walkService.getCourseList(getWalkListReq,userIdx);
-
-            return new BaseResponse<>(courseList);
-    }
-
-
-
-
-    @ResponseBody
-    @GetMapping("/{courseIdx}/infos")
-    public BaseResponse<GetCourseInfoRes> getCourseInfo(@PathVariable int courseIdx){
-
-        try {
-            GetCourseInfoRes courseInfo = walkService.getCourseInfo(courseIdx);
-
-            return new BaseResponse<>(courseInfo);
-        } catch(BaseException exception) {
-            return new BaseResponse<>((exception.getStatus()));
-        }
-
-    }
-
 }
