@@ -198,7 +198,7 @@ public class CourseService {
         // 좌표 변환
         try {
             coordinates = walkService.convertStringTo2DList(new AES128(encryptProperties.getKey()).decrypt(savedCourse.getCoordinate()));
-        } catch (NoSuchPaddingException | NoSuchAlgorithmException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException | InvalidKeyException exception) {
+        } catch (Exception exception) {
             throw new BaseException(INVALID_ENCRYPT_STRING);
         }
 
@@ -261,7 +261,6 @@ public class CourseService {
                 .length(postCourseDetailsReq.getLength())
                 .courseTime(postCourseDetailsReq.getCourseTime())
                 .description(postCourseDetailsReq.getDescription())
-                .markNum(0)
                 .likeNum(0)
                 .status("ACTIVE")
                 .build());
@@ -320,36 +319,26 @@ public class CourseService {
     public String modifyCourseLike(Integer courseIdx, String userId, Integer evaluate) throws BaseException {
         Integer userIdx = getUserIdx(userId);
 
-        Optional<Course> savedCourse = courseRepository.findById(courseIdx);
+        Optional<Course> OptionalCourse = courseRepository.findById(courseIdx);
 
-        if (savedCourse.isEmpty()) {
+        if (OptionalCourse.isEmpty()) {
             throw new BaseException(NOT_EXIST_COURSE);
         }
 
         Optional<UserCourse> byCourseIdxAndUserIdx = userCourseRepository.findByCourseIdxAndUserIdx(courseIdx, userIdx);
 
         UserCourse savedUserCourse;
+        Course savedCourse = OptionalCourse.get();
 
-        Boolean isLike;
-        if (evaluate == 1) {// 좋았어요
-            isLike = true;
-        } else {
-            isLike = false;
-        }
-
+        // UserCourse에 저장
         if (byCourseIdxAndUserIdx.isPresent()) {
             UserCourse rawUserCourse = byCourseIdxAndUserIdx.get();
-
-            if (rawUserCourse.getCourseLike()) { // 이미 코스에 좋아요를 남긴 경우
-                isLike = true;
-            }
 
             UserCourse modifiedUserCourse = UserCourse.builder()
                     .userCourseIdx(rawUserCourse.getUserCourseIdx())
                     .userIdx(rawUserCourse.getUserIdx())
                     .courseIdx(rawUserCourse.getCourseIdx())
                     .walkIdx(rawUserCourse.getWalkIdx())
-                    .courseLike(isLike)
                     .courseCount(rawUserCourse.getCourseCount() + 1L)
                     .build();
 
@@ -359,11 +348,18 @@ public class CourseService {
                     UserCourse.builder()
                             .userIdx(userIdx)
                             .courseIdx(courseIdx)
-                            .walkIdx(savedCourse.get().getWalkIdx())
-                            .courseLike(isLike)
+                            .walkIdx(savedCourse.getWalkIdx())
                             .courseCount(1L)
                             .build()
             );
+        }
+
+        if (evaluate == 1) { // 좋았어요 눌렀을 때
+            // likeNum 1 증가
+            savedCourse.addLikeNum();
+
+            // Course 저장
+            courseRepository.save(savedCourse);
         }
 
         if (savedUserCourse == null) {
@@ -414,7 +410,6 @@ public class CourseService {
                 .length(patchCourseDetailsReq.getLength())
                 .courseTime(patchCourseDetailsReq.getCourseTime())
                 .description(patchCourseDetailsReq.getDescription())
-                .markNum(0)
                 .likeNum(0)
                 .status("ACTIVE")
                 .build();
