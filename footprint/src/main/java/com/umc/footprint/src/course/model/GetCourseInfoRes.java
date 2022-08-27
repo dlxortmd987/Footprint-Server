@@ -1,11 +1,13 @@
 package com.umc.footprint.src.course.model;
 
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 @NoArgsConstructor
 public class GetCourseInfoRes {
     private List<ArrayList<Double>> coordinate;
