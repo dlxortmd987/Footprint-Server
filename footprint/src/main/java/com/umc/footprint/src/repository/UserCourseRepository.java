@@ -9,5 +9,7 @@ import java.util.Optional;
 public interface UserCourseRepository extends JpaRepository<UserCourse, Integer> {
     Optional<UserCourse> findByCourseIdxAndUserIdx(Integer courseIdx, Integer userIdx);
 
-    List<UserCourse> findByUserIdx(int useridx);
+    List<UserCourse> findByUserIdx(int userIdx);
+
+    List<UserCourse> findByCourseIdx(int courseIdx);
 }
