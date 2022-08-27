@@ -27,8 +27,6 @@ public interface TagRepository extends JpaRepository<Tag, Integer> {
             "  and W.userIdx= :userIdx and W.status = 'ACTIVE' and F.status = 'ACTIVE' and T.status = 'ACTIVE'")
     List<WalkHashtag> findAllWalkAndHashtag(@Param("hashtag") String hashtag, @Param("userIdx") int userIdx);
 
-
-
     List<Tag> findByFootprint(Footprint footprint);
 
     List<Tag> findAllByUserIdx(int userIdx);

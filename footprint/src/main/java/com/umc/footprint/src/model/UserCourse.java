@@ -1,6 +1,7 @@
 package com.umc.footprint.src.model;
 
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -25,6 +26,19 @@ public class UserCourse {
     @Column(name = "walkIdx")
     private Integer walkIdx;
 
+    @Column(name = "courseLike")
+    private Boolean courseLike;
+
     @Column(name = "courseCount")
-    private Boolean courseCount;
+    private Long courseCount;
+
+    @Builder
+    public UserCourse(Integer userCourseIdx, Integer userIdx, Integer courseIdx, Integer walkIdx, Boolean courseLike, Long courseCount) {
+        this.userCourseIdx = userCourseIdx;
+        this.userIdx = userIdx;
+        this.courseIdx = courseIdx;
+        this.walkIdx = walkIdx;
+        this.courseLike = courseLike;
+        this.courseCount = courseCount;
+    }
 }

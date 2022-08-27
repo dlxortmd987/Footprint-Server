@@ -3,6 +3,7 @@ package com.umc.footprint.src.course;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.src.model.Course;
 import com.umc.footprint.src.model.CourseTag;
+import com.umc.footprint.src.model.Hashtag;
 import com.umc.footprint.src.model.UserCourse;
 import com.umc.footprint.src.repository.CourseRepository;
 import com.umc.footprint.src.repository.CourseTagRepository;
@@ -57,8 +58,12 @@ public class CourseService {
 
                 List<String> courseTags = new ArrayList<>();
                 for(CourseTag courseTag: courseTagMappingList){
-                    courseTags.add(hashtagRepository.findByHashtagIdx(courseTag.getHashtagIdx()).get().getHashtag());
+                    for (Hashtag hashtag : courseTag.getHashtagList()) {
+                        courseTags.add(hashtagRepository.findByHashtagIdx(hashtag.getHashtagIdx()).get().getHashtag());
+                    }
                 }
+
+
 
                 // 2-2. 유저가 해당 코스를 like 했는지 확인
                 System.out.println("Check Point 3");

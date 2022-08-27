@@ -1,6 +1,7 @@
 package com.umc.footprint.src.model;
 
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -25,4 +26,20 @@ public class Mark {
     @Column(name = "mark")
     private Boolean mark;
 
+
+    @Builder
+    public Mark(Integer markIdx, Integer userIdx, Integer courseIdx, Boolean mark) {
+        this.markIdx = markIdx;
+        this.userIdx = userIdx;
+        this.courseIdx = courseIdx;
+        this.mark = mark;
+    }
+
+    public void modifyMark() {
+        if (this.mark) {
+            this.mark = false;
+        } else {
+            this.mark = true;
+        }
+    }
 }
