@@ -9,5 +9,5 @@ import java.util.List;
 public interface CourseTagRepository extends JpaRepository<CourseTag, Integer> {
     CourseTag findByCourseAndStatus(Course course, String status);
 
-    List<CourseTag> findAllByCourseIdx(int courseIdx);
+    List<CourseTag> findAllByCourse(Course course);
 }
