@@ -1,14 +1,8 @@
 package com.umc.footprint.src.course;
 
 import com.umc.footprint.config.BaseException;
-import com.umc.footprint.src.model.Course;
-import com.umc.footprint.src.model.CourseTag;
-import com.umc.footprint.src.model.Hashtag;
-import com.umc.footprint.src.model.UserCourse;
-import com.umc.footprint.src.repository.CourseRepository;
-import com.umc.footprint.src.repository.CourseTagRepository;
-import com.umc.footprint.src.repository.HashtagRepository;
-import com.umc.footprint.src.repository.UserCourseRepository;
+import com.umc.footprint.src.model.*;
+import com.umc.footprint.src.repository.*;
 import com.umc.footprint.src.walks.WalkService;
 import com.umc.footprint.src.course.model.GetCourseInfoRes;
 import com.umc.footprint.src.course.model.GetCourseListReq;
@@ -31,6 +25,7 @@ public class CourseService {
     private final CourseRepository courseRepository;
     private final CourseTagRepository courseTagRepository;
     private final UserCourseRepository userCourseRepository;
+    private final MarkRepository markRepository;
 
     /** API.32 사용자 디바이스 지도 좌표안에 존재하는 모든 코스들을 가져온다. */
     public List<GetCourseListRes> getCourseList(GetCourseListReq getCourseListReq, int userIdx){
@@ -63,14 +58,23 @@ public class CourseService {
                     }
                 }
 
+                // 2-2. 코스 경험 횟수 계산
+                List<UserCourse> userCourseList = userCourseRepository.findByCourseIdx(course.getCourseIdx());
 
+                int courseCountSum = 0;
+                for(UserCourse userCourse: userCourseList) {
+                    courseCountSum += userCourse.getCourseCount();
+                }
 
-                // 2-2. 유저가 해당 코스를 like 했는지 확인
-                System.out.println("Check Point 3");
-                List<UserCourse> userCourseList = userCourseRepository.findByUserIdx(userIdx);
-                boolean userCourseLike = false;
-                if(userCourseList.contains(course.getCourseIdx()))
-                    userCourseLike = true;
+                // 2-2. 유저가 해당 코스를 mark 했는지 확인
+                Optional<Mark> userMark = markRepository.findByCourseIdxAndUserIdx(course.getCourseIdx(), userIdx);
+
+                boolean userCourseMark;
+                if(userMark.isEmpty()){
+                    userCourseMark = false;
+                } else{
+                    userCourseMark = true;
+                }
 
                 // 2-3. 해당 코스에 사진이 들어있는지 확인
                 // 사진이 없다면 기본 이미지 URL 입력
@@ -79,7 +83,7 @@ public class CourseService {
                     courseImgUrl = "https://mystepsbucket.s3.ap-northeast-2.amazonaws.com/BaseImage/%E1%84%8F%E1%85%A9%E1%84%89%E1%85%B3%E1%84%80%E1%85%B5%E1%84%87%E1%85%A9%E1%86%AB%E1%84%8B%E1%85%B5%E1%84%86%E1%85%B5%E1%84%8C%E1%85%B5.png"; //* 기본 이미지 URL
                 }
 
-                // 2-3. courseListResList에 해당 추천 코스 정보 add
+                // 2-4. courseListResList에 해당 추천 코스 정보 add
                 courseListResList.add(GetCourseListRes.builder()
                         .courseIdx(course.getCourseIdx())
                         .startLat(courseLat)
@@ -87,11 +91,11 @@ public class CourseService {
                         .courseName(course.getCourseName())
                         .courseDist(course.getLength())
                         .courseTime(course.getCourseTime())
-                        .courseMark(course.getMarkNum())
+                        .courseCount(course.getMarkNum())
                         .courseLike(course.getLikeNum())
                         .courseImg(courseImgUrl)
                         .courseTags(courseTags)
-                        .userCourseLike(userCourseLike)
+                        .userCourseMark(userCourseMark)
                         .build());
             }
         }
