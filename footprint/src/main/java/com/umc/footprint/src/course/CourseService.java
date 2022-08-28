@@ -95,7 +95,6 @@ public class CourseService {
                     userCourseMark = true;
                 }
 
-                System.out.println("check 1");
                 // 2-3. 해당 코스에 사진이 들어있는지 확인
                 // 사진이 없다면 기본 이미지 URL 입력
                 String courseImgUrl;
@@ -105,7 +104,6 @@ public class CourseService {
                     courseImgUrl = course.getCourseImg();
                 }
 
-                System.out.println("check 2");
                 // 2-4. courseListResList에 해당 추천 코스 정보 add
                 courseListResList.add(GetCourseListRes.builder()
                         .courseIdx(course.getCourseIdx())
