@@ -80,9 +80,11 @@ public enum BaseResponseStatus {
 
     INVALID_BADGEIDX(false,2270, "존재하지 않는 뱃지입니다."),
     NOT_EXIST_USER_BADGE(false, 2271, "해당 사용자가 획득하지 못한 뱃지입니다."),
-    NO_BADGE_USER(false, 2272, "사용자가 획득한 뱃지가 없습니다"),
+    NO_BADGE_USER(false, 2272, "사용자가 획득한 뱃지가 없습니다."),
 
     INVALID_NOTICE_IDX(false,2320,"잘못된 인덱스입니다."),
+
+    NOT_EXIST_MARK_COURSE(false, 2410, "찜한 코스가 존재하지 않습니다."),
 
     /**
      * 3000 : Response 오류
