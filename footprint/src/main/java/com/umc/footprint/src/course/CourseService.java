@@ -2,8 +2,10 @@ package com.umc.footprint.src.course;
 
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.EncryptProperties;
+import com.umc.footprint.src.course.model.GetCourseList;
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
+import com.umc.footprint.src.users.UserService;
 import com.umc.footprint.src.walks.WalkService;
 import com.umc.footprint.src.course.model.GetCourseInfoRes;
 import com.umc.footprint.src.course.model.GetCourseListReq;
@@ -15,16 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.WKTReader;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static com.umc.footprint.config.BaseResponseStatus.*;
@@ -43,8 +40,12 @@ public class CourseService {
     private final WalkRepository walkRepository;
     private final TagRepository tagRepository;
     private final PhotoRepository photoRepository;
-    private final UserRepository userRepository;
     private final EncryptProperties encryptProperties;
+    private final UserService userService;
+
+    @Value("${image.course}")
+    private String defaultCourseImage;
+
 
     /** API.32 사용자 디바이스 지도 좌표안에 존재하는 모든 코스들을 가져온다. */
     public List<GetCourseListRes> getCourseList(GetCourseListReq getCourseListReq, int userIdx){
@@ -99,7 +100,7 @@ public class CourseService {
                 // 사진이 없다면 기본 이미지 URL 입력
                 String courseImgUrl;
                 if(course.getCourseImg() == null){
-                    courseImgUrl = "https://mystepsbucket.s3.ap-northeast-2.amazonaws.com/BaseImage/%E1%84%8F%E1%85%A9%E1%84%89%E1%85%B3%E1%84%80%E1%85%B5%E1%84%87%E1%85%A9%E1%86%AB%E1%84%8B%E1%85%B5%E1%84%86%E1%85%B5%E1%84%8C%E1%85%B5.png"; //* 기본 이미지 URL
+                    courseImgUrl = defaultCourseImage; //* 기본 이미지 URL
                 } else {
                     courseImgUrl = course.getCourseImg();
                 }
@@ -127,6 +128,56 @@ public class CourseService {
         return courseListResList;
     }
 
+    public GetCourseList getMarkCourses(String userId) throws BaseException {
+        Integer userIdx = userService.getUserIdxByUserId(userId);
+        List<Integer> courseIdxes = markRepository.getCourseIdxByUserIdxAndMark(userIdx, Boolean.TRUE);
+
+        if(courseIdxes.size()==0) {
+            throw new BaseException(NOT_EXIST_MARK_COURSE);
+        }
+
+        List<Course> courses = courseRepository.getAllByCourseIdx(courseIdxes);
+
+        List<GetCourseListRes> getCourses = new ArrayList<>();
+        for(Course course : courses) {
+            List<CourseTag> courseTagMappingList = courseTagRepository.findAllByCourse(course);
+
+            List<String> courseTags = new ArrayList<>();
+            for(CourseTag courseTag: courseTagMappingList){
+                for (Hashtag hashtag : courseTag.getHashtagList()) {
+                    courseTags.add(hashtagRepository.findByHashtagIdx(hashtag.getHashtagIdx()).get().getHashtag());
+                }
+            }
+
+            List<UserCourse> userCourseList = userCourseRepository.findByCourseIdx(course.getCourseIdx());
+
+            int courseCountSum = 0;
+            for(UserCourse userCourse: userCourseList) {
+                courseCountSum += userCourse.getCourseCount();
+            }
+
+            String courseImgUrl = defaultCourseImage;
+            if(course.getCourseImg() != null){
+                courseImgUrl = course.getCourseImg();
+            }
+
+            getCourses.add(GetCourseListRes.builder()
+                    .courseIdx(course.getCourseIdx())
+                    .startLat(course.getStartCoordinate().getX())
+                    .startLong(course.getStartCoordinate().getY())
+                    .courseName(course.getCourseName())
+                    .courseDist(course.getLength())
+                    .courseTime(course.getCourseTime())
+                    .courseCount(courseCountSum)
+                    .courseLike(course.getLikeNum())
+                    .courseImg(courseImgUrl)
+                    .courseTags(courseTags)
+                    .userCourseMark(Boolean.TRUE)
+                    .build());
+        }
+        return new GetCourseList(getCourses);
+    }
+
     /** API.34 원하는 코스의 경로 좌표와 상세 설명을 가져온다. */
     public GetCourseInfoRes getCourseInfo(int courseIdx) throws BaseException {
 
@@ -143,7 +194,7 @@ public class CourseService {
 
     public String modifyMark(int courseIdx, String userId) throws BaseException {
         // userIdx 추출
-        Integer userIdx = getUserIdx(userId);
+        Integer userIdx = userService.getUserIdxByUserId(userId);
 
         // 저장된 코스 불러오기
         Course savedCourse = courseRepository.findById(courseIdx).get();
@@ -320,7 +371,7 @@ public class CourseService {
     }
 
     public String modifyCourseLike(Integer courseIdx, String userId, Integer evaluate) throws BaseException {
-        Integer userIdx = getUserIdx(userId);
+        Integer userIdx = userService.getUserIdxByUserId(userId);
 
         Optional<Course> OptionalCourse = courseRepository.findById(courseIdx);
 
@@ -374,7 +425,7 @@ public class CourseService {
     }
 
     public String modifyCourseDetails(PatchCourseDetailsReq patchCourseDetailsReq, String userId) throws BaseException {
-        Integer userIdx = getUserIdx(userId);
+        Integer userIdx = userService.getUserIdxByUserId(userId);
 
         Course savedCourse = courseRepository.findById(patchCourseDetailsReq.getCourseIdx()).get();
 
@@ -452,20 +503,10 @@ public class CourseService {
         return "코스가 수정되었습니다.";
     }
 
-    public Integer getUserIdx(String userId) throws BaseException {
-        Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
-
-        if (userIdx == null) {
-            throw new BaseException(NOT_EXIST_USER);
-        }
-
-        return userIdx;
-    }
-
     public GetWalkDetailsRes getWalkDetails(Integer walkNumber, String userId) throws BaseException {
 //        Course savedCourse = courseRepository.findByCourseNameAndStatus(courseName, "ACTIVE");
 
-        Integer userIdx = getUserIdx(userId);
+        Integer userIdx = userService.getUserIdxByUserId(userId);
 
         Walk savedWalk = walkService.getWalkByNumber(walkNumber, userIdx);
 

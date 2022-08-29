@@ -3,9 +3,16 @@ package com.umc.footprint.src.course.model;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
+
+@Slf4j
 @Getter
+@Component
 @NoArgsConstructor
 public class GetCourseListRes implements Comparable<GetCourseListRes>{
     private int courseIdx;
