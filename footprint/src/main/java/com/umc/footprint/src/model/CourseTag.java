@@ -1,11 +1,13 @@
 package com.umc.footprint.src.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -18,25 +20,28 @@ public class CourseTag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer courseTagIdx;
 
-    @OneToOne(targetEntity = Course.class, fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "courseIdx")
     private Course course;
 
-    @OneToMany(targetEntity = Hashtag.class, fetch = FetchType.LAZY, mappedBy = "hashtag")
-    private List<Hashtag> hashtagList;
+    @OneToOne
+    @JoinColumn(name = "hashtagIdx")
+    private Hashtag hashtag;
 
     @Column(name = "status")
     private String status;
 
     @Builder
-    public CourseTag(Integer courseTagIdx, Course course, List<Hashtag> hashtagList, String status) {
+    public CourseTag(Integer courseTagIdx, String status) {
         this.courseTagIdx = courseTagIdx;
-        this.course = course;
-        this.hashtagList = hashtagList;
         this.status = status;
     }
 
-    public void addHashtag(Hashtag hashtag) {
-        this.hashtagList.add(hashtag);
+    public void setCourse(Course course) {
+        this.course = course;
+    }
+
+    public void setHashtag(Hashtag hashtag) {
+        this.hashtag = hashtag;
     }
 }

@@ -9,6 +9,4 @@ import java.util.Optional;
 
 public interface HashtagRepository extends JpaRepository<Hashtag, Integer> {
 
-    Optional<Hashtag> findByHashtagIdx(int hashtagIdx);
-
 }
