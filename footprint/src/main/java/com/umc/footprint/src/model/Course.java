@@ -52,6 +52,9 @@ public class Course extends BaseEntity {
     @Column(name = "description", columnDefinition = "text")
     private String description;
 
+    @Column(name = "markNum")
+    private Integer markNum;
+
     @Column(name = "likeNum")
     private Integer likeNum;
 
@@ -59,7 +62,7 @@ public class Course extends BaseEntity {
     private String status;
 
     @Builder
-    public Course(Integer courseIdx, String courseName, String courseImg, Point startCoordinate, String coordinate, String address, Double length, Integer courseTime, Integer walkIdx, Integer userIdx, String description, Integer likeNum, String status) {
+    public Course(Integer courseIdx, String courseName, String courseImg, Point startCoordinate, String coordinate, String address, Double length, Integer courseTime, Integer walkIdx, Integer userIdx, String description, Integer markNum, Integer likeNum, String status) {
         this.courseIdx = courseIdx;
         this.courseName = courseName;
         this.courseImg = courseImg;
@@ -72,6 +75,7 @@ public class Course extends BaseEntity {
         this.userIdx = userIdx;
         this.description = description;
         this.likeNum = likeNum;
+        this.markNum = markNum;
         this.status = status;
     }
 

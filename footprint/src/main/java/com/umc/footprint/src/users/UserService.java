@@ -1597,4 +1597,7 @@ public class UserService {
         }
     }
 
+    public Integer getUserIdxByUserId(String userId) throws BaseException {
+        return userRepository.getUserIdxByUserId(userId).orElseThrow(() -> new BaseException(NOT_EXIST_USER));
+    }
 }

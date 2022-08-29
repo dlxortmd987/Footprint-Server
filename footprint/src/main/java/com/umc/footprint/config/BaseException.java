@@ -2,11 +2,11 @@ package com.umc.footprint.config;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 @Getter
-@Setter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class BaseException extends Throwable {
-    private BaseResponseStatus status;
+    private final BaseResponseStatus status;
 }
