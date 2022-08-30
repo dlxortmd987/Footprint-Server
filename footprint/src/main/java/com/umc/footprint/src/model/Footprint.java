@@ -41,14 +41,12 @@ public class Footprint extends BaseEntity {
     private Walk walk;
 
     @Builder
-    public Footprint(Integer footprintIdx, String coordinate, String record, String status, Integer onWalk, List<Tag> tagList, Walk walk) {
+    public Footprint(Integer footprintIdx, String coordinate, String record, String status, Integer onWalk) {
         this.footprintIdx = footprintIdx;
         this.coordinate = coordinate;
         this.record = record;
         this.status = status;
         this.onWalk = onWalk;
-        this.tagList = tagList;
-        this.walk = walk;
     }
 
     @PrePersist

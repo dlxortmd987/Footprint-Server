@@ -1,5 +1,6 @@
 package com.umc.footprint.src.model;
 
+import com.umc.footprint.src.walks.model.PatchCourseDetailsReq;
 import com.umc.footprint.utils.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -51,9 +52,6 @@ public class Course extends BaseEntity {
     @Column(name = "description", columnDefinition = "text")
     private String description;
 
-    @Column(name = "markNum")
-    private Integer markNum;
-
     @Column(name = "likeNum")
     private Integer likeNum;
 
@@ -61,7 +59,7 @@ public class Course extends BaseEntity {
     private String status;
 
     @Builder
-    public Course(Integer courseIdx, String courseName, String courseImg, Point startCoordinate, String coordinate, String address, Double length, Integer courseTime, Integer walkIdx, Integer userIdx, String description, Integer markNum, Integer likeNum, String status) {
+    public Course(Integer courseIdx, String courseName, String courseImg, Point startCoordinate, String coordinate, String address, Double length, Integer courseTime, Integer walkIdx, Integer userIdx, String description, Integer likeNum, String status) {
         this.courseIdx = courseIdx;
         this.courseName = courseName;
         this.courseImg = courseImg;
@@ -74,7 +72,6 @@ public class Course extends BaseEntity {
         this.userIdx = userIdx;
         this.description = description;
         this.likeNum = likeNum;
-        this.markNum = markNum;
         this.status = status;
     }
 
@@ -83,5 +80,22 @@ public class Course extends BaseEntity {
      */
     public void addLikeNum() {
         this.likeNum += 1;
+    }
+
+    /**
+     * 코스 수정
+     * @param patchCourseDetailsReq
+     * @param startCoordinate
+     * @param encryptedCoordinates
+     */
+    public void updateCourse(PatchCourseDetailsReq patchCourseDetailsReq, Point startCoordinate, String encryptedCoordinates) {
+        this.courseName = patchCourseDetailsReq.getCourseName();
+        this.courseImg = patchCourseDetailsReq.getCourseImg();
+        this.startCoordinate = startCoordinate;
+        this.coordinate = encryptedCoordinates;
+        this.address = patchCourseDetailsReq.getAddress();
+        this.length = patchCourseDetailsReq.getLength();
+        this.courseTime = patchCourseDetailsReq.getCourseTime();
+        this.description = patchCourseDetailsReq.getDescription();
     }
 }

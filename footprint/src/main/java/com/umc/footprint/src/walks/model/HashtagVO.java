@@ -2,12 +2,17 @@ package com.umc.footprint.src.walks.model;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @Getter
-@Builder
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class HashtagVO {
-    private final Integer hashtagIdx;
-    private final String hashtag;
+    private Integer hashtagIdx;
+    private String hashtag;
+
+    @Builder
+    public HashtagVO(Integer hashtagIdx, String hashtag) {
+        this.hashtagIdx = hashtagIdx;
+        this.hashtag = hashtag;
+    }
 }
