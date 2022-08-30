@@ -68,20 +68,10 @@ public class CourseService {
 
                 // 2-1. 코스 태그 추출
                 // CourseTag 테이블에서 hashtagIdx 추출후 HashTag 테이블에서 인덱스에 해당하는 해시태그들 List화
-                List<CourseTag> courseTagMappingList = courseTagRepository.findAllByCourse(course);
-
-                List<String> courseTags = new ArrayList<>();
-                for(CourseTag courseTag: courseTagMappingList){
-                    courseTags.add(courseTag.getHashtag().getHashtag());
-                }
+                List<String> courseTags = getCourseTags(course);
 
                 // 2-2. 코스 경험 횟수 계산
-                List<UserCourse> userCourseList = userCourseRepository.findByCourseIdx(course.getCourseIdx());
-
-                int courseCountSum = 0;
-                for(UserCourse userCourse: userCourseList) {
-                    courseCountSum += userCourse.getCourseCount();
-                }
+                int courseCountSum = getCourseCount(course.getCourseIdx());
 
                 // 2-2. 유저가 해당 코스를 mark 했는지 확인
                 Optional<Mark> userMark = markRepository.findByCourseIdxAndUserIdx(course.getCourseIdx(), userIdx);
@@ -95,12 +85,7 @@ public class CourseService {
 
                 // 2-3. 해당 코스에 사진이 들어있는지 확인
                 // 사진이 없다면 기본 이미지 URL 입력
-                String courseImgUrl;
-                if(course.getCourseImg() == null){
-                    courseImgUrl = defaultCourseImage; //* 기본 이미지 URL
-                } else {
-                    courseImgUrl = course.getCourseImg();
-                }
+                String courseImgUrl = course.getCourseImg()!=null ? course.getCourseImg() : defaultCourseImage;
 
                 // 2-4. courseListResList에 해당 추천 코스 정보 add
                 courseListResList.add(GetCourseListRes.builder()
@@ -149,8 +134,7 @@ public class CourseService {
     }
 
     public GetCourseList getMyRecommendCourses(String userId) throws BaseException {
-//        Integer userIdx = userService.getUserIdxByUserId(userId);
-        Integer userIdx = 15;
+        Integer userIdx = userService.getUserIdxByUserId(userId);
         List<Course> courses = courseRepository.getAllByUserIdx(userIdx);
 
         List<GetCourseListRes> getCourses = new ArrayList<>();
@@ -167,7 +151,7 @@ public class CourseService {
     }
 
     // 해당 코스의 해시태그 목록 조회
-    public List<String> getCourseTags(Course course) { //TODO : 해시태그 조회 로직 이상함 , courseTag 엔티티에 hashtagIdx가 없음..
+    public List<String> getCourseTags(Course course) {
         List<CourseTag> courseTagMappingList = courseTagRepository.findAllByCourse(course);
         List<String> courseTags = new ArrayList<>();
         for(CourseTag courseTag: courseTagMappingList){
