@@ -1,5 +1,6 @@
 package com.umc.footprint.src.course.model;
 
+import com.umc.footprint.src.model.Course;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,9 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Slf4j
 @Getter
-@Component
 @NoArgsConstructor
 public class GetCourseListRes implements Comparable<GetCourseListRes>{
     private int courseIdx;
@@ -28,7 +27,9 @@ public class GetCourseListRes implements Comparable<GetCourseListRes>{
     private boolean userCourseMark;
 
     @Builder
-    public GetCourseListRes(int courseIdx, double startLat, double startLong, String courseName, Double courseDist, int courseTime, int courseCount, int courseLike, List<String> courseTags, String courseImg, boolean userCourseMark) {
+    public GetCourseListRes(int courseIdx, double startLat, double startLong, String courseName, Double courseDist,
+                            int courseTime, int courseCount, int courseLike, List<String> courseTags, String courseImg,
+                            boolean userCourseMark) {
         this.courseIdx = courseIdx;
         this.startLat = startLat;
         this.startLong = startLong;
@@ -40,6 +41,22 @@ public class GetCourseListRes implements Comparable<GetCourseListRes>{
         this.courseTags = courseTags;
         this.courseImg = courseImg;
         this.userCourseMark = userCourseMark;
+    }
+
+    public static GetCourseListRes of(Course course, int courseCount, String courseImgUrl, List<String> courseTags, boolean isMark) {
+        return GetCourseListRes.builder()
+                .courseIdx(course.getCourseIdx())
+                .startLat(course.getStartCoordinate().getX())
+                .startLong(course.getStartCoordinate().getY())
+                .courseName(course.getCourseName())
+                .courseDist(course.getLength())
+                .courseTime(course.getCourseTime())
+                .courseCount(courseCount)
+                .courseLike(course.getLikeNum())
+                .courseImg(courseImgUrl)
+                .courseTags(courseTags)
+                .userCourseMark(isMark)
+                .build();
     }
 
     @Override

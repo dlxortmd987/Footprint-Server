@@ -68,20 +68,10 @@ public class CourseService {
 
                 // 2-1. 코스 태그 추출
                 // CourseTag 테이블에서 hashtagIdx 추출후 HashTag 테이블에서 인덱스에 해당하는 해시태그들 List화
-                List<CourseTag> courseTagMappingList = courseTagRepository.findAllByCourse(course);
-
-                List<String> courseTags = new ArrayList<>();
-                for(CourseTag courseTag: courseTagMappingList){
-                    courseTags.add(courseTag.getHashtag().getHashtag());
-                }
+                List<String> courseTags = getCourseTags(course);
 
                 // 2-2. 코스 경험 횟수 계산
-                List<UserCourse> userCourseList = userCourseRepository.findByCourseIdx(course.getCourseIdx());
-
-                int courseCountSum = 0;
-                for(UserCourse userCourse: userCourseList) {
-                    courseCountSum += userCourse.getCourseCount();
-                }
+                int courseCountSum = getCourseCount(course.getCourseIdx());
 
                 // 2-2. 유저가 해당 코스를 mark 했는지 확인
                 Optional<Mark> userMark = markRepository.findByCourseIdxAndUserIdx(course.getCourseIdx(), userIdx);
@@ -95,12 +85,7 @@ public class CourseService {
 
                 // 2-3. 해당 코스에 사진이 들어있는지 확인
                 // 사진이 없다면 기본 이미지 URL 입력
-                String courseImgUrl;
-                if(course.getCourseImg() == null){
-                    courseImgUrl = defaultCourseImage; //* 기본 이미지 URL
-                } else {
-                    courseImgUrl = course.getCourseImg();
-                }
+                String courseImgUrl = course.getCourseImg()!=null ? course.getCourseImg() : defaultCourseImage;
 
                 // 2-4. courseListResList에 해당 추천 코스 정보 add
                 courseListResList.add(GetCourseListRes.builder()
@@ -137,40 +122,52 @@ public class CourseService {
 
         List<GetCourseListRes> getCourses = new ArrayList<>();
         for(Course course : courses) {
-            List<CourseTag> courseTagMappingList = courseTagRepository.findAllByCourse(course);
+            List<String> courseTags = getCourseTags(course);
+            int courseCountSum = getCourseCount(course.getCourseIdx());
+            String courseImgUrl = course.getCourseImg()!=null ? course.getCourseImg() : defaultCourseImage;
 
-            List<String> courseTags = new ArrayList<>();
-            for(CourseTag courseTag: courseTagMappingList){
-                courseTags.add(courseTag.getHashtag().getHashtag());
-            }
-
-            List<UserCourse> userCourseList = userCourseRepository.findByCourseIdx(course.getCourseIdx());
-
-            int courseCountSum = 0;
-            for(UserCourse userCourse: userCourseList) {
-                courseCountSum += userCourse.getCourseCount();
-            }
-
-            String courseImgUrl = defaultCourseImage;
-            if(course.getCourseImg() != null){
-                courseImgUrl = course.getCourseImg();
-            }
-
-            getCourses.add(GetCourseListRes.builder()
-                    .courseIdx(course.getCourseIdx())
-                    .startLat(course.getStartCoordinate().getX())
-                    .startLong(course.getStartCoordinate().getY())
-                    .courseName(course.getCourseName())
-                    .courseDist(course.getLength())
-                    .courseTime(course.getCourseTime())
-                    .courseCount(courseCountSum)
-                    .courseLike(course.getLikeNum())
-                    .courseImg(courseImgUrl)
-                    .courseTags(courseTags)
-                    .userCourseMark(Boolean.TRUE)
-                    .build());
+            getCourses.add(
+                    GetCourseListRes.of(course, courseCountSum, courseImgUrl, courseTags, Boolean.TRUE)
+            );
         }
         return new GetCourseList(getCourses);
+    }
+
+    public GetCourseList getMyRecommendCourses(String userId) throws BaseException {
+        Integer userIdx = userService.getUserIdxByUserId(userId);
+        List<Course> courses = courseRepository.getAllByUserIdx(userIdx);
+
+        List<GetCourseListRes> getCourses = new ArrayList<>();
+        for(Course course : courses) {
+            List<String> courseTags = getCourseTags(course);
+            int courseCountSum = getCourseCount(course.getCourseIdx());
+            String courseImgUrl = course.getCourseImg()!=null ? course.getCourseImg() : defaultCourseImage;
+
+            getCourses.add(
+                    GetCourseListRes.of(course, courseCountSum, courseImgUrl, courseTags, Boolean.TRUE)
+            );
+        }
+        return new GetCourseList(getCourses);
+    }
+
+    // 해당 코스의 해시태그 목록 조회
+    public List<String> getCourseTags(Course course) {
+        List<CourseTag> courseTagMappingList = courseTagRepository.findAllByCourse(course);
+        List<String> courseTags = new ArrayList<>();
+        for(CourseTag courseTag: courseTagMappingList){
+            courseTags.add(courseTag.getHashtag().getHashtag());
+        }
+        return courseTags;
+    }
+
+    // 해당 코스 경험 횟수 조회
+    public int getCourseCount(int courseIdx) {
+        List<UserCourse> userCourseList = userCourseRepository.findByCourseIdx(courseIdx);
+        int courseCountSum = 0;
+        for(UserCourse userCourse: userCourseList) {
+            courseCountSum += userCourse.getCourseCount();
+        }
+        return courseCountSum;
     }
 
     /** API.34 원하는 코스의 경로 좌표와 상세 설명을 가져온다. */
@@ -443,7 +440,6 @@ public class CourseService {
         return "좋아요";
     }
 
-    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public String modifyCourseDetails(PatchCourseDetailsReq patchCourseDetailsReq, String userId) throws BaseException {
         Integer userIdx = userService.getUserIdxByUserId(userId);
 

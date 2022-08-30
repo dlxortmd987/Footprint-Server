@@ -220,4 +220,17 @@ public class CourseController {
         }
     }
 
+    @ResponseBody
+    @GetMapping("/list/recommend")
+    @ApiOperation(value = "나의 추천 코스 목록 조회")
+    public BaseResponse<GetCourseList> getMyRecommendCourseList() throws BaseException {
+        String userId = jwtService.getUserId();
+        try {
+            GetCourseList getCourseList = courseService.getMyRecommendCourses(userId);
+            return new BaseResponse<>(getCourseList);
+        } catch (BaseException exception) {
+            return new BaseResponse<>(exception.getStatus());
+        }
+    }
+
 }
