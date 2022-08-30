@@ -32,7 +32,6 @@ import static com.umc.footprint.config.BaseResponseStatus.*;
 public class CourseService {
 
     private final WalkService walkService;
-    private final HashtagRepository hashtagRepository;
     private final CourseRepository courseRepository;
     private final CourseTagRepository courseTagRepository;
     private final UserCourseRepository userCourseRepository;
@@ -142,9 +141,7 @@ public class CourseService {
 
             List<String> courseTags = new ArrayList<>();
             for(CourseTag courseTag: courseTagMappingList){
-                for (Hashtag hashtag : courseTag.getHashtagList()) {
-                    courseTags.add(hashtagRepository.findByHashtagIdx(hashtag.getHashtagIdx()).get().getHashtag());
-                }
+                courseTags.add(courseTag.getHashtag().getHashtag());
             }
 
             List<UserCourse> userCourseList = userCourseRepository.findByCourseIdx(course.getCourseIdx());
@@ -290,8 +287,7 @@ public class CourseService {
 
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public String postCourseDetails(PostCourseDetailsReq postCourseDetailsReq, String userId) throws BaseException {
-
-        Integer userIdx = getUserIdx(userId);
+        Integer userIdx = userService.getUserIdxByUserId(userId);
 
         String encryptedCoordinates;
         String encryptedCourseImg;
@@ -316,6 +312,10 @@ public class CourseService {
         if (courseRepository.existsByCourseNameAndStatus(postCourseDetailsReq.getCourseName(), "ACTIVE")) {
             log.info("코스 이름 중복");
             throw new BaseException(DUPLICATED_COURSE_NAME);
+        }
+
+        if (postCourseDetailsReq.getCourseImg() == null) {
+            postCourseDetailsReq.setCourseImg(defaultCourseImage);
         }
 
         // Course Entity 에 저장
@@ -469,6 +469,10 @@ public class CourseService {
                 log.info("코스 이름 중복");
                 throw new BaseException(DUPLICATED_COURSE_NAME);
             }
+        }
+
+        if (patchCourseDetailsReq.getCourseImg() == null) {
+            patchCourseDetailsReq.setCourseImg(defaultCourseImage);
         }
 
         // Course Entity 에 저장
