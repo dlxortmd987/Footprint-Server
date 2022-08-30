@@ -110,19 +110,24 @@ public class CourseController {
      * @return 코스 등록 or 코스 등록 실패
      */
     @PostMapping("/recommend")
-    public BaseResponse<String> postCourseDetails(@RequestBody String request) {
+    public BaseResponse<String> postCourseDetails(@RequestBody String request) throws BaseException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
 
         PostCourseDetailsReq postCourseDetailsReq;
+
+        String userId = jwtService.getUserId();
+        log.debug("userId: {}", userId);
+
         try {
             postCourseDetailsReq = objectMapper.readValue(request, PostCourseDetailsReq.class);
         } catch (Exception exception) {
+            exception.printStackTrace();
             return new BaseResponse<>(BaseResponseStatus.MODIFY_OBJECT_FAIL);
         }
 
         try {
-            String result = courseService.postCourseDetails(postCourseDetailsReq);
+            String result = courseService.postCourseDetails(postCourseDetailsReq, userId);
             return new BaseResponse<>(result);
         } catch (BaseException exception) {
             return new BaseResponse<>(exception.getStatus());
@@ -154,7 +159,7 @@ public class CourseController {
     /**
      * API 41
      * 코스 수정
-     * [GET] /courses/recommend?courseName=""
+     * [PATCH] /courses/recommend?courseName=""
      * @param request
      * @return
      */

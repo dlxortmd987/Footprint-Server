@@ -1,5 +1,6 @@
 package com.umc.footprint.src.model;
 
+import com.umc.footprint.src.walks.model.PatchCourseDetailsReq;
 import com.umc.footprint.utils.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -83,5 +84,22 @@ public class Course extends BaseEntity {
      */
     public void addLikeNum() {
         this.likeNum += 1;
+    }
+
+    /**
+     * 코스 수정
+     * @param patchCourseDetailsReq
+     * @param startCoordinate
+     * @param encryptedCoordinates
+     */
+    public void updateCourse(PatchCourseDetailsReq patchCourseDetailsReq, Point startCoordinate, String encryptedCoordinates) {
+        this.courseName = patchCourseDetailsReq.getCourseName();
+        this.courseImg = patchCourseDetailsReq.getCourseImg();
+        this.startCoordinate = startCoordinate;
+        this.coordinate = encryptedCoordinates;
+        this.address = patchCourseDetailsReq.getAddress();
+        this.length = patchCourseDetailsReq.getLength();
+        this.courseTime = patchCourseDetailsReq.getCourseTime();
+        this.description = patchCourseDetailsReq.getDescription();
     }
 }
