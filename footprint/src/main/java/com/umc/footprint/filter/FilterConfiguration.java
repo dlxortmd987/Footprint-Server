@@ -26,8 +26,6 @@ public class FilterConfiguration implements WebMvcConfigurer {
         registrationBean.addUrlPatterns("/weather");
         registrationBean.addUrlPatterns("/notices/key");
         registrationBean.addUrlPatterns("/courses/list");
-        registrationBean.addUrlPatterns("/courses/mark/*");
-        registrationBean.addUrlPatterns("/courses/like/*");
         registrationBean.addUrlPatterns("/courses/recommend/*");
 
         System.out.println("URL =" + registrationBean.getUrlPatterns());
