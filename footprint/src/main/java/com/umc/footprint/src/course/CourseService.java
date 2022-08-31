@@ -556,7 +556,7 @@ public class CourseService {
 
         // 좌표 변환
         try {
-            coordinates = walkService.convertStringTo2DList(new AES128(encryptProperties.getKey()).decrypt(savedWalk.getCoordinate()));
+            coordinates = walkService.convertStringTo2DList(savedWalk.getCoordinate());
         } catch (Exception exception) {
             throw new BaseException(INVALID_ENCRYPT_STRING);
         }
