@@ -1,4 +1,4 @@
-package com.umc.footprint.src.users.model;
+package com.umc.footprint.src.badge.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

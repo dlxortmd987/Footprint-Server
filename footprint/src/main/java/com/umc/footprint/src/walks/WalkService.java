@@ -2,6 +2,10 @@ package com.umc.footprint.src.walks;
 
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.EncryptProperties;
+import com.umc.footprint.src.badge.model.Badge;
+import com.umc.footprint.src.badge.model.BadgeRepository;
+import com.umc.footprint.src.badge.model.UserBadge;
+import com.umc.footprint.src.badge.model.UserBadgeRepository;
 import com.umc.footprint.src.badge.model.vo.BadgeInfo;
 import com.umc.footprint.src.badge.model.vo.ObtainedBadgeInterface;
 import com.umc.footprint.src.common.model.entity.Hashtag;

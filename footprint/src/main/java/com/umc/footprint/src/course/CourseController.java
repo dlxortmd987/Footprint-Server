@@ -14,6 +14,7 @@ import com.umc.footprint.src.course.model.dto.GetCourseDetailsRes;
 import com.umc.footprint.src.course.model.dto.GetWalkDetailsRes;
 import com.umc.footprint.src.course.model.dto.PatchCourseDetailsReq;
 import com.umc.footprint.src.course.model.dto.PostCourseDetailsReq;
+import com.umc.footprint.src.users.UserService;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/courses")
 public class CourseController {
 
-    private final UserProvider userProvider;
+    private final UserService userService;
     private final CourseService courseService;
     private final JwtService jwtService;
 
@@ -38,7 +39,7 @@ public class CourseController {
         String userId = jwtService.getUserId();
         log.debug("유저 id: {}", userId);
         // userId로 userIdx 추출
-        int userIdx = userProvider.getUserIdx(userId);
+        int userIdx = userService.getUserIdxByUserId(userId);
 
         GetCourseListReq getWalkListReq = new ObjectMapper().readValue(request, GetCourseListReq.class);
 
