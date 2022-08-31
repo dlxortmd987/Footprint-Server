@@ -1,9 +1,8 @@
 package com.umc.footprint.src.users.model.vo;
 
-import com.umc.footprint.src.walks.model.GetMonthTotalInterface;
+import com.umc.footprint.src.goal.model.vo.GetMonthTotalInterface;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 @AllArgsConstructor

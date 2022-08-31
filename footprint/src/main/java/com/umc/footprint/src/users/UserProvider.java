@@ -7,7 +7,6 @@ import com.umc.footprint.src.users.model.dto.GetUserDateRes;
 import com.umc.footprint.src.users.model.dto.GetUserInfoRes;
 import com.umc.footprint.src.users.model.vo.UserInfoAchieve;
 import com.umc.footprint.src.users.model.vo.UserInfoStat;
-import com.umc.footprint.src.walks.WalkDao;
 
 import com.umc.footprint.src.users.model.dto.GetUserTodayRes;
 import com.umc.footprint.utils.JwtService;
@@ -25,14 +24,12 @@ import static com.umc.footprint.config.BaseResponseStatus.*;
 @Service
 public class UserProvider {
 
-    private final WalkDao walkDao;
     private final UserDao userDao;
     private final EncryptProperties encryptProperties;
     private final JwtService jwtService;
 
     @Autowired
-    public UserProvider(WalkDao walkDao, UserDao userDao, EncryptProperties encryptProperties, JwtService jwtService) {
-        this.walkDao = walkDao;
+    public UserProvider(UserDao userDao, EncryptProperties encryptProperties, JwtService jwtService) {
         this.userDao = userDao;
         this.encryptProperties = encryptProperties;
         this.jwtService = jwtService;

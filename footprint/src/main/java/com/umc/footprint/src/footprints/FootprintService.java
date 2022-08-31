@@ -6,13 +6,21 @@ import static com.umc.footprint.config.BaseResponseStatus.*;
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.AwsS3Service;
 import com.umc.footprint.src.common.model.entity.Hashtag;
-import com.umc.footprint.src.footprints.model.GetFootprintRes;
-import com.umc.footprint.src.footprints.model.PatchFootprintReq;
+import com.umc.footprint.src.common.model.entity.Photo;
+import com.umc.footprint.src.common.model.entity.Tag;
+import com.umc.footprint.src.common.repository.HashtagRepository;
+import com.umc.footprint.src.common.repository.PhotoRepository;
+import com.umc.footprint.src.common.repository.TagRepository;
+import com.umc.footprint.src.footprints.model.dto.GetFootprintRes;
+import com.umc.footprint.src.footprints.model.dto.PatchFootprintReq;
 
-import com.umc.footprint.src.model.*;
-import com.umc.footprint.src.repository.*;
+import com.umc.footprint.src.footprints.model.entity.Footprint;
+import com.umc.footprint.src.footprints.repository.FootprintRepository;
+import com.umc.footprint.src.users.repository.UserRepository;
 import com.umc.footprint.src.walks.WalkService;
 
+import com.umc.footprint.src.walks.model.entity.Walk;
+import com.umc.footprint.src.walks.repository.WalkRepository;
 import com.umc.footprint.utils.AES128;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

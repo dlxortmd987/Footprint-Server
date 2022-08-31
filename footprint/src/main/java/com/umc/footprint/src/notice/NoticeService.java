@@ -1,9 +1,10 @@
 package com.umc.footprint.src.notice;
 
 import com.umc.footprint.config.BaseException;
-import com.umc.footprint.src.model.Notice;
-import com.umc.footprint.src.notice.model.*;
-import com.umc.footprint.src.repository.NoticeRepository;
+import com.umc.footprint.src.notice.model.entity.Notice;
+import com.umc.footprint.src.notice.model.dto.*;
+import com.umc.footprint.src.notice.model.vo.NoticeList;
+import com.umc.footprint.src.notice.repository.NoticeRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

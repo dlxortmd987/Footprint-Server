@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.config.BaseResponseStatus;
+import com.umc.footprint.src.footprints.model.dto.GetFootprintCount;
 import com.umc.footprint.src.goal.GoalService;
 import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
 import com.umc.footprint.src.goal.model.dto.PatchUserGoalReq;
