@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.config.BaseResponseStatus;
+import com.umc.footprint.src.badge.BadgeService;
 import com.umc.footprint.src.badge.model.BadgeInfo;
 import com.umc.footprint.src.goal.GoalService;
 import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
@@ -35,6 +36,7 @@ public class UserController {
     private final UserService userService;
     private final GoalService goalService;
     private final JwtService jwtService;
+    private final BadgeService badgeService;
 
     /**
      * 유저 로그인 API
@@ -358,7 +360,7 @@ public class UserController {
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
 
-            BadgeInfo badgeInfo = userService.getMonthlyBadgeStatus(userId);
+            BadgeInfo badgeInfo = badgeService.getMonthlyBadgeStatus(userId);
             return new BaseResponse<>(badgeInfo);
         }
         catch (BaseException exception) {
@@ -378,7 +380,7 @@ public class UserController {
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
 
-            GetUserBadges getUserBadges = userService.getUserBadges(userId);
+            GetUserBadges getUserBadges = badgeService.getUserBadges(userId);
             return new BaseResponse<>(getUserBadges);
         }
         catch (BaseException exception) {
@@ -398,7 +400,7 @@ public class UserController {
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
 
-            BadgeInfo patchRepBadgeInfo = userService.modifyRepBadge(userId, badgeIdx);
+            BadgeInfo patchRepBadgeInfo = badgeService.modifyRepBadge(userId, badgeIdx);
             return new BaseResponse<>(patchRepBadgeInfo);
         }
         catch (BaseException exception) {
@@ -547,7 +549,7 @@ public class UserController {
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
 
-            userService.deleteUserJPA(userId);
+            userService.deleteUser(userId);
 
             return new BaseResponse<>("탈퇴 성공:(");
         }
