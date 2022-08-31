@@ -1,6 +1,7 @@
-package com.umc.footprint.src.model;
+package com.umc.footprint.src.common.model.entity;
 
 import com.umc.footprint.src.common.model.entity.Hashtag;
+import com.umc.footprint.src.model.Footprint;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

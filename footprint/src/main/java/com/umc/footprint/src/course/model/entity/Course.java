@@ -1,4 +1,4 @@
-package com.umc.footprint.src.model;
+package com.umc.footprint.src.course.model.entity;
 
 import com.umc.footprint.src.walks.model.PatchCourseDetailsReq;
 import com.umc.footprint.utils.BaseEntity;

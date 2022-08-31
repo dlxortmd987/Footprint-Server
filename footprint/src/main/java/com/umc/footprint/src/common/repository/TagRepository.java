@@ -1,7 +1,7 @@
-package com.umc.footprint.src.repository;
+package com.umc.footprint.src.common.repository;
 
 import com.umc.footprint.src.model.Footprint;
-import com.umc.footprint.src.model.Tag;
+import com.umc.footprint.src.common.model.entity.Tag;
 import com.umc.footprint.src.users.model.WalkHashtag;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

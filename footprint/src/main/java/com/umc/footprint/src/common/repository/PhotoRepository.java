@@ -1,7 +1,7 @@
-package com.umc.footprint.src.repository;
+package com.umc.footprint.src.common.repository;
 
 import com.umc.footprint.src.model.Footprint;
-import com.umc.footprint.src.model.Photo;
+import com.umc.footprint.src.common.model.entity.Photo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

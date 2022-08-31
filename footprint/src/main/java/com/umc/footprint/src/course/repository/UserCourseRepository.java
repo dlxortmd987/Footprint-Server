@@ -1,6 +1,6 @@
-package com.umc.footprint.src.repository;
+package com.umc.footprint.src.course.repository;
 
-import com.umc.footprint.src.model.UserCourse;
+import com.umc.footprint.src.course.model.entity.UserCourse;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

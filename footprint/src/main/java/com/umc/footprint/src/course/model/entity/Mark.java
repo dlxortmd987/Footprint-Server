@@ -1,4 +1,4 @@
-package com.umc.footprint.src.model;
+package com.umc.footprint.src.course.model.entity;
 
 import lombok.AccessLevel;
 import lombok.Builder;

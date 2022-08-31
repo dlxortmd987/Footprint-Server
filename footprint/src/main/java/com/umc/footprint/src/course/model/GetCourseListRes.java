@@ -1,13 +1,9 @@
 package com.umc.footprint.src.course.model;
 
-import com.umc.footprint.src.model.Course;
+import com.umc.footprint.src.course.model.entity.Course;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
