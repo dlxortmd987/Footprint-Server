@@ -193,7 +193,7 @@ public class CourseController {
      * @return GetWalkDetailsRes 산책 정보
      */
     @GetMapping("/path/{walkNumber}")
-    public BaseResponse<GetWalkDetailsRes> getWalkDetails(@RequestParam(name = "walkNumber") Integer walkNumber) throws BaseException {
+    public BaseResponse<GetWalkDetailsRes> getWalkDetails(@PathVariable(name = "walkNumber") Integer walkNumber) throws BaseException {
         String userId = jwtService.getUserId();
         log.debug("userId: {}", userId);
 
