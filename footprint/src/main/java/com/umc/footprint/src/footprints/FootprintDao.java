@@ -1,18 +1,15 @@
 package com.umc.footprint.src.footprints;
 
-import com.umc.footprint.config.BaseException;
-import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.config.EncryptProperties;
-import com.umc.footprint.src.footprints.model.*;
 
-import com.umc.footprint.utils.AES128;
+import com.umc.footprint.src.footprints.model.dto.GetFootprintRes;
+import com.umc.footprint.src.footprints.model.dto.PatchFootprintReq;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository

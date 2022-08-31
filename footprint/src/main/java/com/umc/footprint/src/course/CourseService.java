@@ -2,15 +2,27 @@ package com.umc.footprint.src.course;
 
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.EncryptProperties;
-import com.umc.footprint.src.course.model.GetCourseList;
-import com.umc.footprint.src.model.*;
-import com.umc.footprint.src.repository.*;
+import com.umc.footprint.src.common.model.entity.Hashtag;
+import com.umc.footprint.src.common.model.entity.Photo;
+import com.umc.footprint.src.common.model.entity.Tag;
+import com.umc.footprint.src.common.repository.PhotoRepository;
+import com.umc.footprint.src.common.repository.TagRepository;
+import com.umc.footprint.src.course.model.dto.*;
+import com.umc.footprint.src.course.model.entity.Course;
+import com.umc.footprint.src.course.model.entity.CourseTag;
+import com.umc.footprint.src.course.model.entity.Mark;
+import com.umc.footprint.src.course.model.entity.UserCourse;
+import com.umc.footprint.src.common.model.vo.HashtagInfo;
+import com.umc.footprint.src.course.repository.CourseRepository;
+import com.umc.footprint.src.course.repository.CourseTagRepository;
+import com.umc.footprint.src.course.repository.MarkRepository;
+import com.umc.footprint.src.course.repository.UserCourseRepository;
+import com.umc.footprint.src.footprints.model.entity.Footprint;
 import com.umc.footprint.src.users.UserService;
 import com.umc.footprint.src.walks.WalkService;
-import com.umc.footprint.src.course.model.GetCourseInfoRes;
-import com.umc.footprint.src.course.model.GetCourseListReq;
-import com.umc.footprint.src.course.model.GetCourseListRes;
-import com.umc.footprint.src.walks.model.*;
+import com.umc.footprint.src.course.model.vo.CourseInfo;
+import com.umc.footprint.src.walks.model.entity.Walk;
+import com.umc.footprint.src.walks.repository.WalkRepository;
 import com.umc.footprint.utils.AES128;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,10 +59,10 @@ public class CourseService {
 
 
     /** API.32 사용자 디바이스 지도 좌표안에 존재하는 모든 코스들을 가져온다. */
-    public List<GetCourseListRes> getCourseList(GetCourseListReq getCourseListReq, int userIdx){
+    public GetCourseListRes getCourseList(GetCourseListReq getCourseListReq, int userIdx){
 
         // response로 보낼 코스 정보를 저장할 List
-        List<GetCourseListRes> courseListResList = new ArrayList<>();
+        List<CourseInfo> courseListResList = new ArrayList<>();
 
         // 1. DB에 존재하는 모든 코스 정보중에서 디바이스 지도 좌표안에 존재하는 코스 추출
         List<Course> allCourseInDB = courseRepository.findAllByStatus("ACTIVE");
@@ -88,7 +100,7 @@ public class CourseService {
                 String courseImgUrl = course.getCourseImg()!=null ? course.getCourseImg() : defaultCourseImage;
 
                 // 2-4. courseListResList에 해당 추천 코스 정보 add
-                courseListResList.add(GetCourseListRes.builder()
+                courseListResList.add(CourseInfo.builder()
                         .courseIdx(course.getCourseIdx())
                         .startLat(courseLat)
                         .startLong(courseLong)
@@ -107,10 +119,12 @@ public class CourseService {
         // 2. courseListResList DTO List를 courseDist로 정렬
         Collections.sort(courseListResList);
 
-        return courseListResList;
+        return GetCourseListRes.builder()
+                .getCourseLists(courseListResList)
+                .build();
     }
 
-    public GetCourseList getMarkCourses(String userId) throws BaseException {
+    public GetCourseListRes getMarkCourses(String userId) throws BaseException {
         Integer userIdx = userService.getUserIdxByUserId(userId);
         List<Integer> courseIdxes = markRepository.getCourseIdxByUserIdxAndMark(userIdx, Boolean.TRUE);
 
@@ -120,34 +134,34 @@ public class CourseService {
 
         List<Course> courses = courseRepository.getAllByCourseIdx(courseIdxes);
 
-        List<GetCourseListRes> getCourses = new ArrayList<>();
+        List<CourseInfo> getCourses = new ArrayList<>();
         for(Course course : courses) {
             List<String> courseTags = getCourseTags(course);
             int courseCountSum = getCourseCount(course.getCourseIdx());
             String courseImgUrl = course.getCourseImg()!=null ? course.getCourseImg() : defaultCourseImage;
 
             getCourses.add(
-                    GetCourseListRes.of(course, courseCountSum, courseImgUrl, courseTags, Boolean.TRUE)
+                    CourseInfo.of(course, courseCountSum, courseImgUrl, courseTags, Boolean.TRUE)
             );
         }
-        return new GetCourseList(getCourses);
+        return new GetCourseListRes(getCourses);
     }
 
-    public GetCourseList getMyRecommendCourses(String userId) throws BaseException {
+    public GetCourseListRes getMyRecommendCourses(String userId) throws BaseException {
         Integer userIdx = userService.getUserIdxByUserId(userId);
         List<Course> courses = courseRepository.getAllByUserIdx(userIdx);
 
-        List<GetCourseListRes> getCourses = new ArrayList<>();
+        List<CourseInfo> getCourses = new ArrayList<>();
         for(Course course : courses) {
             List<String> courseTags = getCourseTags(course);
             int courseCountSum = getCourseCount(course.getCourseIdx());
             String courseImgUrl = course.getCourseImg()!=null ? course.getCourseImg() : defaultCourseImage;
 
             getCourses.add(
-                    GetCourseListRes.of(course, courseCountSum, courseImgUrl, courseTags, Boolean.TRUE)
+                    CourseInfo.of(course, courseCountSum, courseImgUrl, courseTags, Boolean.TRUE)
             );
         }
-        return new GetCourseList(getCourses);
+        return new GetCourseListRes(getCourses);
     }
 
     // 해당 코스의 해시태그 목록 조회
@@ -248,13 +262,13 @@ public class CourseService {
             throw new BaseException(INVALID_ENCRYPT_STRING);
         }
 
-        ArrayList<HashtagVO> hashtags = new ArrayList<>();
+        ArrayList<HashtagInfo> hashtags = new ArrayList<>();
         ArrayList<String> photos = new ArrayList<>();
         for (Footprint footprint : savedWalk.getFootprintList()) {
             // 해시태그 불러오기
             List<Tag> savedTags = tagRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
             for (Tag savedTag : savedTags) {
-                hashtags.add(HashtagVO.builder()
+                hashtags.add(HashtagInfo.builder()
                         .hashtagIdx(savedTag.getHashtag().getHashtagIdx())
                         .hashtag(savedTag.getHashtag().getHashtag())
                         .build());
@@ -339,7 +353,7 @@ public class CourseService {
         // CourseTag Entity 에 저장
 
         List<CourseTag> courseTags = new ArrayList<>();
-        for (HashtagVO hashtagVO : postCourseDetailsReq.getHashtags()) {
+        for (HashtagInfo hashtagInfo : postCourseDetailsReq.getHashtags()) {
             CourseTag courseTag = CourseTag.builder()
                     .status("ACTIVE")
                     .build();
@@ -347,8 +361,8 @@ public class CourseService {
             courseTag.setCourse(savedCourse);
 
             courseTag.setHashtag(Hashtag.builder()
-                            .hashtagIdx(hashtagVO.getHashtagIdx())
-                            .hashtag(hashtagVO.getHashtag())
+                            .hashtagIdx(hashtagInfo.getHashtagIdx())
+                            .hashtag(hashtagInfo.getHashtag())
                     .build());
 
             courseTags.add(courseTag);
@@ -501,7 +515,7 @@ public class CourseService {
         List<CourseTag> beforeSavedCourseTags = new ArrayList<>();
 
         // 코스, 해시 태그 매핑
-        for (HashtagVO hashtagVO : patchCourseDetailsReq.getHashtags()) {
+        for (HashtagInfo hashtagInfo : patchCourseDetailsReq.getHashtags()) {
             CourseTag beforeSavedCourseTag = CourseTag.builder()
                     .status("ACTIVE")
                     .build();
@@ -510,8 +524,8 @@ public class CourseService {
 
             beforeSavedCourseTag.setHashtag(
                     Hashtag.builder()
-                            .hashtagIdx(hashtagVO.getHashtagIdx())
-                            .hashtag(hashtagVO.getHashtag())
+                            .hashtagIdx(hashtagInfo.getHashtagIdx())
+                            .hashtag(hashtagInfo.getHashtag())
                             .build()
             );
             beforeSavedCourseTags.add(beforeSavedCourseTag);
@@ -547,13 +561,13 @@ public class CourseService {
             throw new BaseException(INVALID_ENCRYPT_STRING);
         }
 
-        ArrayList<HashtagVO> hashtags = new ArrayList<>();
+        ArrayList<HashtagInfo> hashtags = new ArrayList<>();
         ArrayList<String> photos = new ArrayList<>();
         for (Footprint footprint : savedWalk.getFootprintList()) {
             // 해시태그 불러오기
             List<Tag> savedTags = tagRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
             for (Tag savedTag : savedTags) {
-                hashtags.add(HashtagVO.builder()
+                hashtags.add(HashtagInfo.builder()
                         .hashtagIdx(savedTag.getHashtag().getHashtagIdx())
                         .hashtag(savedTag.getHashtag().getHashtag())
                         .build());

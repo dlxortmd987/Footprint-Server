@@ -2,9 +2,36 @@ package com.umc.footprint.src.walks;
 
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.EncryptProperties;
-import com.umc.footprint.src.model.*;
-import com.umc.footprint.src.repository.*;
-import com.umc.footprint.src.walks.model.*;
+import com.umc.footprint.src.badge.model.Badge;
+import com.umc.footprint.src.badge.model.BadgeRepository;
+import com.umc.footprint.src.badge.model.UserBadge;
+import com.umc.footprint.src.badge.model.UserBadgeRepository;
+import com.umc.footprint.src.badge.model.vo.BadgeInfo;
+import com.umc.footprint.src.badge.model.vo.ObtainedBadgeInterface;
+import com.umc.footprint.src.common.model.entity.Hashtag;
+import com.umc.footprint.src.common.model.entity.Photo;
+import com.umc.footprint.src.common.model.entity.Tag;
+import com.umc.footprint.src.common.repository.HashtagRepository;
+import com.umc.footprint.src.common.repository.PhotoRepository;
+import com.umc.footprint.src.common.repository.TagRepository;
+import com.umc.footprint.src.course.repository.CourseRepository;
+import com.umc.footprint.src.course.repository.CourseTagRepository;
+import com.umc.footprint.src.course.repository.MarkRepository;
+import com.umc.footprint.src.course.repository.UserCourseRepository;
+import com.umc.footprint.src.footprints.model.entity.Footprint;
+import com.umc.footprint.src.footprints.model.vo.FootprintInfo;
+import com.umc.footprint.src.footprints.repository.FootprintRepository;
+import com.umc.footprint.src.goal.model.entity.Goal;
+import com.umc.footprint.src.goal.repository.GoalRepository;
+import com.umc.footprint.src.users.model.entity.User;
+import com.umc.footprint.src.users.repository.UserRepository;
+import com.umc.footprint.src.walks.model.dto.GetWalkInfoRes;
+import com.umc.footprint.src.walks.model.dto.PostWalkReq;
+import com.umc.footprint.src.walks.model.dto.PostWalkRes;
+import com.umc.footprint.src.walks.model.entity.Walk;
+import com.umc.footprint.src.walks.repository.WalkRepository;
+import com.umc.footprint.src.walks.model.vo.WalkInfo;
+import com.umc.footprint.src.walks.model.vo.WalkTime;
 import com.umc.footprint.utils.AES128;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -82,7 +109,7 @@ public class WalkService {
             Integer savedWalkIdx = walkRepository.save(beforeSaveWalk).getWalkIdx();
 
             if (!request.getFootprintList().isEmpty()) {
-                for (SaveFootprint footprint : request.getFootprintList()) {
+                for (FootprintInfo footprint : request.getFootprintList()) {
 
                     String strCoordinates = convertListToString(footprint.getCoordinates());
                     Footprint beforeSaveFootprint = Footprint.builder()
@@ -128,7 +155,7 @@ public class WalkService {
 
             // badge 획득 여부 확인 및 id 반환
             log.debug("10. badge 획득 여부 확인 후 얻은 badgeIdxList 반환");
-            List<BadgeVO> badgeVOList = new ArrayList<>();
+            List<BadgeInfo> badgeInfoList = new ArrayList<>();
             List<Integer> acquiredBadgeIdxList = getAcquiredBadgeIdxList(userIdx);
             Collections.sort(acquiredBadgeIdxList);
 
@@ -158,13 +185,13 @@ public class WalkService {
 
             //획득한 뱃지 넣기 (뱃지 아이디로 뱃지 이름이랑 그림 반환)
             log.debug("12. 뱃지 리스트로 이름과 url 반환 후 request 객체에 저장");
-            badgeVOList = getBadgeInfo(acquiredBadgeIdxList);
+            badgeInfoList = getBadgeInfo(acquiredBadgeIdxList);
 
-            log.debug("response로 반환할 뱃지 이름: {}", badgeVOList.stream().map(BadgeVO::getBadgeName).collect(Collectors.toList()));
+            log.debug("response로 반환할 뱃지 이름: {}", badgeInfoList.stream().map(BadgeInfo::getBadgeName).collect(Collectors.toList()));
 
             return PostWalkRes.builder()
                     .walkIdx(savedWalkIdx)
-                    .badgeVOList(badgeVOList)
+                    .badgeInfoList(badgeInfoList)
                     .build();
 
         } catch (Exception exception) {
@@ -173,7 +200,7 @@ public class WalkService {
         }
     }
 
-    public Double getGoalRate(SaveWalk walk, int userIdx) throws BaseException {
+    public Double getGoalRate(WalkInfo walk, int userIdx) throws BaseException {
         try {
             // 산책 시간
             Long walkTime = Duration.between(walk.getStartAt(), walk.getEndAt()).getSeconds();
@@ -212,20 +239,20 @@ public class WalkService {
         }
     }
 
-    public List<BadgeVO> getBadgeInfo(List<Integer> acquiredBadgeIdxList) throws BaseException {
+    public List<BadgeInfo> getBadgeInfo(List<Integer> acquiredBadgeIdxList) throws BaseException {
         try {
-            List<BadgeVO> badgeVOList = new ArrayList<>();
+            List<BadgeInfo> badgeInfoList = new ArrayList<>();
             List<Badge> allById = badgeRepository.findAllById(acquiredBadgeIdxList);
             for (Badge badge : allById) {
-                badgeVOList.add(
-                        BadgeVO.builder()
+                badgeInfoList.add(
+                        BadgeInfo.builder()
                                 .badgeIdx(badge.getBadgeIdx())
                                 .badgeName(badge.getBadgeName())
                                 .badgeUrl(badge.getBadgeUrl())
                                 .build()
                 );
             }
-            return badgeVOList;
+            return badgeInfoList;
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
@@ -436,7 +463,7 @@ public class WalkService {
         return coordinate;
     }
 
-    public GetWalkInfo getWalkInfo(int walkIdx, String userId) throws BaseException {
+    public GetWalkInfoRes getWalkInfo(int walkIdx, String userId) throws BaseException {
         try {
             log.debug("walkIdx: {}", walkIdx);
             Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
@@ -452,7 +479,7 @@ public class WalkService {
                 diffStr = hours + ":" + diffStr;
             }
 
-            GetWalkTime getWalkTime = GetWalkTime.builder()
+            WalkTime walkTime = WalkTime.builder()
                     .date(walkByNumber.getStartAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")))
                     .startAt(walkByNumber.getStartAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                     .endAt(walkByNumber.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")))
@@ -466,9 +493,9 @@ public class WalkService {
                 footCoordinate.add(convertStringToList(footprint.getCoordinate()));
             }
 
-            GetWalkInfo getWalkInfo = GetWalkInfo.builder()
+            GetWalkInfoRes getWalkInfoRes = GetWalkInfoRes.builder()
                     .walkIdx(walkByNumber.getWalkIdx())
-                    .getWalkTime(getWalkTime)
+                    .walkTime(walkTime)
                     .calorie(walkByNumber.getCalorie())
                     .distance(walkByNumber.getDistance())
                     .footCount(footprintList.size())
@@ -476,7 +503,7 @@ public class WalkService {
                     .pathImageUrl(new AES128(encryptProperties.getKey()).decrypt(walkByNumber.getPathImageUrl()))
                     .coordinate(convertStringTo2DList(walkByNumber.getCoordinate()))
                     .build();
-            return getWalkInfo;
+            return getWalkInfoRes;
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }

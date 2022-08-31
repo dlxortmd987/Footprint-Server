@@ -2,15 +2,18 @@ package com.umc.footprint.src.users;
 
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.EncryptProperties;
-import com.umc.footprint.src.walks.WalkDao;
+import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
+import com.umc.footprint.src.users.model.dto.GetUserDateRes;
+import com.umc.footprint.src.users.model.dto.GetUserInfoRes;
+import com.umc.footprint.src.users.model.vo.UserInfoAchieve;
+import com.umc.footprint.src.users.model.vo.UserInfoStat;
 
-import com.umc.footprint.src.users.model.GetUserTodayRes;
+import com.umc.footprint.src.users.model.dto.GetUserTodayRes;
 import com.umc.footprint.utils.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.umc.footprint.src.users.model.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,14 +24,12 @@ import static com.umc.footprint.config.BaseResponseStatus.*;
 @Service
 public class UserProvider {
 
-    private final WalkDao walkDao;
     private final UserDao userDao;
     private final EncryptProperties encryptProperties;
     private final JwtService jwtService;
 
     @Autowired
-    public UserProvider(WalkDao walkDao, UserDao userDao, EncryptProperties encryptProperties, JwtService jwtService) {
-        this.walkDao = walkDao;
+    public UserProvider(UserDao userDao, EncryptProperties encryptProperties, JwtService jwtService) {
         this.userDao = userDao;
         this.encryptProperties = encryptProperties;
         this.jwtService = jwtService;
@@ -141,33 +142,4 @@ public class UserProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
-
-//    //yummy 13
-//    // 이번달 사용자가 얻은 뱃지 조회 (PRO, LOVER, MASTER)
-//    public BadgeInfo getMonthlyBadgeStatus(int userIdx) throws BaseException {
-//        try {
-//            // 이전달 목표 설정 여부 확인
-//            if(!userDao.checkPrevGoalDay(userIdx)) {
-//                throw new BaseException(NOT_EXIST_USER_IN_PREV_GOAL);
-//            }
-//
-//            BadgeInfo getBadgeInfo = userDao.getMonthlyBadgeStatus(userIdx);
-//            if(getBadgeInfo==null) {
-//                throw new BaseException(NO_MONTHLY_BADGE);
-//           }
-//            return getBadgeInfo;
-//        } catch (Exception exception) {
-//            throw new BaseException(DATABASE_ERROR);
-//        }
-//    }
-
-    // userId로 userIdx 추출
-    public int getUserIdx(String userId) throws BaseException {
-        try {
-            return userDao.getUserIdx(userId);
-        } catch (Exception exception) {
-            throw new BaseException(NOT_EXIST_USER);
-        }
-    }
-
 }
