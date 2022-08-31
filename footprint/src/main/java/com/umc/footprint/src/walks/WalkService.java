@@ -69,11 +69,12 @@ public class WalkService {
     private final GoalRepository goalRepository;
     private final UserBadgeRepository userBadgeRepository;
     private final BadgeRepository badgeRepository;
-    private final CourseTagRepository courseTagRepository;
-    private final UserCourseRepository userCourseRepository;
-    private final MarkRepository markRepository;
-    private final CourseRepository courseRepository;
     private final EncryptProperties encryptProperties;
+
+    @Transactional(readOnly = true)
+    public List<Walk> getMyAllWalk(int userIdx) throws BaseException{
+        return walkRepository.findAllByStatusAndUserIdx("ACTIVE", userIdx);
+    }
 
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public PostWalkRes saveRecord(String userId, PostWalkReq request) throws BaseException {
@@ -84,7 +85,6 @@ public class WalkService {
 
         // userIdx 추출
         int userIdx = userRepository.findByUserId(userId).getUserIdx();
-
 
         try {
             String encryptImage = new AES128(encryptProperties.getKey()).encrypt(request.getWalk().getThumbnail());
