@@ -1,6 +1,6 @@
 package com.umc.footprint.src.course.model.entity;
 
-import com.umc.footprint.src.walks.model.PatchCourseDetailsReq;
+import com.umc.footprint.src.course.model.dto.PatchCourseDetailsReq;
 import com.umc.footprint.utils.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import org.locationtech.jts.geom.Point;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Getter
 @Entity

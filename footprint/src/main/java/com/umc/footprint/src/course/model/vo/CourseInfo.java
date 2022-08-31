@@ -1,4 +1,4 @@
-package com.umc.footprint.src.course.model;
+package com.umc.footprint.src.course.model.vo;
 
 import com.umc.footprint.src.course.model.entity.Course;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class GetCourseListRes implements Comparable<GetCourseListRes>{
+public class CourseInfo implements Comparable<CourseInfo>{
     private int courseIdx;
     private double startLat;
     private double startLong;
@@ -23,9 +23,9 @@ public class GetCourseListRes implements Comparable<GetCourseListRes>{
     private boolean userCourseMark;
 
     @Builder
-    public GetCourseListRes(int courseIdx, double startLat, double startLong, String courseName, Double courseDist,
-                            int courseTime, int courseCount, int courseLike, List<String> courseTags, String courseImg,
-                            boolean userCourseMark) {
+    public CourseInfo(int courseIdx, double startLat, double startLong, String courseName, Double courseDist,
+                      int courseTime, int courseCount, int courseLike, List<String> courseTags, String courseImg,
+                      boolean userCourseMark) {
         this.courseIdx = courseIdx;
         this.startLat = startLat;
         this.startLong = startLong;
@@ -39,8 +39,8 @@ public class GetCourseListRes implements Comparable<GetCourseListRes>{
         this.userCourseMark = userCourseMark;
     }
 
-    public static GetCourseListRes of(Course course, int courseCount, String courseImgUrl, List<String> courseTags, boolean isMark) {
-        return GetCourseListRes.builder()
+    public static CourseInfo of(Course course, int courseCount, String courseImgUrl, List<String> courseTags, boolean isMark) {
+        return CourseInfo.builder()
                 .courseIdx(course.getCourseIdx())
                 .startLat(course.getStartCoordinate().getX())
                 .startLong(course.getStartCoordinate().getY())
@@ -56,10 +56,10 @@ public class GetCourseListRes implements Comparable<GetCourseListRes>{
     }
 
     @Override
-    public int compareTo(GetCourseListRes getCourseListRes){
-        if(getCourseListRes.courseDist < courseDist){
+    public int compareTo(CourseInfo courseInfo){
+        if(courseInfo.courseDist < courseDist){
             return 1;
-        } else if(getCourseListRes.courseDist > courseDist){
+        } else if(courseInfo.courseDist > courseDist){
             return -1;
         }
         return 0;

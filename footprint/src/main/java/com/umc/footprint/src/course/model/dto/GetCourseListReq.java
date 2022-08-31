@@ -1,4 +1,4 @@
-package com.umc.footprint.src.course.model;
+package com.umc.footprint.src.course.model.dto;
 
 import lombok.Builder;
 import lombok.Getter;

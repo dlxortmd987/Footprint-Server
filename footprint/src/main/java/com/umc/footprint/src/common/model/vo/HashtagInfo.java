@@ -1,4 +1,4 @@
-package com.umc.footprint.src.walks.model;
+package com.umc.footprint.src.common.model.vo;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -6,12 +6,12 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class HashtagVO {
+public class HashtagInfo {
     private Integer hashtagIdx;
     private String hashtag;
 
     @Builder
-    public HashtagVO(Integer hashtagIdx, String hashtag) {
+    public HashtagInfo(Integer hashtagIdx, String hashtag) {
         this.hashtagIdx = hashtagIdx;
         this.hashtag = hashtag;
     }

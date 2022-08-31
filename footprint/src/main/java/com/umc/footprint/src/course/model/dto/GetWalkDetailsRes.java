@@ -1,5 +1,6 @@
-package com.umc.footprint.src.walks.model;
+package com.umc.footprint.src.course.model.dto;
 
+import com.umc.footprint.src.common.model.vo.HashtagInfo;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,6 @@ public class GetWalkDetailsRes {
     private final LocalDateTime endAt;
     private final Double distance;
     private final List<ArrayList<Double>> coordinates;
-    private final List<HashtagVO> hashtags;
+    private final List<HashtagInfo> hashtags;
     private final List<String> photos;
 }
