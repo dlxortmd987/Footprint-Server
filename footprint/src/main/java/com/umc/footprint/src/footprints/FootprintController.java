@@ -1,5 +1,8 @@
 package com.umc.footprint.src.footprints;
 
+import com.umc.footprint.src.footprints.model.dto.GetFootprintReq;
+import com.umc.footprint.src.footprints.model.dto.GetFootprintRes;
+import com.umc.footprint.src.footprints.model.dto.PatchFootprintReq;
 import com.umc.footprint.src.users.UserProvider;
 import com.umc.footprint.src.users.UserService;
 import com.umc.footprint.src.walks.WalkProvider;
@@ -8,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import com.umc.footprint.src.footprints.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,7 +56,7 @@ public class FootprintController {
      */
     @ResponseBody
     @PatchMapping("/{walkIdx}/{footprintIdx}")
-    public BaseResponse<String> modifyFootprint(@PathVariable("walkIdx") int walkIdx,@PathVariable("footprintIdx") int footprintIdx, GetFootprint footprint) {
+    public BaseResponse<String> modifyFootprint(@PathVariable("walkIdx") int walkIdx,@PathVariable("footprintIdx") int footprintIdx, GetFootprintReq footprint) {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();

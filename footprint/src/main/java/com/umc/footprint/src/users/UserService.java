@@ -9,6 +9,11 @@ import com.umc.footprint.src.badge.model.BadgeOrder;
 import com.umc.footprint.src.badge.model.BadgeRepository;
 import com.umc.footprint.src.badge.model.UserBadge;
 import com.umc.footprint.src.badge.model.UserBadgeRepository;
+import com.umc.footprint.src.common.model.entity.Photo;
+import com.umc.footprint.src.common.model.entity.Tag;
+import com.umc.footprint.src.common.repository.HashtagRepository;
+import com.umc.footprint.src.common.repository.PhotoRepository;
+import com.umc.footprint.src.common.repository.TagRepository;
 import com.umc.footprint.src.goal.GoalService;
 import com.umc.footprint.src.goal.model.entity.Goal;
 import com.umc.footprint.src.goal.model.entity.GoalDay;
@@ -19,16 +24,11 @@ import com.umc.footprint.src.goal.model.repository.GoalDayRepository;
 import com.umc.footprint.src.goal.model.repository.GoalNextRepository;
 import com.umc.footprint.src.goal.model.repository.GoalRepository;
 import com.umc.footprint.src.goal.model.vo.GetGoalDays;
-import com.umc.footprint.src.model.User;
-import com.umc.footprint.src.model.Walk;
-import com.umc.footprint.src.repository.TagRepository;
-import com.umc.footprint.src.repository.UserRepository;
-import com.umc.footprint.src.repository.WalkRepository;
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
 import com.umc.footprint.src.users.model.*;
-import com.umc.footprint.src.walks.model.GetFootprintCountInterface;
-import com.umc.footprint.src.walks.model.GetMonthTotalInterface;
+import com.umc.footprint.src.footprints.model.vo.GetFootprintCountInterface;
+import com.umc.footprint.src.goal.model.vo.GetMonthTotalInterface;
 import com.umc.footprint.utils.AES128;
 import com.umc.footprint.utils.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -890,9 +890,9 @@ public class UserService {
         return monthGoalRate;
     }
 
-    public GetUserRes getUser(String userId) throws BaseException {
+    public GetUserRes getUser(int userIdx) throws BaseException {
         try{
-            int userIdx = getUserIdxByUserId(userId);
+
             Optional<User> user = userRepository.findByUserIdx(userIdx);
 
             if(user == null){

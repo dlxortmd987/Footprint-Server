@@ -3,7 +3,7 @@ package com.umc.footprint.src.check;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.common.model.entity.Hashtag;
-import com.umc.footprint.src.repository.HashtagRepository;
+import com.umc.footprint.src.common.repository.HashtagRepository;
 import com.umc.footprint.utils.AES128;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
