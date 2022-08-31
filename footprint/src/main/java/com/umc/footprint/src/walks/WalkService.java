@@ -12,6 +12,8 @@ import com.umc.footprint.src.course.repository.CourseRepository;
 import com.umc.footprint.src.course.repository.CourseTagRepository;
 import com.umc.footprint.src.course.repository.MarkRepository;
 import com.umc.footprint.src.course.repository.UserCourseRepository;
+import com.umc.footprint.src.goal.model.entity.Goal;
+import com.umc.footprint.src.goal.model.repository.GoalRepository;
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
 import com.umc.footprint.src.walks.model.*;

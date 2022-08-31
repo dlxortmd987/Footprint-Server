@@ -2,6 +2,7 @@ package com.umc.footprint.src.users;
 
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.EncryptProperties;
+import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
 import com.umc.footprint.src.walks.WalkDao;
 
 import com.umc.footprint.src.users.model.GetUserTodayRes;

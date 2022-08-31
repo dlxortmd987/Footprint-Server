@@ -1,18 +1,23 @@
 package com.umc.footprint.src.users;
 
 import com.umc.footprint.config.BaseException;
-import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.AwsS3Service;
 import com.umc.footprint.src.common.model.entity.Photo;
 import com.umc.footprint.src.common.model.entity.Tag;
 import com.umc.footprint.src.common.repository.HashtagRepository;
 import com.umc.footprint.src.common.repository.PhotoRepository;
-import com.umc.footprint.src.model.User;
-import com.umc.footprint.src.model.Walk;
 import com.umc.footprint.src.common.repository.TagRepository;
-import com.umc.footprint.src.repository.UserRepository;
-import com.umc.footprint.src.repository.WalkRepository;
+import com.umc.footprint.src.goal.GoalService;
+import com.umc.footprint.src.goal.model.entity.Goal;
+import com.umc.footprint.src.goal.model.entity.GoalDay;
+import com.umc.footprint.src.goal.model.entity.GoalDayNext;
+import com.umc.footprint.src.goal.model.entity.GoalNext;
+import com.umc.footprint.src.goal.model.repository.GoalDayNextRepository;
+import com.umc.footprint.src.goal.model.repository.GoalDayRepository;
+import com.umc.footprint.src.goal.model.repository.GoalNextRepository;
+import com.umc.footprint.src.goal.model.repository.GoalRepository;
+import com.umc.footprint.src.goal.model.vo.GetGoalDays;
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
 import com.umc.footprint.src.users.model.*;
@@ -22,11 +27,9 @@ import com.umc.footprint.utils.AES128;
 import com.umc.footprint.utils.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.sql.Timestamp;
 import java.time.*;
@@ -47,6 +50,7 @@ public class UserService {
     private final WalkRepository walkRepository;
     private final JwtService jwtService;
     private final AwsS3Service awsS3Service;
+    private final GoalService goalService;
     private final EncryptProperties encryptProperties;
     private final GoalRepository goalRepository;
     private final GoalNextRepository goalNextRepository;
@@ -57,31 +61,6 @@ public class UserService {
     private final UserBadgeRepository userBadgeRepository;
     private final PhotoRepository photoRepository;
     private final FootprintRepository footprintRepository;
-
-    @Autowired
-    public UserService(UserDao userDao, UserRepository userRepository, TagRepository tagRepository,
-                       JwtService jwtService, AwsS3Service awsS3Service, EncryptProperties encryptProperties,
-                       WalkRepository walkRepository, GoalRepository goalRepository, GoalNextRepository goalNextRepository,
-                       GoalDayRepository goalDayRepository, GoalDayNextRepository goalDayNextRepository,
-                       HashtagRepository hashtagRepository, BadgeRepository badgeRepository, UserBadgeRepository userBadgeRepository,
-                       PhotoRepository photoRepository, FootprintRepository footprintRepository) {
-        this.userDao = userDao;
-        this.userRepository = userRepository;
-        this.tagRepository = tagRepository;
-        this.jwtService = jwtService;
-        this.awsS3Service = awsS3Service;
-        this.encryptProperties = encryptProperties;
-        this.walkRepository = walkRepository;
-        this.goalRepository = goalRepository;
-        this.goalNextRepository = goalNextRepository;
-        this.goalDayRepository = goalDayRepository;
-        this.goalDayNextRepository = goalDayNextRepository;
-        this.hashtagRepository = hashtagRepository;
-        this.badgeRepository = badgeRepository;
-        this.userBadgeRepository = userBadgeRepository;
-        this.photoRepository = photoRepository;
-        this.footprintRepository = footprintRepository;
-    }
 
 
     // 해당 유저의 산책기록 중 태그를 포함하는 산책기록 조회
@@ -198,77 +177,6 @@ public class UserService {
         } catch (Exception exception) { // DB에 이상이 있는 경우 에러 메시지를 보냅니다.
             exception.printStackTrace();
             throw new BaseException(DATABASE_ERROR);
-        }
-    }
-
-
-    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-    public void modifyGoal(int userIdx, PatchUserGoalReq patchUserGoalReq) throws BaseException{
-        try{
-            int resultTime = userDao.modifyUserGoalTime(userIdx, patchUserGoalReq);
-            if(resultTime == 0)
-                throw new BaseException(BaseResponseStatus.MODIFY_USER_GOAL_FAIL);
-
-            // 요일별 인덱스 차이 해결을 위한 임시 코드
-            List<Integer> dayIdxList = new ArrayList<>();
-            for (Integer dayIdx: patchUserGoalReq.getDayIdx()){
-                if(dayIdx == 7)
-                    dayIdxList.add(1);
-                else
-                    dayIdxList.add(dayIdx+1);
-            }
-            Collections.sort(dayIdxList);
-            patchUserGoalReq.setDayIdx(dayIdxList);
-            log.debug("dayIdxList : {}",dayIdxList);
-            //
-
-            int resultDay = userDao.modifyUserGoalDay(userIdx, patchUserGoalReq);
-            if(resultDay == 0)
-                throw new BaseException(BaseResponseStatus.MODIFY_USER_GOAL_FAIL);
-
-        } catch(Exception exception){
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
-        }
-    }
-
-    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-    public void modifyGoalJPA(int userIdx, PatchUserGoalReq patchUserGoalReq) throws BaseException {
-        try{
-
-            /** 1. UPDATE Goal  */
-            Optional<GoalNext> userGoal = goalNextRepository.findByUserIdx(userIdx);
-
-            userGoal.get().setWalkGoalTime(patchUserGoalReq.getWalkGoalTime());
-            userGoal.get().setWalkTimeSlot(patchUserGoalReq.getWalkTimeSlot());
-//            userGoal.get().setUpdateAt(LocalDateTime.now());
-            goalNextRepository.save(userGoal.get());
-
-            /** 2. UPDATE GoalDay  */
-            Optional<GoalDayNext> userGoalDay = goalDayNextRepository.findByUserIdx(userIdx);
-
-            List<Integer> newDayIdxList = new ArrayList<>(List.of(0,0,0,0,0,0,0));
-            List<Integer> dayIdxList = patchUserGoalReq.getDayIdx();
-
-            for(Integer dayIdx : dayIdxList) {
-                newDayIdxList.set(dayIdx-1,1);
-            }
-
-            userGoalDay.get().setMon(newDayIdxList.get(0));
-            userGoalDay.get().setTue(newDayIdxList.get(1));
-            userGoalDay.get().setWed(newDayIdxList.get(2));
-            userGoalDay.get().setThu(newDayIdxList.get(3));
-            userGoalDay.get().setFri(newDayIdxList.get(4));
-            userGoalDay.get().setSat(newDayIdxList.get(5));
-            userGoalDay.get().setSun(newDayIdxList.get(6));
-
-//            userGoalDay.get().setUpdateAt(LocalDateTime.now());
-
-            goalDayNextRepository.save(userGoalDay.get());
-
-        } catch(Exception exception){
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            throw new BaseException(BaseResponseStatus.DATABASE_ERROR);
         }
     }
 
@@ -688,152 +596,6 @@ public class UserService {
 
     }
 
-    public GetUserGoalRes getUserGoal(int userIdx) throws BaseException{
-
-        /** 1. 이번달 정보 구하기 */
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        String month = today.format(DateTimeFormatter.ofPattern("yyyy년 MM월"));
-
-        /** 2. get UserGoalDay -> dayIdxList */
-        List<GoalDay> userGoalDayList = goalDayRepository.findByUserIdx(userIdx);
-        GoalDay userGoalDay = GoalDay.builder().build();
-        for(GoalDay goalDay : userGoalDayList ){
-            LocalDate goalDayCreateAt = goalDay.getCreateAt().toLocalDate();
-            if(goalDayCreateAt.getMonth().equals(LocalDate.now().getMonth()) && goalDayCreateAt.getYear() == LocalDate.now().getYear()){
-                userGoalDay = goalDay;
-                break;
-            }
-        }
-
-        List<Integer> dayIdxList = new ArrayList<>();
-        if(userGoalDay.getMon().equals(1))
-            dayIdxList.add(1);
-        if(userGoalDay.getTue().equals(1))
-            dayIdxList.add(2);
-        if(userGoalDay.getWed().equals(1))
-            dayIdxList.add(3);
-        if(userGoalDay.getThu().equals(1))
-            dayIdxList.add(4);
-        if(userGoalDay.getFri().equals(1))
-            dayIdxList.add(5);
-        if(userGoalDay.getSat().equals(1))
-            dayIdxList.add(6);
-        if(userGoalDay.getSun().equals(1))
-            dayIdxList.add(7);
-
-        /** 3. get UserGoalTime */
-        List<Goal> userGoalList = goalRepository.findByUserIdx(userIdx);
-
-        Goal userGoal = Goal.builder().build();
-        for(Goal goal : userGoalList ){
-            LocalDate goalCreateAt = goal.getCreateAt().toLocalDate();
-            if(goalCreateAt.getMonth().equals(LocalDate.now().getMonth()) && goalCreateAt.getYear() == LocalDate.now().getYear()){
-                userGoal = goal;
-                break;
-            }
-        }
-
-        UserGoalTime userGoalTime = UserGoalTime.builder()
-                .walkGoalTime(userGoal.getWalkGoalTime())
-                .walkTimeSlot(userGoal.getWalkTimeSlot())
-                .build();
-
-        /** 4. Check GoalNext Modified */
-        boolean goalNextModified;
-        Optional<GoalNext> userGoalNext = goalNextRepository.findByUserIdx(userIdx);
-
-        LocalDateTime goalNextCreateAt = userGoalNext.get().getCreateAt();
-        LocalDateTime goalNextUpdateAt = userGoalNext.get().getUpdateAt();
-
-        if(today.getYear() == goalNextCreateAt.getYear() && today.getMonth() == goalNextCreateAt.getMonth()){
-            System.out.println("goalNextCreateAt.equals(goalNextUpdateAt) = " + goalNextCreateAt.equals(goalNextUpdateAt));
-            if(goalNextCreateAt.equals(goalNextUpdateAt)){
-                goalNextModified = false;
-            } else {
-              goalNextModified = true;
-            }
-
-        } else{
-            if(today.getYear() == goalNextUpdateAt.getYear() && today.getMonth() == goalNextUpdateAt.getMonth()){
-                goalNextModified = true;
-            } else {
-                goalNextModified = false;
-            }
-
-        }
-
-        return GetUserGoalRes.builder()
-                .month(month)
-                .dayIdx(dayIdxList)
-                .userGoalTime(userGoalTime)
-                .goalNextModified(goalNextModified)
-                .build();
-
-
-    }
-
-    public GetUserGoalRes getUserGoalNext(int userIdx) throws BaseException{
-
-        /** 1. 이번달 정보 구하기 */
-        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-        String month = today.plusMonths(1).format(DateTimeFormatter.ofPattern("yyyy년 MM월"));
-
-        /** 2. get UserGoalDay -> dayIdxList */
-        Optional<GoalDayNext> userGoalDayNext = goalDayNextRepository.findByUserIdx(userIdx);
-
-        List<Integer> dayIdxList = new ArrayList<>();
-        if(userGoalDayNext.get().getMon().equals(1))
-            dayIdxList.add(1);
-        if(userGoalDayNext.get().getTue().equals(1))
-            dayIdxList.add(2);
-        if(userGoalDayNext.get().getWed().equals(1))
-            dayIdxList.add(3);
-        if(userGoalDayNext.get().getThu().equals(1))
-            dayIdxList.add(4);
-        if(userGoalDayNext.get().getFri().equals(1))
-            dayIdxList.add(5);
-        if(userGoalDayNext.get().getSat().equals(1))
-            dayIdxList.add(6);
-        if(userGoalDayNext.get().getSun().equals(1))
-            dayIdxList.add(7);
-
-        /** 3. get UserGoalTime */
-        Optional<GoalNext> userGoalNext = goalNextRepository.findByUserIdx(userIdx);
-        UserGoalTime userGoalTime = UserGoalTime.builder()
-                    .walkGoalTime(userGoalNext.get().getWalkGoalTime())
-                    .walkTimeSlot(userGoalNext.get().getWalkTimeSlot())
-                    .build();
-
-        /** 4. Check GoalNext Modified */
-        boolean goalNextModified;
-
-        LocalDateTime goalNextCreateAt = userGoalNext.get().getCreateAt();
-        LocalDateTime goalNextUpdateAt = userGoalNext.get().getUpdateAt();
-
-        if(today.getYear() == goalNextCreateAt.getYear() && today.getMonth() == goalNextCreateAt.getMonth()){
-            System.out.println("goalNextCreateAt.equals(goalNextUpdateAt) = " + goalNextCreateAt.equals(goalNextUpdateAt));
-            if(goalNextCreateAt.equals(goalNextUpdateAt)){
-                goalNextModified = false;
-            } else {
-                goalNextModified = true;
-            }
-
-        } else{
-            if(today.getYear() == goalNextUpdateAt.getYear() && today.getMonth() == goalNextUpdateAt.getMonth()){
-                goalNextModified = true;
-            } else {
-                goalNextModified = false;
-            }
-
-        }
-
-        return GetUserGoalRes.builder()
-                .month(month)
-                .dayIdx(dayIdxList)
-                .userGoalTime(userGoalTime)
-                .goalNextModified(goalNextModified)
-                .build();
-    }
 
     public UserInfoAchieve getUserInfoAchieve(int userIdx){
 
@@ -999,50 +761,6 @@ public class UserService {
 
     }
 
-    // UserSchedule
-    // 유저 목표 최신화
-    // GoalNext -> Goal
-    public void updateGoal(){
-
-        // 1. GoalNext 테이블 전체 리스트 추출
-        List<GoalNext> entireGoalNext = goalNextRepository.findAll();
-
-        // 2. Goal 테이블에 1번 추출 결과물 삽입
-        for( GoalNext goalNext : entireGoalNext){
-            goalRepository.save(Goal.builder()
-                    .walkGoalTime(goalNext.getWalkGoalTime())
-                    .walkTimeSlot(goalNext.getWalkTimeSlot())
-                    .userIdx(goalNext.getUserIdx())
-//                    .createAt(LocalDateTime.now())
-                    .build());
-        }
-
-    }
-
-    // UserSchedule
-    // 유저 목표 요일 최신화
-    // GoalDayNext -> GoalDay
-    public void updateGoalDay(){
-
-        // 1. GoalDayNext 테이블 전체 리스트 추출
-        List<GoalDayNext> entireGoalDayNext = goalDayNextRepository.findAll();
-
-        // 2. GoalDay 테이블에 1번 추출 결과물 삽입
-        for( GoalDayNext goalDayNext : entireGoalDayNext){
-            goalDayRepository.save(GoalDay.builder()
-                            .mon(goalDayNext.getMon())
-                            .tue(goalDayNext.getTue())
-                            .wed(goalDayNext.getWed())
-                            .thu(goalDayNext.getThu())
-                            .fri(goalDayNext.getFri())
-                            .sat(goalDayNext.getSat())
-                            .sun(goalDayNext.getSun())
-                            .userIdx(goalDayNext.getUserIdx())
-//                            .createAt(LocalDateTime.now())
-                            .build());
-        }
-
-    }
 
     public int calcMonthGoalRate(int userIdx, int beforeMonth){
 
@@ -1272,7 +990,7 @@ public class UserService {
             int nowYear = now.getYear();
             int nowMonth = now.getMonthValue();
 
-            List<String> goalDayList = getUserGoalDays(user.getUserIdx(), nowYear, nowMonth);
+            List<String> goalDayList = goalService.getUserGoalDays(user.getUserIdx(), nowYear, nowMonth);
             List<GetDayRateResInterface> getDayRateResInterfaces = walkRepository.getRateByUserIdxAndStartAt(
                     user.getUserIdx(),
                     nowYear,
@@ -1303,40 +1021,6 @@ public class UserService {
         }
     }
 
-
-    public List<String> getUserGoalDays(int userIdx, int year, int month) throws BaseException {
-        GetGoalDays goalDay = new GetGoalDays(goalDayRepository.selectOnlyGoalDayByQuery(userIdx, year, month)
-                .orElseThrow(()->new BaseException(NOT_EXIST_USER_IN_GOAL)));
-
-        return convertGoalDayBoolToString(goalDay);
-    }
-
-    public List<String> convertGoalDayBoolToString(GetGoalDays goalDay) {
-        List<String> goalDayString = new ArrayList<>();
-
-        if(goalDay.getSun()==1) {
-            goalDayString.add("SUN");
-        }
-        if(goalDay.getMon()==1) {
-            goalDayString.add("MON");
-        }
-        if(goalDay.getTue()==1) {
-            goalDayString.add("TUE");
-        }
-        if(goalDay.getWed()==1) {
-            goalDayString.add("WED");
-        }
-        if(goalDay.getThu()==1) {
-            goalDayString.add("THU");
-        }
-        if(goalDay.getFri()==1) {
-            goalDayString.add("FRI");
-        }
-        if(goalDay.getSat()==1) {
-            goalDayString.add("SAT");
-        }
-        return goalDayString;
-    }
 
     public List<GetFootprintCount> getMonthFootprints(String userId, int year, int month) throws BaseException {
         try {

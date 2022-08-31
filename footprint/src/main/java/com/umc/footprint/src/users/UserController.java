@@ -5,14 +5,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.config.BaseResponseStatus;
+import com.umc.footprint.src.goal.GoalService;
+import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
+import com.umc.footprint.src.goal.model.dto.PatchUserGoalReq;
 import com.umc.footprint.src.users.model.*;
-import com.umc.footprint.src.walks.model.GetFootprintCountInterface;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ public class UserController {
 
     private final UserProvider userProvider;
     private final UserService userService;
+    private final GoalService goalService;
     private final JwtService jwtService;
 
     /**
@@ -222,7 +224,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            GetUserGoalRes getUserGoalRes = userService.getUserGoal(userIdx);
+            GetUserGoalRes getUserGoalRes = goalService.getUserGoal(userIdx);
             return new BaseResponse<>(getUserGoalRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -245,7 +247,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            GetUserGoalRes getUserGoalRes = userService.getUserGoalNext(userIdx);
+            GetUserGoalRes getUserGoalRes = goalService.getUserGoalNext(userIdx);
             return new BaseResponse<>(getUserGoalRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -319,7 +321,7 @@ public class UserController {
             // userId로 userIdx 추출
             int userIdx = userProvider.getUserIdx(userId);
 
-            userService.modifyGoalJPA(userIdx, patchUserGoalReq);
+            goalService.modifyGoalJPA(userIdx, patchUserGoalReq);
 
             String result ="목표가 수정되었습니다.";
 
@@ -435,7 +437,7 @@ public class UserController {
             UserInfoAchieve userInfoAchieve = userService.getUserInfoAchieve(userIdx);
             System.out.println("userInfoAchieve = " + userInfoAchieve);
             // 2. user 이번달 목표 정보
-            GetUserGoalRes getUserGoalRes = userService.getUserGoal(userIdx);
+            GetUserGoalRes getUserGoalRes = goalService.getUserGoal(userIdx);
             System.out.println("getUserGoalRes = " + getUserGoalRes);
             // 3. user 통계 정보
             UserInfoStat userInfoStat = userService.getUserInfoStat(userIdx);
