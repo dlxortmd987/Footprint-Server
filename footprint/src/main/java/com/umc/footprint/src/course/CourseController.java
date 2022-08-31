@@ -14,6 +14,7 @@ import com.umc.footprint.src.course.model.dto.GetCourseDetailsRes;
 import com.umc.footprint.src.course.model.dto.GetWalkDetailsRes;
 import com.umc.footprint.src.course.model.dto.PatchCourseDetailsReq;
 import com.umc.footprint.src.course.model.dto.PostCourseDetailsReq;
+import com.umc.footprint.src.users.UserService;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;

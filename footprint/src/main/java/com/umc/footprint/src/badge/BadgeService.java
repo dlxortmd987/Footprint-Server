@@ -2,13 +2,12 @@ package com.umc.footprint.src.badge;
 
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.src.badge.model.Badge;
-import com.umc.footprint.src.badge.model.BadgeInfo;
+import com.umc.footprint.src.badge.model.BadgeDateInfo;
 import com.umc.footprint.src.badge.model.BadgeOrder;
 import com.umc.footprint.src.badge.model.BadgeRepository;
 import com.umc.footprint.src.badge.model.UserBadge;
 import com.umc.footprint.src.badge.model.UserBadgeRepository;
 import com.umc.footprint.src.goal.model.repository.GoalDayRepository;
-import com.umc.footprint.src.goal.model.repository.GoalRepository;
 import com.umc.footprint.src.goal.model.vo.GetGoalDays;
 import com.umc.footprint.src.model.User;
 import com.umc.footprint.src.repository.UserRepository;
@@ -43,7 +42,7 @@ public class BadgeService {
     private final UserService userService;
     private final WalkRepository walkRepository;
 
-    public BadgeInfo getMonthlyBadgeStatus(String userId) throws BaseException {
+    public BadgeDateInfo getMonthlyBadgeStatus(String userId) throws BaseException {
         try {
             User user = userService.checkUserStatus(userId);
 
@@ -172,7 +171,7 @@ public class BadgeService {
 
             LocalDate badgeDate = LocalDate.of(year, month, badgeNum); // 획득한 뱃지의 date
 
-            BadgeInfo badgeInfo = new BadgeInfo(badgeRepository.getByBadgeDate(badgeDate));
+            BadgeDateInfo badgeDateInfo = new BadgeDateInfo(badgeRepository.getByBadgeDate(badgeDate));
 
 
             //TODO: 사용자에게 다른 달 뱃지 있는지 확인 - 한 달에 프로, 러버, 마스터 중 하나만 ACTIVE한 상태여야 함!
@@ -181,13 +180,13 @@ public class BadgeService {
             //UserBadge 테이블에 얻은 뱃지 추가
             userBadgeRepository.save(
                     UserBadge.builder()
-                            .badgeIdx(badgeInfo.getBadgeIdx())
+                            .badgeIdx(badgeDateInfo.getBadgeInfo().getBadgeIdx())
                             .userIdx(user.getUserIdx())
                             .status("ACTIVE")
                             .build()
             );
 
-            return badgeInfo;
+            return badgeDateInfo;
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
@@ -197,7 +196,7 @@ public class BadgeService {
         try {
             User user = userService.checkUserStatus(userId);
 
-            BadgeInfo badgeInfo = new BadgeInfo(badgeRepository.getByBadgeIdx(user.getBadgeIdx())); //대표 뱃지
+            BadgeDateInfo badgeDateInfo = new BadgeDateInfo(badgeRepository.getByBadgeIdx(user.getBadgeIdx())); //대표 뱃지
             List<UserBadge> userBadges = userBadgeRepository.findAllByUserIdxAndStatus(user.getUserIdx(), "ACTIVE")
                     .orElseThrow(() -> new BaseException(NO_BADGE_USER));
 
@@ -228,7 +227,7 @@ public class BadgeService {
                 );
             }
             return GetUserBadges.builder()
-                    .repBadgeInfo(badgeInfo)
+                    .repBadgeDateInfo(badgeDateInfo)
                     .badgeList(badgeOrders)
                     .build();
         } catch (Exception exception) {
@@ -237,7 +236,7 @@ public class BadgeService {
     }
 
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-    public BadgeInfo modifyRepBadge(String userId, int badgeIdx) throws BaseException {
+    public BadgeDateInfo modifyRepBadge(String userId, int badgeIdx) throws BaseException {
         try {
             User user = userService.checkUserStatus(userId);
 
@@ -254,7 +253,7 @@ public class BadgeService {
             user.setBadgeIdx(badgeIdx);
             userRepository.save(user);
 
-            return new BadgeInfo(badgeRepository.getByBadgeIdx(user.getBadgeIdx()));
+            return new BadgeDateInfo(badgeRepository.getByBadgeIdx(user.getBadgeIdx()));
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }

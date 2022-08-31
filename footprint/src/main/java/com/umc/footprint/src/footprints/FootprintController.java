@@ -3,15 +3,12 @@ package com.umc.footprint.src.footprints;
 import com.umc.footprint.src.footprints.model.dto.GetFootprintReq;
 import com.umc.footprint.src.footprints.model.dto.GetFootprintRes;
 import com.umc.footprint.src.footprints.model.dto.PatchFootprintReq;
-import com.umc.footprint.src.users.UserProvider;
 import com.umc.footprint.src.users.UserService;
-import com.umc.footprint.src.walks.WalkProvider;
 import com.umc.footprint.utils.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.umc.footprint.config.BaseException;

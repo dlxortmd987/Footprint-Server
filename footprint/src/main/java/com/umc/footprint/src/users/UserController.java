@@ -6,7 +6,7 @@ import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.src.badge.BadgeService;
-import com.umc.footprint.src.badge.model.BadgeInfo;
+import com.umc.footprint.src.badge.model.BadgeDateInfo;
 import com.umc.footprint.src.goal.GoalService;
 import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
 import com.umc.footprint.src.goal.model.dto.PatchUserGoalReq;
@@ -354,14 +354,14 @@ public class UserController {
      */
     @ResponseBody
     @GetMapping("/badges/status") //매달 첫 접속마다 요청되는 뱃지 확인 API - 이번달 획득 뱃지의 정보를 전달, 없으면 null 반환
-    public BaseResponse<BadgeInfo> getMonthlyBadgeStatus() throws BaseException {
+    public BaseResponse<BadgeDateInfo> getMonthlyBadgeStatus() throws BaseException {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
 
-            BadgeInfo badgeInfo = badgeService.getMonthlyBadgeStatus(userId);
-            return new BaseResponse<>(badgeInfo);
+            BadgeDateInfo badgeDateInfo = badgeService.getMonthlyBadgeStatus(userId);
+            return new BaseResponse<>(badgeDateInfo);
         }
         catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -394,14 +394,14 @@ public class UserController {
      */
     @ResponseBody
     @PatchMapping("/badges/title/{badgeIdx}")
-    public BaseResponse<BadgeInfo> modifyRepBadge(@PathVariable("badgeIdx") int badgeIdx) throws BaseException {
+    public BaseResponse<BadgeDateInfo> modifyRepBadge(@PathVariable("badgeIdx") int badgeIdx) throws BaseException {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
 
-            BadgeInfo patchRepBadgeInfo = badgeService.modifyRepBadge(userId, badgeIdx);
-            return new BaseResponse<>(patchRepBadgeInfo);
+            BadgeDateInfo patchRepBadgeDateInfo = badgeService.modifyRepBadge(userId, badgeIdx);
+            return new BaseResponse<>(patchRepBadgeDateInfo);
         }
         catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));

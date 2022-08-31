@@ -4,8 +4,6 @@ import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.AwsS3Service;
 import com.umc.footprint.src.badge.model.Badge;
-import com.umc.footprint.src.badge.model.BadgeInfo;
-import com.umc.footprint.src.badge.model.BadgeOrder;
 import com.umc.footprint.src.badge.model.BadgeRepository;
 import com.umc.footprint.src.badge.model.UserBadge;
 import com.umc.footprint.src.badge.model.UserBadgeRepository;
@@ -23,7 +21,6 @@ import com.umc.footprint.src.goal.model.repository.GoalDayNextRepository;
 import com.umc.footprint.src.goal.model.repository.GoalDayRepository;
 import com.umc.footprint.src.goal.model.repository.GoalNextRepository;
 import com.umc.footprint.src.goal.model.repository.GoalRepository;
-import com.umc.footprint.src.goal.model.vo.GetGoalDays;
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
 import com.umc.footprint.src.users.model.*;
@@ -890,9 +887,9 @@ public class UserService {
         return monthGoalRate;
     }
 
-    public GetUserRes getUser(int userIdx) throws BaseException {
+    public GetUserRes getUser(String userId) throws BaseException {
         try{
-
+            int userIdx = getUserIdxByUserId(userId);
             Optional<User> user = userRepository.findByUserIdx(userIdx);
 
             if(user == null){
