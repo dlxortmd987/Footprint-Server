@@ -35,7 +35,6 @@ import com.umc.footprint.src.footprints.model.vo.GetFootprintCountInterface;
 import com.umc.footprint.src.goal.model.vo.GetMonthTotalInterface;
 import com.umc.footprint.src.users.repository.UserRepository;
 import com.umc.footprint.src.walks.model.entity.Walk;
-import com.umc.footprint.src.common.model.vo.SearchWalk;
 import com.umc.footprint.src.walks.model.vo.UserDateWalk;
 import com.umc.footprint.src.walks.repository.WalkRepository;
 import com.umc.footprint.utils.AES128;
@@ -107,7 +106,7 @@ public class UserService {
             // 날짜에 따라 분류
             for (String date : dateSet) {
                 // walk 정보 + hashtag 리스트
-                Set<SearchWalk> searchWalkSet = new HashSet<>();
+                Set<GetUserDateRes> searchWalkSet = new HashSet<>();
 
                 for (WalkHashtag walkHashtag : walkAndHashtagList) {
                     // 날짜 + 요일 ex) 2022. 5. 8 일
@@ -126,7 +125,7 @@ public class UserService {
 
 
                         searchWalkSet.add(
-                                SearchWalk.builder()
+                                GetUserDateRes.builder()
                                         // 산책 정보
                                         .userDateWalk(
                                                 UserDateWalk.builder()

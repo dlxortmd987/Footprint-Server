@@ -144,7 +144,7 @@ public class UserController {
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
 
-            List<GetUserDateRes> userDateRes = userService.getUserDate(userId,date);
+            List<GetUserDateRes> userDateRes = userService.getUserDate(userId, date);
 
             return new BaseResponse<>(userDateRes);
         } catch (BaseException exception){

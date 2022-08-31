@@ -19,12 +19,16 @@ import com.umc.footprint.src.course.repository.MarkRepository;
 import com.umc.footprint.src.course.repository.UserCourseRepository;
 import com.umc.footprint.src.footprints.model.entity.Footprint;
 import com.umc.footprint.src.users.UserService;
+import com.umc.footprint.src.users.model.dto.GetUserDateRes;
 import com.umc.footprint.src.walks.WalkService;
 import com.umc.footprint.src.course.model.vo.CourseInfo;
+import com.umc.footprint.src.walks.model.dto.GetWalksRes;
 import com.umc.footprint.src.walks.model.entity.Walk;
+import com.umc.footprint.src.walks.model.vo.UserDateWalk;
 import com.umc.footprint.src.walks.repository.WalkRepository;
 import com.umc.footprint.utils.AES128;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
@@ -34,6 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static com.umc.footprint.config.BaseResponseStatus.*;
@@ -88,12 +93,7 @@ public class CourseService {
                 // 2-2. 유저가 해당 코스를 mark 했는지 확인
                 Optional<Mark> userMark = markRepository.findByCourseIdxAndUserIdx(course.getCourseIdx(), userIdx);
 
-                boolean userCourseMark;
-                if(userMark.isEmpty()){
-                    userCourseMark = false;
-                } else{
-                    userCourseMark = true;
-                }
+                boolean userCourseMark = userMark.isPresent();
 
                 // 2-3. 해당 코스에 사진이 들어있는지 확인
                 // 사진이 없다면 기본 이미지 URL 입력
@@ -162,6 +162,52 @@ public class CourseService {
             );
         }
         return new GetCourseListRes(getCourses);
+    }
+
+    @SneakyThrows
+    public GetWalksRes getMyAllCourse(String userId) throws BaseException {
+        Integer userIdx = userService.getUserIdxByUserId(userId);
+        List<Walk> walks = walkService.getMyAllWalk(userIdx);
+
+        if(walks==null) {
+            return null;
+        }
+
+        List<GetUserDateRes> getUserDateResList = new ArrayList<>();
+
+        int walkIndex = 0;
+        for (Walk userWalk : walks) {
+            walkIndex++;
+            if (!userWalk.getStatus().equals("ACTIVE")) {
+                continue;
+            }
+
+            UserDateWalk userDateWalk = UserDateWalk.builder()
+                    .walkIdx(walkIndex)
+                    .startTime(userWalk.getStartAt().format(DateTimeFormatter.ofPattern("HH:mm")))
+                    .endTime(userWalk.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")))
+                    .pathImageUrl(new AES128(encryptProperties.getKey()).decrypt(userWalk.getPathImageUrl()))
+                    .build();
+
+            List<Footprint> footprintList = userWalk.getFootprintList();
+            List<String> tagString = new ArrayList<>();
+            for (Footprint footprint : footprintList) {
+                List<Tag> tagList = footprint.getTagList();
+
+                for (Tag tag : tagList) {
+                    if (tag.getStatus().equals("ACTIVE")) {
+                        tagString.add(tag.getHashtag().getHashtag());
+                    }
+                }
+            }
+
+            getUserDateResList.add(GetUserDateRes.builder()
+                    .hashtag(tagString)
+                    .userDateWalk(userDateWalk)
+                    .build());
+        }
+
+        return new GetWalksRes(getUserDateResList);
     }
 
     // 해당 코스의 해시태그 목록 조회
