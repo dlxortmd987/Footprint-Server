@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface TagRepository extends JpaRepository<Tag, Integer> {
-    @Query("select new com.umc.footprint.src.users.model.WalkHashtag(W.walkIdx, W.startAt, W.endAt, W.pathImageUrl, H.hashtag)\n" +
+    @Query("select new com.umc.footprint.src.common.model.vo.WalkHashtag(W.walkIdx, W.startAt, W.endAt, W.pathImageUrl, H.hashtag)\n" +
             "from Walk W\n" +
             "join fetch Footprint F on W.walkIdx = F.walk.walkIdx\n" +
             "join fetch Tag T on F.footprintIdx = T.footprint.footprintIdx\n" +

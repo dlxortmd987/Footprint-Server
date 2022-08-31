@@ -8,7 +8,6 @@ import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
 import com.umc.footprint.src.goal.model.dto.PatchUserGoalReq;
 import com.umc.footprint.src.goal.model.vo.UserGoalDay;
 import com.umc.footprint.src.goal.model.vo.UserGoalTime;
-import com.umc.footprint.src.users.model.*;
 
 import com.umc.footprint.src.users.model.dto.*;
 import com.umc.footprint.src.users.model.vo.ExistUser;
@@ -56,20 +55,6 @@ public class UserDao {
     /*
     *** [1] GET METHOD
     * */
-
-    public List<BadgeInfo> getBadgeList(int userIdx) {
-        String getUserBadgesQuery = "select * from Badge where badgeIdx in " +
-                "(select badgeIdx from UserBadge where userIdx=? and status='ACTIVE');";
-        List<BadgeInfo> badgeInfoList = this.jdbcTemplate.query(getUserBadgesQuery,
-                (rs, rowNum) -> new BadgeInfo(
-                        rs.getInt("badgeIdx"),
-                        rs.getString("badgeName"),
-                        rs.getString("badgeUrl"),
-                        rs.getString("badgeDate")),
-                userIdx);
-
-        return badgeInfoList;
-    }
 
     //yummy
     // 사용자가 얻은 뱃지 등록
