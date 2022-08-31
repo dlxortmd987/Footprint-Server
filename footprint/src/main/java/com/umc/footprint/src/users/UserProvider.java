@@ -3,15 +3,18 @@ package com.umc.footprint.src.users;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
+import com.umc.footprint.src.users.model.dto.GetUserDateRes;
+import com.umc.footprint.src.users.model.dto.GetUserInfoRes;
+import com.umc.footprint.src.users.model.vo.UserInfoAchieve;
+import com.umc.footprint.src.users.model.vo.UserInfoStat;
 import com.umc.footprint.src.walks.WalkDao;
 
-import com.umc.footprint.src.users.model.GetUserTodayRes;
+import com.umc.footprint.src.users.model.dto.GetUserTodayRes;
 import com.umc.footprint.utils.JwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.umc.footprint.src.users.model.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

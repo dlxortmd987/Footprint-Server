@@ -1,4 +1,4 @@
-package com.umc.footprint.src.users.model;
+package com.umc.footprint.src.users.model.dto;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.*;

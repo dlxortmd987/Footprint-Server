@@ -1,6 +1,8 @@
-package com.umc.footprint.src.users.model;
+package com.umc.footprint.src.users.model.dto;
 
 import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
+import com.umc.footprint.src.users.model.vo.UserInfoAchieve;
+import com.umc.footprint.src.users.model.vo.UserInfoStat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

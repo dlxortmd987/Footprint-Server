@@ -9,6 +9,10 @@ import com.umc.footprint.src.goal.model.vo.UserGoalDay;
 import com.umc.footprint.src.goal.model.vo.UserGoalTime;
 import com.umc.footprint.src.users.model.*;
 
+import com.umc.footprint.src.users.model.dto.*;
+import com.umc.footprint.src.users.model.vo.ExistUser;
+import com.umc.footprint.src.users.model.vo.UserInfoAchieve;
+import com.umc.footprint.src.users.model.vo.UserInfoStat;
 import com.umc.footprint.utils.AES128;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

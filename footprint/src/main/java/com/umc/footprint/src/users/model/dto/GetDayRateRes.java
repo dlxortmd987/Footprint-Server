@@ -1,10 +1,9 @@
-package com.umc.footprint.src.users.model;
+package com.umc.footprint.src.users.model.dto;
 
-import lombok.AllArgsConstructor;
+import com.umc.footprint.src.users.model.vo.GetDayRateResInterface;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 @Getter
 @RequiredArgsConstructor

@@ -1,5 +1,6 @@
-package com.umc.footprint.src.users.model;
+package com.umc.footprint.src.users.model.dto;
 
+import com.umc.footprint.src.users.model.vo.GetMonthTotal;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

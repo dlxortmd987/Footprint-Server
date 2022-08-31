@@ -1,4 +1,4 @@
-package com.umc.footprint.src.users.model;
+package com.umc.footprint.src.users.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jdk.jfr.Timespan;

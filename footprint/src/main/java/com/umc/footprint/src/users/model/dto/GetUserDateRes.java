@@ -1,5 +1,6 @@
-package com.umc.footprint.src.users.model;
+package com.umc.footprint.src.users.model.dto;
 
+import com.umc.footprint.src.users.model.UserDateWalk;
 import lombok.*;
 
 import java.util.ArrayList;

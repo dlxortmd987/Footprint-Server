@@ -1,5 +1,6 @@
-package com.umc.footprint.src.users.model;
+package com.umc.footprint.src.users.model.dto;
 
+import com.umc.footprint.src.users.model.SearchWalk;
 import lombok.*;
 
 import java.util.List;

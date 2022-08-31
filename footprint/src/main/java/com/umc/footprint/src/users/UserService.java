@@ -1,11 +1,9 @@
 package com.umc.footprint.src.users;
 
 import com.umc.footprint.config.BaseException;
-import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.AwsS3Service;
 import com.umc.footprint.src.goal.GoalService;
-import com.umc.footprint.src.goal.model.dto.PatchUserGoalReq;
 import com.umc.footprint.src.goal.model.entity.Goal;
 import com.umc.footprint.src.goal.model.entity.GoalDay;
 import com.umc.footprint.src.goal.model.entity.GoalDayNext;
@@ -23,6 +21,11 @@ import com.umc.footprint.src.repository.WalkRepository;
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
 import com.umc.footprint.src.users.model.*;
+import com.umc.footprint.src.users.model.dto.*;
+import com.umc.footprint.src.users.model.vo.GetDayRateResInterface;
+import com.umc.footprint.src.users.model.vo.GetMonthTotal;
+import com.umc.footprint.src.users.model.vo.UserInfoAchieve;
+import com.umc.footprint.src.users.model.vo.UserInfoStat;
 import com.umc.footprint.src.walks.model.GetFootprintCountInterface;
 import com.umc.footprint.src.walks.model.GetMonthTotalInterface;
 import com.umc.footprint.utils.AES128;
@@ -32,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.sql.Timestamp;
 import java.time.*;
