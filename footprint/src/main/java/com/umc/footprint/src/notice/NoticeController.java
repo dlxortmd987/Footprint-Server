@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
-import com.umc.footprint.src.notice.model.*;
+import com.umc.footprint.src.notice.model.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +26,7 @@ public class NoticeController {
     // 페이징 처리된 리스트 목록 조회 GET API
     @ResponseBody
     @GetMapping("/list")
-    public BaseResponse<GetNoticeListRes> getNoticeList(@RequestParam(required = true) int page,@RequestParam(required = true) int size){
+    public BaseResponse<GetNoticeListRes> getNoticeList(@RequestParam(required = true) int page, @RequestParam(required = true) int size){
 
         try {
             GetNoticeListRes noticeList = noticeService.getNoticeList(page, size);

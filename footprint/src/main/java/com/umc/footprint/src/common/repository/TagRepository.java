@@ -1,8 +1,8 @@
 package com.umc.footprint.src.common.repository;
 
-import com.umc.footprint.src.model.Footprint;
+import com.umc.footprint.src.footprints.model.entity.Footprint;
 import com.umc.footprint.src.common.model.entity.Tag;
-import com.umc.footprint.src.users.model.WalkHashtag;
+import com.umc.footprint.src.common.model.vo.WalkHashtag;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface TagRepository extends JpaRepository<Tag, Integer> {
-    @Query("select new com.umc.footprint.src.users.model.WalkHashtag(W.walkIdx, W.startAt, W.endAt, W.pathImageUrl, H.hashtag)\n" +
+    @Query("select new com.umc.footprint.src.common.model.vo.WalkHashtag(W.walkIdx, W.startAt, W.endAt, W.pathImageUrl, H.hashtag)\n" +
             "from Walk W\n" +
             "join fetch Footprint F on W.walkIdx = F.walk.walkIdx\n" +
             "join fetch Tag T on F.footprintIdx = T.footprint.footprintIdx\n" +

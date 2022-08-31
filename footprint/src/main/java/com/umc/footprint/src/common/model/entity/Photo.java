@@ -1,6 +1,6 @@
 package com.umc.footprint.src.common.model.entity;
 
-import com.umc.footprint.src.model.Footprint;
+import com.umc.footprint.src.footprints.model.entity.Footprint;
 import lombok.*;
 
 import javax.persistence.*;
