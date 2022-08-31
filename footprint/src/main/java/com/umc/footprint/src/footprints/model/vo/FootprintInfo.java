@@ -1,4 +1,4 @@
-package com.umc.footprint.src.walks.model;
+package com.umc.footprint.src.footprints.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
@@ -10,7 +10,7 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class SaveFootprint {
+public class FootprintInfo {
 
     @ApiModelProperty(example = "발자국 인덱스")
     private int footprintIdx;
@@ -40,7 +40,7 @@ public class SaveFootprint {
     private List<String> photos;
 
     @Builder
-    public SaveFootprint(int footprintIdx, List<Double> coordinates, String strCoordinate, String write, LocalDateTime recordAt, int walkIdx, int onWalk, List<String> hashtagList, List<String> photos) {
+    public FootprintInfo(int footprintIdx, List<Double> coordinates, String strCoordinate, String write, LocalDateTime recordAt, int walkIdx, int onWalk, List<String> hashtagList, List<String> photos) {
         this.footprintIdx = footprintIdx;
         this.coordinates = coordinates;
         this.strCoordinate = strCoordinate;

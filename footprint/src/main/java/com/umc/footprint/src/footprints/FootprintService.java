@@ -11,8 +11,8 @@ import com.umc.footprint.src.common.model.entity.Tag;
 import com.umc.footprint.src.common.repository.HashtagRepository;
 import com.umc.footprint.src.common.repository.PhotoRepository;
 import com.umc.footprint.src.common.repository.TagRepository;
-import com.umc.footprint.src.footprints.model.GetFootprintRes;
-import com.umc.footprint.src.footprints.model.PatchFootprintReq;
+import com.umc.footprint.src.footprints.model.dto.GetFootprintRes;
+import com.umc.footprint.src.footprints.model.dto.PatchFootprintReq;
 
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;

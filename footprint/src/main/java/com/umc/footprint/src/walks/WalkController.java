@@ -5,14 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
-import com.umc.footprint.src.walks.model.*;
+import com.umc.footprint.src.walks.model.dto.GetWalkInfoRes;
+import com.umc.footprint.src.walks.model.dto.PostWalkReq;
+import com.umc.footprint.src.walks.model.dto.PostWalkRes;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -53,16 +53,16 @@ public class WalkController {
 
     @ResponseBody
     @GetMapping("/{walkIdx}") // (GET) 127.0.0.1:3000/walks/{walkIdx}
-    public BaseResponse<GetWalkInfo> getWalkInfo(@PathVariable("walkIdx") int walkIdx) {
+    public BaseResponse<GetWalkInfoRes> getWalkInfo(@PathVariable("walkIdx") int walkIdx) {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("userId: {}", userId);
 
             // Walk 테이블 전체에서 인덱스
-            GetWalkInfo getWalkInfo = walkService.getWalkInfo(walkIdx, userId);
+            GetWalkInfoRes getWalkInfoRes = walkService.getWalkInfo(walkIdx, userId);
 
-            return new BaseResponse<>(getWalkInfo);
+            return new BaseResponse<>(getWalkInfoRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
         }

@@ -1,4 +1,4 @@
-package com.umc.footprint.src.walks.model;
+package com.umc.footprint.src.badge.model.vo;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Builder;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class BadgeVO {
+public class BadgeInfo {
     // 뱃지 이름, 뱃지 url
     @ApiModelProperty(example = "뱃지 인덱스")
     private int badgeIdx;
@@ -20,7 +20,7 @@ public class BadgeVO {
     private String badgeUrl;
 
     @Builder
-    public BadgeVO(int badgeIdx, String badgeName, String badgeUrl) {
+    public BadgeInfo(int badgeIdx, String badgeName, String badgeUrl) {
         this.badgeIdx = badgeIdx;
         this.badgeName = badgeName;
         this.badgeUrl = badgeUrl;

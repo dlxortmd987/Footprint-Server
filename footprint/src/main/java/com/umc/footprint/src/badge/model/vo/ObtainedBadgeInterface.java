@@ -1,4 +1,4 @@
-package com.umc.footprint.src.walks.model;
+package com.umc.footprint.src.badge.model.vo;
 
 public interface ObtainedBadgeInterface {
     Integer getDistanceBadgeIdx();

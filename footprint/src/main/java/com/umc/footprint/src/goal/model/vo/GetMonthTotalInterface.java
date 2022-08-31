@@ -1,4 +1,4 @@
-package com.umc.footprint.src.walks.model;
+package com.umc.footprint.src.goal.model.vo;
 
 public interface GetMonthTotalInterface {
     int getMonthTotalMin(); //이번달 총 산책 시간(누적)

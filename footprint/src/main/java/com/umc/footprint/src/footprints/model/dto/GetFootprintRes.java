@@ -1,4 +1,4 @@
-package com.umc.footprint.src.footprints.model;
+package com.umc.footprint.src.footprints.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;

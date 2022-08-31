@@ -1,4 +1,4 @@
-package com.umc.footprint.src.walks.model;
+package com.umc.footprint.src.walks.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModelProperty;
@@ -9,7 +9,7 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class SaveWalk {
+public class WalkInfo {
 
     @ApiModelProperty(example = "산책 인덱스", hidden = true)
     private int walkIdx;
@@ -40,7 +40,7 @@ public class SaveWalk {
     private String thumbnail;
 
     @Builder
-    public SaveWalk(int walkIdx, LocalDateTime startAt, LocalDateTime endAt, double distance, List<List<Double>> coordinates, int userIdx, String strCoordinates, Double goalRate, int calorie, String thumbnail) {
+    public WalkInfo(int walkIdx, LocalDateTime startAt, LocalDateTime endAt, double distance, List<List<Double>> coordinates, int userIdx, String strCoordinates, Double goalRate, int calorie, String thumbnail) {
         this.walkIdx = walkIdx;
         this.startAt = startAt;
         this.endAt = endAt;

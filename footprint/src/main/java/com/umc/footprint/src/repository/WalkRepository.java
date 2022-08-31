@@ -1,16 +1,14 @@
 package com.umc.footprint.src.repository;
 
 import com.umc.footprint.src.model.Walk;
-import com.umc.footprint.src.users.model.GetDayRateRes;
 import com.umc.footprint.src.users.model.GetDayRateResInterface;
-import com.umc.footprint.src.walks.model.GetFootprintCountInterface;
-import com.umc.footprint.src.walks.model.GetMonthTotalInterface;
-import com.umc.footprint.src.walks.model.ObtainedBadgeInterface;
+import com.umc.footprint.src.footprints.model.vo.GetFootprintCountInterface;
+import com.umc.footprint.src.goal.model.vo.GetMonthTotalInterface;
+import com.umc.footprint.src.badge.model.vo.ObtainedBadgeInterface;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import java.time.LocalDateTime;
 
 import org.springframework.data.repository.query.Param;
 
