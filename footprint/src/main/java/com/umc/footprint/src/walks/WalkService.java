@@ -9,9 +9,6 @@ import com.umc.footprint.utils.AES128;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.io.WKTReader;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -19,12 +16,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -58,7 +49,7 @@ public class WalkService {
     private final EncryptProperties encryptProperties;
 
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-    public List<PostWalkRes> saveRecord(String userId,PostWalkReq request) throws BaseException {
+    public PostWalkRes saveRecord(String userId, PostWalkReq request) throws BaseException {
         log.debug("Validation 1. 동선 이미지가 안왔을 경우");
         if (request.getWalk().getThumbnail().isEmpty()) {
             throw new BaseException(EMPTY_WALK_PHOTO);
@@ -88,7 +79,7 @@ public class WalkService {
                     .calorie(request.getWalk().getCalorie())
                     .status("ACTIVE")
                     .build();
-            walkRepository.save(beforeSaveWalk);
+            Integer savedWalkIdx = walkRepository.save(beforeSaveWalk).getWalkIdx();
 
             if (!request.getFootprintList().isEmpty()) {
                 for (SaveFootprint footprint : request.getFootprintList()) {
@@ -137,7 +128,7 @@ public class WalkService {
 
             // badge 획득 여부 확인 및 id 반환
             log.debug("10. badge 획득 여부 확인 후 얻은 badgeIdxList 반환");
-            List<PostWalkRes> postWalkResList = new ArrayList<>();
+            List<BadgeVO> badgeVOList = new ArrayList<>();
             List<Integer> acquiredBadgeIdxList = getAcquiredBadgeIdxList(userIdx);
             Collections.sort(acquiredBadgeIdxList);
 
@@ -167,11 +158,14 @@ public class WalkService {
 
             //획득한 뱃지 넣기 (뱃지 아이디로 뱃지 이름이랑 그림 반환)
             log.debug("12. 뱃지 리스트로 이름과 url 반환 후 request 객체에 저장");
-            postWalkResList = getBadgeInfo(acquiredBadgeIdxList);
+            badgeVOList = getBadgeInfo(acquiredBadgeIdxList);
 
-            log.debug("response로 반환할 뱃지 이름: {}", postWalkResList.stream().map(PostWalkRes::getBadgeName).collect(Collectors.toList()));
+            log.debug("response로 반환할 뱃지 이름: {}", badgeVOList.stream().map(BadgeVO::getBadgeName).collect(Collectors.toList()));
 
-            return postWalkResList;
+            return PostWalkRes.builder()
+                    .walkIdx(savedWalkIdx)
+                    .badgeVOList(badgeVOList)
+                    .build();
 
         } catch (Exception exception) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -218,20 +212,20 @@ public class WalkService {
         }
     }
 
-    public List<PostWalkRes> getBadgeInfo(List<Integer> acquiredBadgeIdxList) throws BaseException {
+    public List<BadgeVO> getBadgeInfo(List<Integer> acquiredBadgeIdxList) throws BaseException {
         try {
-            List<PostWalkRes> postWalkResList = new ArrayList<>();
+            List<BadgeVO> badgeVOList = new ArrayList<>();
             List<Badge> allById = badgeRepository.findAllById(acquiredBadgeIdxList);
             for (Badge badge : allById) {
-                postWalkResList.add(
-                        PostWalkRes.builder()
+                badgeVOList.add(
+                        BadgeVO.builder()
                                 .badgeIdx(badge.getBadgeIdx())
                                 .badgeName(badge.getBadgeName())
                                 .badgeUrl(badge.getBadgeUrl())
                                 .build()
                 );
             }
-            return postWalkResList;
+            return badgeVOList;
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }

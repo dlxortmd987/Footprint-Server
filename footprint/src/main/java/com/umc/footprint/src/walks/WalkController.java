@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
-import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.src.walks.model.*;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiOperation;
@@ -31,7 +30,7 @@ public class WalkController {
     @ResponseBody
     @PostMapping("") // (POST) 127.0.0.1:3000/walks/
     @ApiOperation(value = "산책 기록 저장")
-    public BaseResponse<List<PostWalkRes>> saveRecord(@RequestBody String request) throws BaseException, JsonProcessingException {
+    public BaseResponse<PostWalkRes> saveRecord(@RequestBody String request) throws BaseException, JsonProcessingException {
 
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
@@ -44,8 +43,8 @@ public class WalkController {
         // userId로 userIdx 추출
 
         try {
-            List<PostWalkRes> postWalkResList = walkService.saveRecord(userId, postWalkReq);
-            return new BaseResponse<>(postWalkResList);
+            PostWalkRes postWalkRes = walkService.saveRecord(userId, postWalkReq);
+            return new BaseResponse<>(postWalkRes);
 
         } catch (BaseException exception) {
             return new BaseResponse<>(exception.getStatus());

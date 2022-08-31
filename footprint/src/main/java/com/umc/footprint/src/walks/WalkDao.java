@@ -14,11 +14,8 @@ import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.*;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimeZone;
 
 @Slf4j
 @Repository
@@ -210,12 +207,12 @@ public class WalkDao {
     }
 
     // 뱃지 정보 조회
-    public List<PostWalkRes> getBadgeInfo(List<Integer> badgeIdxList) {
+    public List<BadgeVO> getBadgeInfo(List<Integer> badgeIdxList) {
         String getBadgeInfoQuery = "select badgeIdx, badgeName, badgeUrl from Badge where badgeIdx = ?";
-        List<PostWalkRes> postWalkResList = new ArrayList<PostWalkRes>();
+        List<BadgeVO> badgeVOList = new ArrayList<BadgeVO>();
         for (Integer badgeIdx : badgeIdxList) {
-            postWalkResList.add(this.jdbcTemplate.queryForObject(getBadgeInfoQuery,
-                            (rs, rowNum) -> PostWalkRes.builder()
+            badgeVOList.add(this.jdbcTemplate.queryForObject(getBadgeInfoQuery,
+                            (rs, rowNum) -> BadgeVO.builder()
                                     .badgeIdx(rs.getInt("badgeIdx"))
                                     .badgeName(rs.getString("badgeName"))
                                     .badgeUrl(rs.getString("badgeUrl"))
@@ -223,7 +220,7 @@ public class WalkDao {
                     , badgeIdx));
         }
 
-        return postWalkResList;
+        return badgeVOList;
     }
 
     // 유저의 산책 회수 반환

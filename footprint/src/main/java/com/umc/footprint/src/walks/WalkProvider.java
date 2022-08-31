@@ -74,10 +74,10 @@ public class WalkProvider {
     }
 
     // 뱃지 idx에 해당하는 이름과 url 반환
-    public List<PostWalkRes> getBadgeInfo(List<Integer> acquiredBadgeIdxList) throws BaseException {
+    public List<BadgeVO> getBadgeInfo(List<Integer> acquiredBadgeIdxList) throws BaseException {
         try {
-            List<PostWalkRes> postWalkResList = walkDao.getBadgeInfo(acquiredBadgeIdxList);
-            return postWalkResList;
+            List<BadgeVO> badgeVOList = walkDao.getBadgeInfo(acquiredBadgeIdxList);
+            return badgeVOList;
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
