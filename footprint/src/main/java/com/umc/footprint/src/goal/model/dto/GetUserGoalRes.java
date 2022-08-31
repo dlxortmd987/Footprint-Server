@@ -1,7 +1,7 @@
-package com.umc.footprint.src.users.model;
+package com.umc.footprint.src.goal.model.dto;
 
+import com.umc.footprint.src.goal.model.vo.UserGoalTime;
 import lombok.*;
-import org.apache.catalina.User;
 
 import java.util.List;
 

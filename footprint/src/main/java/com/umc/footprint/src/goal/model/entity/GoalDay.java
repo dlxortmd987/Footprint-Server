@@ -1,4 +1,4 @@
-package com.umc.footprint.src.model;
+package com.umc.footprint.src.goal.model.entity;
 
 import com.umc.footprint.utils.BaseEntity;
 import lombok.AccessLevel;
@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 @Getter
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "GoalDayNext")
-public class GoalDayNext extends BaseEntity {
+@Table(name = "GoalDay")
+public class GoalDay extends BaseEntity {
 
     @Id
     @Column(name = "planIdx")
@@ -45,7 +45,7 @@ public class GoalDayNext extends BaseEntity {
     private Integer sat;
 
     @Builder
-    public GoalDayNext(Integer planIdx, Integer userIdx, Integer sun, Integer mon, Integer tue, Integer wed, Integer thu, Integer fri, Integer sat) {
+    public GoalDay(Integer planIdx, Integer userIdx, Integer sun, Integer mon, Integer tue, Integer wed, Integer thu, Integer fri, Integer sat) {
         this.planIdx = planIdx;
         this.userIdx = userIdx;
         this.sun = sun;
@@ -56,36 +56,4 @@ public class GoalDayNext extends BaseEntity {
         this.fri = fri;
         this.sat = sat;
     }
-
-    public void setSun(Integer sun) {
-        this.sun = sun;
-    }
-
-    public void setMon(Integer mon) {
-        this.mon = mon;
-    }
-
-    public void setTue(Integer tue) {
-        this.tue = tue;
-    }
-
-    public void setWed(Integer wed) {
-        this.wed = wed;
-    }
-
-    public void setThu(Integer thu) {
-        this.thu = thu;
-    }
-
-    public void setFri(Integer fri) {
-        this.fri = fri;
-    }
-
-    public void setSat(Integer sat) {
-        this.sat = sat;
-    }
-
-//    public void setUpdateAt(LocalDateTime updateAt) {
-//        this.updateAt = updateAt;
-//    }
 }

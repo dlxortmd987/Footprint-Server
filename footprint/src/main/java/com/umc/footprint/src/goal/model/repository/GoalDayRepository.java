@@ -1,14 +1,11 @@
-package com.umc.footprint.src.repository;
+package com.umc.footprint.src.goal.model.repository;
 
-import com.umc.footprint.src.model.GoalDay;
-import com.umc.footprint.src.users.model.GetGoalDays;
-import com.umc.footprint.src.users.model.GoalDayInterface;
+import com.umc.footprint.src.goal.model.entity.GoalDay;
+import com.umc.footprint.src.goal.model.vo.GoalDayInterface;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 

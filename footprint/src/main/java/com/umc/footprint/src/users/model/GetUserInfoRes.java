@@ -1,5 +1,6 @@
 package com.umc.footprint.src.users.model;
 
+import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

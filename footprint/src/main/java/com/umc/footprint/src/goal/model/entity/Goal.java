@@ -1,4 +1,4 @@
-package com.umc.footprint.src.model;
+package com.umc.footprint.src.goal.model.entity;
 
 import com.umc.footprint.utils.BaseEntity;
 import lombok.AccessLevel;
