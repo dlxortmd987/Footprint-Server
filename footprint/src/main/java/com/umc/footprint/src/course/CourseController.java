@@ -15,6 +15,7 @@ import com.umc.footprint.src.course.model.dto.GetWalkDetailsRes;
 import com.umc.footprint.src.course.model.dto.PatchCourseDetailsReq;
 import com.umc.footprint.src.course.model.dto.PostCourseDetailsReq;
 import com.umc.footprint.src.users.UserService;
+import com.umc.footprint.src.walks.model.dto.GetWalksRes;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -231,4 +232,16 @@ public class CourseController {
         }
     }
 
+    @ResponseBody
+    @GetMapping("/list/self")
+    @ApiOperation(value = "나의 모든 추천 가능 코스 보기 (모든 산책 보기)")
+    public BaseResponse<GetWalksRes> getMyAllCourse() throws BaseException {
+        String userId = jwtService.getUserId();
+        try {
+            GetWalksRes getWalksRes = courseService.getMyAllCourse(userId);
+            return new BaseResponse<>(getWalksRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>(exception.getStatus());
+        }
+    }
 }
