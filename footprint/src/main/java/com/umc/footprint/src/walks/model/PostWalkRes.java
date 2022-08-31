@@ -1,6 +1,5 @@
 package com.umc.footprint.src.walks.model;
 
-import com.umc.footprint.src.model.Badge;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,11 +1,15 @@
 package com.umc.footprint.src.users;
 
 import com.umc.footprint.config.BaseException;
-import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.AwsS3Service;
+import com.umc.footprint.src.badge.model.Badge;
+import com.umc.footprint.src.badge.model.BadgeInfo;
+import com.umc.footprint.src.badge.model.BadgeOrder;
+import com.umc.footprint.src.badge.model.BadgeRepository;
+import com.umc.footprint.src.badge.model.UserBadge;
+import com.umc.footprint.src.badge.model.UserBadgeRepository;
 import com.umc.footprint.src.goal.GoalService;
-import com.umc.footprint.src.goal.model.dto.PatchUserGoalReq;
 import com.umc.footprint.src.goal.model.entity.Goal;
 import com.umc.footprint.src.goal.model.entity.GoalDay;
 import com.umc.footprint.src.goal.model.entity.GoalDayNext;
@@ -32,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import java.sql.Timestamp;
 import java.time.*;
@@ -163,9 +166,9 @@ public class UserService {
 
     // 유저 정보 수정(Patch)
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-    public void modifyUserInfoJPA(int userIdx, PatchUserInfoReq patchUserInfoReq) throws BaseException {
+    public void modifyUserInfoJPA(String userId, PatchUserInfoReq patchUserInfoReq) throws BaseException {
         try {
-
+            int userIdx = getUserIdxByUserId(userId);
             Optional<User> user = userRepository.findByUserIdx(userIdx);
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -369,8 +372,9 @@ public class UserService {
     }
 
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-    public void deleteUserJPA(int userIdx) throws BaseException {
+    public void deleteUserJPA(String userId) throws BaseException {
         try{
+            int userIdx = getUserIdxByUserId(userId);
             // GoalNext 테이블
             Optional<GoalNext> goalNext = goalNextRepository.findByUserIdx(userIdx);
             goalNextRepository.deleteById(goalNext.get().getPlanIdx());
@@ -442,8 +446,8 @@ public class UserService {
         }
     }
 
-    public GetUserTodayRes getUserToday(int userIdx) throws BaseException{
-
+    public GetUserTodayRes getUserToday(String userId) throws BaseException{
+        int userIdx = getUserIdxByUserId(userId);
         List<Walk> userWalkList = walkRepository.findAllByStatusAndUserIdx("ACTIVE", userIdx);
         System.out.println("userWalkList.size() = " + userWalkList.size());
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
@@ -549,9 +553,10 @@ public class UserService {
 
     }
 
-    public List<GetUserDateRes> getUserDate(int userIdx, String date) throws BaseException {
+    public List<GetUserDateRes> getUserDate(String userId, String date) throws BaseException {
 
         try {
+            int userIdx = getUserIdxByUserId(userId);
 
             List<Walk> userWalkList = walkRepository.findAllByStatusAndUserIdx("ACTIVE", userIdx);
             List<GetUserDateRes> getUserDateResList = new ArrayList<>();
@@ -934,9 +939,9 @@ public class UserService {
         return monthGoalRate;
     }
 
-    public GetUserRes getUser(int userIdx) throws BaseException {
+    public GetUserRes getUser(String userId) throws BaseException {
         try{
-
+            int userIdx = getUserIdxByUserId(userId);
             Optional<User> user = userRepository.findByUserIdx(userIdx);
 
             if(user == null){

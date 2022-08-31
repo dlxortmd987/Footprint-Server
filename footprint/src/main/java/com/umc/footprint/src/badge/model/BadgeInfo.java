@@ -1,11 +1,8 @@
-package com.umc.footprint.src.users.model;
+package com.umc.footprint.src.badge.model;
 
-import com.umc.footprint.src.model.Badge;
-import lombok.AllArgsConstructor;
+import com.umc.footprint.src.badge.model.Badge;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 @Getter
 @RequiredArgsConstructor

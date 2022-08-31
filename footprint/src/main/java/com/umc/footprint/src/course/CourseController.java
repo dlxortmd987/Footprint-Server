@@ -11,6 +11,7 @@ import com.umc.footprint.src.users.UserProvider;
 import com.umc.footprint.src.course.model.GetCourseInfoRes;
 import com.umc.footprint.src.course.model.GetCourseListReq;
 import com.umc.footprint.src.course.model.GetCourseListRes;
+import com.umc.footprint.src.users.UserService;
 import com.umc.footprint.src.walks.model.GetCourseDetailsRes;
 import com.umc.footprint.src.walks.model.GetWalkDetailsRes;
 import com.umc.footprint.src.walks.model.PatchCourseDetailsReq;
@@ -29,7 +30,7 @@ import java.util.List;
 @RequestMapping("/courses")
 public class CourseController {
 
-    private final UserProvider userProvider;
+    private final UserService userService;
     private final CourseService courseService;
     private final JwtService jwtService;
 
@@ -41,7 +42,7 @@ public class CourseController {
         String userId = jwtService.getUserId();
         log.debug("유저 id: {}", userId);
         // userId로 userIdx 추출
-        int userIdx = userProvider.getUserIdx(userId);
+        int userIdx = userService.getUserIdxByUserId(userId);
 
         GetCourseListReq getWalkListReq = new ObjectMapper().readValue(request, GetCourseListReq.class);
 

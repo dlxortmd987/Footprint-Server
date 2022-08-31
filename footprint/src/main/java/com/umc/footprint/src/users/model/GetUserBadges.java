@@ -1,11 +1,10 @@
 package com.umc.footprint.src.users.model;
 
-import com.umc.footprint.src.model.Badge;
-import lombok.AllArgsConstructor;
+import com.umc.footprint.src.badge.model.BadgeInfo;
+import com.umc.footprint.src.badge.model.BadgeOrder;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 import java.util.List;
 

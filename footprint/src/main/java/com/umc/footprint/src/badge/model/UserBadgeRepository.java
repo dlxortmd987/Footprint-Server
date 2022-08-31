@@ -1,6 +1,6 @@
-package com.umc.footprint.src.repository;
+package com.umc.footprint.src.badge.model;
 
-import com.umc.footprint.src.model.UserBadge;
+import com.umc.footprint.src.badge.model.UserBadge;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

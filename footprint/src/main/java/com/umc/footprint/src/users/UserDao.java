@@ -3,6 +3,7 @@ package com.umc.footprint.src.users;
 
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.EncryptProperties;
+import com.umc.footprint.src.badge.model.BadgeInfo;
 import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
 import com.umc.footprint.src.goal.model.dto.PatchUserGoalReq;
 import com.umc.footprint.src.goal.model.vo.UserGoalDay;
