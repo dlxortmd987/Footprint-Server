@@ -11,11 +11,9 @@ import java.util.List;
 @NoArgsConstructor
 public class PostWalkRes {
     private List<BadgeInfo> badgeInfoList;
-    private Integer walkIdx;
 
     @Builder
-    public PostWalkRes(List<BadgeInfo> badgeInfoList, Integer walkIdx) {
+    public PostWalkRes(List<BadgeInfo> badgeInfoList) {
         this.badgeInfoList = badgeInfoList;
-        this.walkIdx = walkIdx;
     }
 }
