@@ -635,4 +635,16 @@ public class CourseService {
                 .photos(photos)
                 .build();
     }
+
+    public void deleteCourse(int courseIdx, String userId) throws BaseException {
+        Course course = courseRepository.findByCourseIdx(courseIdx).orElseThrow(() -> new BaseException(NOT_EXIST_COURSE));
+        Integer userIdx = userService.getUserIdxByUserId(userId);
+
+        if(course.getUserIdx() != userIdx) {
+            throw new BaseException(INVALID_USERIDX);
+        }
+
+        course.updateStatus("INACTIVE");
+        courseRepository.save(course);
+    }
 }

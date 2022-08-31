@@ -233,6 +233,19 @@ public class CourseController {
     }
 
     @ResponseBody
+    @PatchMapping("/recommend/{courseIdx}/status")
+    @ApiOperation(value = "나의 추천 코스 삭제")
+    public BaseResponse<String> deleteCourse(@PathVariable("courseIdx") int courseIdx) throws BaseException {
+        String userId = jwtService.getUserId();
+        try {
+            courseService.deleteCourse(courseIdx, userId);
+            String result = "코스를 삭제했습니다";
+            return new BaseResponse<>(result);
+        } catch (BaseException exception) {
+            return new BaseResponse<>(exception.getStatus());
+        }
+    }
+
     @GetMapping("/list/self")
     @ApiOperation(value = "나의 모든 추천 가능 코스 보기 (모든 산책 보기)")
     public BaseResponse<GetWalksRes> getMyAllCourse() throws BaseException {
