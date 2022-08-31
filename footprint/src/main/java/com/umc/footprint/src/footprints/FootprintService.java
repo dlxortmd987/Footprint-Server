@@ -5,6 +5,7 @@ import static com.umc.footprint.config.BaseResponseStatus.*;
 
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.AwsS3Service;
+import com.umc.footprint.src.common.model.entity.Hashtag;
 import com.umc.footprint.src.footprints.model.GetFootprintRes;
 import com.umc.footprint.src.footprints.model.PatchFootprintReq;
 

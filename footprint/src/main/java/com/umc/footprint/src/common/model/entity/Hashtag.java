@@ -1,4 +1,4 @@
-package com.umc.footprint.src.model;
+package com.umc.footprint.src.common.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AccessLevel;
