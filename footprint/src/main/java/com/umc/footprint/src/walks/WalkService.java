@@ -72,8 +72,8 @@ public class WalkService {
     private final EncryptProperties encryptProperties;
 
     @Transactional(readOnly = true)
-    public List<Walk> getMyAllWalk(int userIdx) throws BaseException{
-        return walkRepository.findAllByStatusAndUserIdx("ACTIVE", userIdx);
+    public List<Walk> getMyAllWalk(int userIdx) {
+        return walkRepository.getAllByUserIdx(userIdx);
     }
 
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
