@@ -6,8 +6,13 @@ import static com.umc.footprint.config.BaseResponseStatus.*;
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.AwsS3Service;
 import com.umc.footprint.src.common.model.entity.Hashtag;
-import com.umc.footprint.src.footprints.model.GetFootprintRes;
-import com.umc.footprint.src.footprints.model.PatchFootprintReq;
+import com.umc.footprint.src.common.model.entity.Photo;
+import com.umc.footprint.src.common.model.entity.Tag;
+import com.umc.footprint.src.common.repository.HashtagRepository;
+import com.umc.footprint.src.common.repository.PhotoRepository;
+import com.umc.footprint.src.common.repository.TagRepository;
+import com.umc.footprint.src.footprints.model.dto.GetFootprintRes;
+import com.umc.footprint.src.footprints.model.dto.PatchFootprintReq;
 
 import com.umc.footprint.src.model.*;
 import com.umc.footprint.src.repository.*;
