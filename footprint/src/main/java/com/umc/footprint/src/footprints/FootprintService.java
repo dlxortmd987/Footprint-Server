@@ -175,14 +175,10 @@ public class FootprintService {
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public void deleteFootprintJPA(int footprintIdx) throws BaseException {
         try {
-            Optional<Footprint> targetFootprint = footprintRepository.findByFootprintIdx(footprintIdx);
-
-            if(targetFootprint.isEmpty()) { // 발자국이 존재하지 않을 때
-                throw new BaseException(NO_EXIST_FOOTPRINT);
-            }
+            Footprint targetFootprint = footprintRepository.findByFootprintIdx(footprintIdx).orElseThrow(() -> new BaseException(NO_EXIST_FOOTPRINT));
 
             // Photo status 변경
-            List<Photo> photoByFootprintIdx = photoRepository.findPhotoByFootprint(targetFootprint.get());
+            List<Photo> photoByFootprintIdx = photoRepository.findPhotoByFootprint(targetFootprint);
 
             for(Photo photo : photoByFootprintIdx){
                 photo.setStatus("INACTIVE");
@@ -190,7 +186,7 @@ public class FootprintService {
             }
 
             // Hashtag status 변경
-            List<Tag> TagByFootprintIdx = tagRepository.findByFootprint(targetFootprint.get());
+            List<Tag> TagByFootprintIdx = tagRepository.findByFootprint(targetFootprint);
 
             for(Tag tag : TagByFootprintIdx){
                 tag.setStatus("INACTIVE");
@@ -198,8 +194,8 @@ public class FootprintService {
             }
 
             // Footprint status 변경
-            targetFootprint.get().setStatus("INACTIVE");
-            footprintRepository.save(targetFootprint.get());
+            targetFootprint.setStatus("INACTIVE");
+            footprintRepository.save(targetFootprint);
 
 
         } catch (Exception exception) {

@@ -23,6 +23,7 @@ import com.umc.footprint.src.footprints.model.vo.FootprintInfo;
 import com.umc.footprint.src.footprints.repository.FootprintRepository;
 import com.umc.footprint.src.goal.model.entity.Goal;
 import com.umc.footprint.src.goal.repository.GoalRepository;
+import com.umc.footprint.src.users.UserService;
 import com.umc.footprint.src.users.model.entity.User;
 import com.umc.footprint.src.users.repository.UserRepository;
 import com.umc.footprint.src.walks.model.dto.GetWalkInfoRes;
@@ -69,10 +70,7 @@ public class WalkService {
     private final GoalRepository goalRepository;
     private final UserBadgeRepository userBadgeRepository;
     private final BadgeRepository badgeRepository;
-    private final CourseTagRepository courseTagRepository;
-    private final UserCourseRepository userCourseRepository;
-    private final MarkRepository markRepository;
-    private final CourseRepository courseRepository;
+    private final UserService userService;
     private final EncryptProperties encryptProperties;
 
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
@@ -381,7 +379,7 @@ public class WalkService {
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public String deleteWalk(int walkIdx, String userId) throws BaseException {
         try {
-            Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
+            Integer userIdx = userService.getUserIdxByUserId(userId);
 
             Walk walkByNumber = getWalkByNumber(walkIdx, userIdx);
 

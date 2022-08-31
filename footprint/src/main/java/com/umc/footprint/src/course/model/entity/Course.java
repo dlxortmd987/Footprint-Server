@@ -97,4 +97,8 @@ public class Course extends BaseEntity {
         this.courseTime = patchCourseDetailsReq.getCourseTime();
         this.description = patchCourseDetailsReq.getDescription();
     }
+
+    public void updateStatus(String status) {
+        this.status = status;
+    }
 }
