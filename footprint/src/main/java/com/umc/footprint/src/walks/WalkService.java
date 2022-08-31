@@ -190,7 +190,6 @@ public class WalkService {
             log.debug("response로 반환할 뱃지 이름: {}", badgeInfoList.stream().map(BadgeInfo::getBadgeName).collect(Collectors.toList()));
 
             return PostWalkRes.builder()
-                    .walkIdx(savedWalkIdx)
                     .badgeInfoList(badgeInfoList)
                     .build();
 
