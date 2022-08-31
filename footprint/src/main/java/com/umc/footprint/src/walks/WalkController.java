@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RequiredArgsConstructor
 @RestController
@@ -30,7 +32,7 @@ public class WalkController {
     @ResponseBody
     @PostMapping("") // (POST) 127.0.0.1:3000/walks/
     @ApiOperation(value = "산책 기록 저장")
-    public BaseResponse<PostWalkRes> saveRecord(@RequestBody String request) throws BaseException, JsonProcessingException {
+    public BaseResponse<List<PostWalkRes>> saveRecord(@RequestBody String request) throws BaseException, JsonProcessingException {
 
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
@@ -43,8 +45,8 @@ public class WalkController {
         // userId로 userIdx 추출
 
         try {
-            PostWalkRes postWalkRes = walkService.saveRecord(userId, postWalkReq);
-            return new BaseResponse<>(postWalkRes);
+            List<PostWalkRes> postWalkResList = walkService.saveRecord(userId, postWalkReq);
+            return new BaseResponse<>(postWalkResList);
 
         } catch (BaseException exception) {
             return new BaseResponse<>(exception.getStatus());

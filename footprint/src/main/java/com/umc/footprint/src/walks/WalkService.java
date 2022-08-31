@@ -73,8 +73,13 @@ public class WalkService {
     private final UserService userService;
     private final EncryptProperties encryptProperties;
 
+    @Transactional(readOnly = true)
+    public List<Walk> getMyAllWalk(int userIdx) {
+        return walkRepository.getAllByUserIdx(userIdx);
+    }
+
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-    public PostWalkRes saveRecord(String userId, PostWalkReq request) throws BaseException {
+    public List<PostWalkRes> saveRecord(String userId, PostWalkReq request) throws BaseException {
         log.debug("Validation 1. 동선 이미지가 안왔을 경우");
         if (request.getWalk().getThumbnail().isEmpty()) {
             throw new BaseException(EMPTY_WALK_PHOTO);
@@ -82,7 +87,6 @@ public class WalkService {
 
         // userIdx 추출
         int userIdx = userRepository.findByUserId(userId).getUserIdx();
-
 
         try {
             String encryptImage = new AES128(encryptProperties.getKey()).encrypt(request.getWalk().getThumbnail());
@@ -187,10 +191,18 @@ public class WalkService {
 
             log.debug("response로 반환할 뱃지 이름: {}", badgeInfoList.stream().map(BadgeInfo::getBadgeName).collect(Collectors.toList()));
 
-            return PostWalkRes.builder()
-                    .walkIdx(savedWalkIdx)
-                    .badgeInfoList(badgeInfoList)
-                    .build();
+            List<PostWalkRes> postWalkResList = new ArrayList<>();
+            for (BadgeInfo badgeInfo : badgeInfoList) {
+                postWalkResList.add(
+                        PostWalkRes.builder()
+                                .badgeIdx(badgeInfo.getBadgeIdx())
+                                .badgeName(badgeInfo.getBadgeName())
+                                .badgeUrl(badgeInfo.getBadgeUrl())
+                                .build()
+                );
+            }
+
+            return postWalkResList;
 
         } catch (Exception exception) {
             TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

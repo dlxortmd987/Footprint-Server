@@ -15,6 +15,7 @@ import com.umc.footprint.src.course.model.dto.GetWalkDetailsRes;
 import com.umc.footprint.src.course.model.dto.PatchCourseDetailsReq;
 import com.umc.footprint.src.course.model.dto.PostCourseDetailsReq;
 import com.umc.footprint.src.users.UserService;
+import com.umc.footprint.src.walks.model.dto.GetWalksRes;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -193,7 +194,7 @@ public class CourseController {
      * @return GetWalkDetailsRes 산책 정보
      */
     @GetMapping("/path/{walkNumber}")
-    public BaseResponse<GetWalkDetailsRes> getWalkDetails(@RequestParam(name = "walkNumber") Integer walkNumber) throws BaseException {
+    public BaseResponse<GetWalkDetailsRes> getWalkDetails(@PathVariable(name = "walkNumber") Integer walkNumber) throws BaseException {
         String userId = jwtService.getUserId();
         log.debug("userId: {}", userId);
 
@@ -240,6 +241,18 @@ public class CourseController {
             courseService.deleteCourse(courseIdx, userId);
             String result = "코스를 삭제했습니다";
             return new BaseResponse<>(result);
+        } catch (BaseException exception) {
+            return new BaseResponse<>(exception.getStatus());
+        }
+    }
+
+    @GetMapping("/list/self")
+    @ApiOperation(value = "나의 모든 추천 가능 코스 보기 (모든 산책 보기)")
+    public BaseResponse<GetWalksRes> getMyAllCourse() throws BaseException {
+        String userId = jwtService.getUserId();
+        try {
+            GetWalksRes getWalksRes = courseService.getMyAllCourse(userId);
+            return new BaseResponse<>(getWalksRes);
         } catch (BaseException exception) {
             return new BaseResponse<>(exception.getStatus());
         }

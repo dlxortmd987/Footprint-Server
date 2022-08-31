@@ -1,6 +1,5 @@
 package com.umc.footprint.src.users.model.dto;
 
-import com.umc.footprint.src.common.model.vo.SearchWalk;
 import lombok.*;
 
 import java.util.List;
@@ -9,10 +8,10 @@ import java.util.List;
 @NoArgsConstructor
 public class GetTagRes {
     private String walkAt;
-    private List<SearchWalk> walks;
+    private List<GetUserDateRes> walks;
 
     @Builder
-    public GetTagRes(String walkAt, List<SearchWalk> walks) {
+    public GetTagRes(String walkAt, List<GetUserDateRes> walks) {
         this.walkAt = walkAt;
         this.walks = walks;
     }
