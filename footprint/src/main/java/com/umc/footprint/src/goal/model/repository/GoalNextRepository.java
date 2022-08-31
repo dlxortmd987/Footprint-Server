@@ -1,6 +1,6 @@
-package com.umc.footprint.src.repository;
+package com.umc.footprint.src.goal.model.repository;
 
-import com.umc.footprint.src.model.GoalNext;
+import com.umc.footprint.src.goal.model.entity.GoalNext;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

@@ -1,6 +1,6 @@
-package com.umc.footprint.src.repository;
+package com.umc.footprint.src.goal.model.repository;
 
-import com.umc.footprint.src.model.Goal;
+import com.umc.footprint.src.goal.model.entity.Goal;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
 
