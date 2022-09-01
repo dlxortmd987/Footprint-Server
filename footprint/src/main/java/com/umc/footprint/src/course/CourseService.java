@@ -129,7 +129,7 @@ public class CourseService {
         List<Integer> courseIdxes = markRepository.getCourseIdxByUserIdxAndMark(userIdx, Boolean.TRUE);
 
         if(courseIdxes.size()==0) {
-            throw new BaseException(NOT_EXIST_MARK_COURSE);
+            return null;
         }
 
         List<Course> courses = courseRepository.getAllByCourseIdx(courseIdxes);
