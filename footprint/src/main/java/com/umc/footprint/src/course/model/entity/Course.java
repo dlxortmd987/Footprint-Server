@@ -1,6 +1,7 @@
 package com.umc.footprint.src.course.model.entity;
 
 import com.umc.footprint.src.course.model.dto.PatchCourseDetailsReq;
+import com.umc.footprint.src.course.model.vo.CourseStatus;
 import com.umc.footprint.utils.BaseEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -55,10 +56,10 @@ public class Course extends BaseEntity {
     private Integer likeNum;
 
     @Column(name = "status")
-    private String status;
+    private CourseStatus status;
 
     @Builder
-    public Course(Integer courseIdx, String courseName, String courseImg, Point startCoordinate, String coordinate, String address, Double length, Integer courseTime, Integer walkIdx, Integer userIdx, String description, Integer likeNum, String status) {
+    public Course(Integer courseIdx, String courseName, String courseImg, Point startCoordinate, String coordinate, String address, Double length, Integer courseTime, Integer walkIdx, Integer userIdx, String description, Integer likeNum, CourseStatus status) {
         this.courseIdx = courseIdx;
         this.courseName = courseName;
         this.courseImg = courseImg;
@@ -98,7 +99,7 @@ public class Course extends BaseEntity {
         this.description = patchCourseDetailsReq.getDescription();
     }
 
-    public void updateStatus(String status) {
+    public void updateStatus(CourseStatus status) {
         this.status = status;
     }
 }

@@ -13,6 +13,7 @@ import com.umc.footprint.src.course.model.entity.CourseTag;
 import com.umc.footprint.src.course.model.entity.Mark;
 import com.umc.footprint.src.course.model.entity.UserCourse;
 import com.umc.footprint.src.common.model.vo.HashtagInfo;
+import com.umc.footprint.src.course.model.vo.CourseStatus;
 import com.umc.footprint.src.course.repository.CourseRepository;
 import com.umc.footprint.src.course.repository.CourseTagRepository;
 import com.umc.footprint.src.course.repository.MarkRepository;
@@ -70,7 +71,7 @@ public class CourseService {
         List<CourseInfo> courseListResList = new ArrayList<>();
 
         // 1. DB에 존재하는 모든 코스 정보중에서 디바이스 지도 좌표안에 존재하는 코스 추출
-        List<Course> allCourseInDB = courseRepository.findAllByStatus("ACTIVE");
+        List<Course> allCourseInDB = courseRepository.findAllByStatus(CourseStatus.ACTIVE);
 
         System.out.println("allCourseInDB.size() = " + allCourseInDB.size());
 
@@ -285,7 +286,7 @@ public class CourseService {
      */
     public GetCourseDetailsRes getCourseDetails(String courseName) throws BaseException {
 
-        Course savedCourse = courseRepository.findByCourseNameAndStatus(courseName, "ACTIVE");
+        Course savedCourse = courseRepository.findByCourseNameAndStatus(courseName, CourseStatus.ACTIVE);
 
         if (savedCourse == null) {
             log.info("코스 이름에 해당하는 코스가 없습니다.");
@@ -366,7 +367,7 @@ public class CourseService {
         }
 
         // 코스 이름 중복 확인
-        if (courseRepository.existsByCourseNameAndStatus(postCourseDetailsReq.getCourseName(), "ACTIVE")) {
+        if (courseRepository.existsByCourseNameAndStatus(postCourseDetailsReq.getCourseName(), CourseStatus.ACTIVE)) {
             log.info("코스 이름 중복");
             throw new BaseException(DUPLICATED_COURSE_NAME);
         }
@@ -388,7 +389,7 @@ public class CourseService {
                     .walkIdx(postCourseDetailsReq.getWalkIdx())
                     .likeNum(0)
                     .userIdx(userIdx)
-                    .status("ACTIVE")
+                    .status(CourseStatus.ACTIVE)
                 .build());
 
         if (savedCourse == null) {
@@ -521,7 +522,7 @@ public class CourseService {
 
         // 코스 이름 변경 시 중복 확인
         if (savedCourse.getCourseName().equals(patchCourseDetailsReq.getCourseName())) {
-            if (courseRepository.existsByCourseNameAndStatus(patchCourseDetailsReq.getCourseName(), "ACTIVE")) {
+            if (courseRepository.existsByCourseNameAndStatus(patchCourseDetailsReq.getCourseName(), CourseStatus.ACTIVE)) {
                 log.info("코스 이름 중복");
                 throw new BaseException(DUPLICATED_COURSE_NAME);
             }
@@ -644,7 +645,13 @@ public class CourseService {
             throw new BaseException(INVALID_USERIDX);
         }
 
-        course.updateStatus("INACTIVE");
+        course.updateStatus(CourseStatus.INACTIVE);
         courseRepository.save(course);
     }
+
+//    public void reportCourse(int courseIdx) throws BaseException{
+//        Course course = courseRepository.findByCourseIdx(courseIdx).orElseThrow(() -> new BaseException(NOT_EXIST_COURSE));
+//        course.updateStatus(CourseStatus.REPORT);
+//        courseRepository.save(course);
+//    }
 }
