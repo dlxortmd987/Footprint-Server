@@ -34,6 +34,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static com.umc.footprint.config.BaseResponseStatus.*;
@@ -284,11 +286,14 @@ public class CourseService {
                 throw new BaseException(INVALID_ENCRYPT_STRING);
             }
         }
+
+        Duration between = Duration.between(savedWalk.getStartAt(), savedWalk.getEndAt());
+        Integer courseTime = (int) between.getSeconds()/60;
+
         return GetCourseDetailsRes.builder()
                 .courseIdx(savedCourse.getCourseIdx())
                 .walkIdx(savedWalk.getWalkIdx())
-                .startAt(savedWalk.getStartAt())
-                .endAt(savedWalk.getEndAt())
+                .courseTime(courseTime)
                 .distance(savedWalk.getDistance())
                 .coordinates(coordinates)
                 .hashtags(hashtags)
@@ -331,18 +336,18 @@ public class CourseService {
 
         // Course Entity 에 저장
         Course savedCourse = courseRepository.save(Course.builder()
-                    .courseName(postCourseDetailsReq.getCourseName())
-                    .courseImg(encryptedCourseImg)
-                    .startCoordinate(extractStartCoordinate(postCourseDetailsReq.getCoordinates()))
-                    .coordinate(encryptedCoordinates)
-                    .address(postCourseDetailsReq.getAddress())
-                    .length(postCourseDetailsReq.getLength())
-                    .courseTime(postCourseDetailsReq.getCourseTime())
-                    .description(postCourseDetailsReq.getDescription())
-                    .walkIdx(postCourseDetailsReq.getWalkIdx())
-                    .likeNum(0)
-                    .userIdx(userIdx)
-                    .status("ACTIVE")
+                .courseName(postCourseDetailsReq.getCourseName())
+                .courseImg(encryptedCourseImg)
+                .startCoordinate(extractStartCoordinate(postCourseDetailsReq.getCoordinates()))
+                .coordinate(encryptedCoordinates)
+                .address(postCourseDetailsReq.getAddress())
+                .length(postCourseDetailsReq.getLength())
+                .courseTime(postCourseDetailsReq.getCourseTime())
+                .description(postCourseDetailsReq.getDescription())
+                .walkIdx(postCourseDetailsReq.getWalkIdx())
+                .likeNum(0)
+                .userIdx(userIdx)
+                .status("ACTIVE")
                 .build());
 
         if (savedCourse == null) {
@@ -361,8 +366,8 @@ public class CourseService {
             courseTag.setCourse(savedCourse);
 
             courseTag.setHashtag(Hashtag.builder()
-                            .hashtagIdx(hashtagInfo.getHashtagIdx())
-                            .hashtag(hashtagInfo.getHashtag())
+                    .hashtagIdx(hashtagInfo.getHashtagIdx())
+                    .hashtag(hashtagInfo.getHashtag())
                     .build());
 
             courseTags.add(courseTag);
@@ -579,10 +584,13 @@ public class CourseService {
                 photos.add(savedPhoto.getImageUrl());
             }
         }
+
+        Duration between = Duration.between(savedWalk.getStartAt(), savedWalk.getEndAt());
+        Integer walkTime = (int) between.getSeconds()/60;
+
         return GetWalkDetailsRes.builder()
                 .walkIdx(savedWalk.getWalkIdx())
-                .startAt(savedWalk.getStartAt())
-                .endAt(savedWalk.getEndAt())
+                .walkTime(walkTime)
                 .distance(savedWalk.getDistance())
                 .coordinates(coordinates)
                 .hashtags(hashtags)
