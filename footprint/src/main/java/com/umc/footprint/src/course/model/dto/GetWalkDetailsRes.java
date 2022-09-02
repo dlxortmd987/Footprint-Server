@@ -14,8 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GetWalkDetailsRes {
     private final Integer walkIdx;
-    private final LocalDateTime startAt;
-    private final LocalDateTime endAt;
+    private final Integer walkTime;
     private final Double distance;
     private final List<ArrayList<Double>> coordinates;
     private final List<HashtagInfo> hashtags;

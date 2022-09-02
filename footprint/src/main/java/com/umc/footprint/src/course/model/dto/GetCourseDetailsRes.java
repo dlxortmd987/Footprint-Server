@@ -15,8 +15,7 @@ import java.util.List;
 public class GetCourseDetailsRes {
     private final Integer courseIdx;
     private final Integer walkIdx;
-    private final LocalDateTime startAt;
-    private final LocalDateTime endAt;
+    private final Integer courseTime;
     private final Double distance;
     private final List<ArrayList<Double>> coordinates;
     private final List<HashtagInfo> hashtags;
