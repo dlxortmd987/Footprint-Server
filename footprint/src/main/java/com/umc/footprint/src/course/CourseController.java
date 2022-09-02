@@ -257,4 +257,20 @@ public class CourseController {
             return new BaseResponse<>(exception.getStatus());
         }
     }
+
+    //TODO : 코스 신고 내역 저장 여부와 신고 프로세스 정리되면 다시 구현하기!
+//    @ResponseBody
+//    @PatchMapping("/recommend/{courseIdx}/report")
+//    @ApiOperation(value = "추천 코스 신고")
+//    public BaseResponse<String> reportCourse(@PathVariable("courseIdx") int courseIdx) throws BaseException {
+//        String userId = jwtService.getUserId();
+//        try {
+//            courseService.reportCourse(courseIdx);
+//            String result = "코스가 신고되었습니다";
+//            return new BaseResponse<>(result);
+//        } catch (BaseException exception) {
+//            return new BaseResponse<>(exception.getStatus());
+//        }
+//    }
+
 }
