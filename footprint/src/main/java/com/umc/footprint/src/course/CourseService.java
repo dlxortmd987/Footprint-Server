@@ -385,7 +385,6 @@ public class CourseService {
 
         // Course Entity 에 저장
         Course savedCourse = courseRepository.save(Course.builder()
-<<<<<<< HEAD
                 .courseName(postCourseDetailsReq.getCourseName())
                 .courseImg(encryptedCourseImg)
                 .startCoordinate(extractStartCoordinate(postCourseDetailsReq.getCoordinates()))
@@ -397,21 +396,7 @@ public class CourseService {
                 .walkIdx(postCourseDetailsReq.getWalkIdx())
                 .likeNum(0)
                 .userIdx(userIdx)
-                .status("ACTIVE")
-=======
-                    .courseName(postCourseDetailsReq.getCourseName())
-                    .courseImg(encryptedCourseImg)
-                    .startCoordinate(extractStartCoordinate(postCourseDetailsReq.getCoordinates()))
-                    .coordinate(encryptedCoordinates)
-                    .address(postCourseDetailsReq.getAddress())
-                    .length(postCourseDetailsReq.getLength())
-                    .courseTime(postCourseDetailsReq.getCourseTime())
-                    .description(postCourseDetailsReq.getDescription())
-                    .walkIdx(postCourseDetailsReq.getWalkIdx())
-                    .likeNum(0)
-                    .userIdx(userIdx)
-                    .status(CourseStatus.ACTIVE)
->>>>>>> 4bea0dba29ac9038dfb7144254581ac42abb3d97
+                .status(CourseStatus.ACTIVE)
                 .build());
 
         if (savedCourse == null) {
