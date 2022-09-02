@@ -5,6 +5,7 @@ import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.common.model.entity.Hashtag;
 import com.umc.footprint.src.common.model.entity.Photo;
 import com.umc.footprint.src.common.model.entity.Tag;
+import com.umc.footprint.src.common.model.vo.HashtagInfo;
 import com.umc.footprint.src.common.repository.PhotoRepository;
 import com.umc.footprint.src.common.repository.TagRepository;
 import com.umc.footprint.src.course.model.dto.*;
@@ -12,19 +13,23 @@ import com.umc.footprint.src.course.model.entity.Course;
 import com.umc.footprint.src.course.model.entity.CourseTag;
 import com.umc.footprint.src.course.model.entity.Mark;
 import com.umc.footprint.src.course.model.entity.UserCourse;
-import com.umc.footprint.src.common.model.vo.HashtagInfo;
+import com.umc.footprint.src.course.model.vo.CourseInfo;
+import com.umc.footprint.src.course.model.vo.CourseStatus;
 import com.umc.footprint.src.course.repository.CourseRepository;
 import com.umc.footprint.src.course.repository.CourseTagRepository;
 import com.umc.footprint.src.course.repository.MarkRepository;
 import com.umc.footprint.src.course.repository.UserCourseRepository;
 import com.umc.footprint.src.footprints.model.entity.Footprint;
 import com.umc.footprint.src.users.UserService;
+import com.umc.footprint.src.users.model.dto.GetUserDateRes;
 import com.umc.footprint.src.walks.WalkService;
-import com.umc.footprint.src.course.model.vo.CourseInfo;
+import com.umc.footprint.src.walks.model.dto.GetWalksRes;
 import com.umc.footprint.src.walks.model.entity.Walk;
+import com.umc.footprint.src.walks.model.vo.UserDateWalk;
 import com.umc.footprint.src.walks.repository.WalkRepository;
 import com.umc.footprint.utils.AES128;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
@@ -35,8 +40,11 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.*;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static com.umc.footprint.config.BaseResponseStatus.*;
 
@@ -67,7 +75,7 @@ public class CourseService {
         List<CourseInfo> courseListResList = new ArrayList<>();
 
         // 1. DB에 존재하는 모든 코스 정보중에서 디바이스 지도 좌표안에 존재하는 코스 추출
-        List<Course> allCourseInDB = courseRepository.findAllByStatus("ACTIVE");
+        List<Course> allCourseInDB = courseRepository.findAllByStatus(CourseStatus.ACTIVE);
 
         System.out.println("allCourseInDB.size() = " + allCourseInDB.size());
 
@@ -90,12 +98,7 @@ public class CourseService {
                 // 2-2. 유저가 해당 코스를 mark 했는지 확인
                 Optional<Mark> userMark = markRepository.findByCourseIdxAndUserIdx(course.getCourseIdx(), userIdx);
 
-                boolean userCourseMark;
-                if(userMark.isEmpty()){
-                    userCourseMark = false;
-                } else{
-                    userCourseMark = true;
-                }
+                boolean userCourseMark = userMark.isPresent();
 
                 // 2-3. 해당 코스에 사진이 들어있는지 확인
                 // 사진이 없다면 기본 이미지 URL 입력
@@ -131,7 +134,7 @@ public class CourseService {
         List<Integer> courseIdxes = markRepository.getCourseIdxByUserIdxAndMark(userIdx, Boolean.TRUE);
 
         if(courseIdxes.size()==0) {
-            throw new BaseException(NOT_EXIST_MARK_COURSE);
+            return new GetCourseListRes(new ArrayList<>());
         }
 
         List<Course> courses = courseRepository.getAllByCourseIdx(courseIdxes);
@@ -164,6 +167,52 @@ public class CourseService {
             );
         }
         return new GetCourseListRes(getCourses);
+    }
+
+    @SneakyThrows
+    public GetWalksRes getMyAllCourse(String userId) throws BaseException {
+        Integer userIdx = userService.getUserIdxByUserId(userId);
+        List<Walk> walks = walkService.getMyAllWalk(userIdx);
+
+        if(walks==null) {
+            return null;
+        }
+
+        List<GetUserDateRes> getUserDateResList = new ArrayList<>();
+
+        int walkIndex = 0;
+        for (Walk userWalk : walks) {
+            walkIndex++;
+            if (!userWalk.getStatus().equals("ACTIVE")) {
+                continue;
+            }
+
+            UserDateWalk userDateWalk = UserDateWalk.builder()
+                    .walkIdx(walkIndex)
+                    .startTime(userWalk.getStartAt().format(DateTimeFormatter.ofPattern("HH:mm")))
+                    .endTime(userWalk.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")))
+                    .pathImageUrl(new AES128(encryptProperties.getKey()).decrypt(userWalk.getPathImageUrl()))
+                    .build();
+
+            List<Footprint> footprintList = userWalk.getFootprintList();
+            List<String> tagString = new ArrayList<>();
+            for (Footprint footprint : footprintList) {
+                List<Tag> tagList = footprint.getTagList();
+
+                for (Tag tag : tagList) {
+                    if (tag.getStatus().equals("ACTIVE")) {
+                        tagString.add(tag.getHashtag().getHashtag());
+                    }
+                }
+            }
+
+            getUserDateResList.add(GetUserDateRes.builder()
+                    .hashtag(tagString)
+                    .userDateWalk(userDateWalk)
+                    .build());
+        }
+
+        return new GetWalksRes(getUserDateResList);
     }
 
     // 해당 코스의 해시태그 목록 조회
@@ -241,7 +290,7 @@ public class CourseService {
      */
     public GetCourseDetailsRes getCourseDetails(String courseName) throws BaseException {
 
-        Course savedCourse = courseRepository.findByCourseNameAndStatus(courseName, "ACTIVE");
+        Course savedCourse = courseRepository.findByCourseNameAndStatus(courseName, CourseStatus.ACTIVE);
 
         if (savedCourse == null) {
             log.info("코스 이름에 해당하는 코스가 없습니다.");
@@ -325,7 +374,7 @@ public class CourseService {
         }
 
         // 코스 이름 중복 확인
-        if (courseRepository.existsByCourseNameAndStatus(postCourseDetailsReq.getCourseName(), "ACTIVE")) {
+        if (courseRepository.existsByCourseNameAndStatus(postCourseDetailsReq.getCourseName(), CourseStatus.ACTIVE)) {
             log.info("코스 이름 중복");
             throw new BaseException(DUPLICATED_COURSE_NAME);
         }
@@ -336,6 +385,7 @@ public class CourseService {
 
         // Course Entity 에 저장
         Course savedCourse = courseRepository.save(Course.builder()
+<<<<<<< HEAD
                 .courseName(postCourseDetailsReq.getCourseName())
                 .courseImg(encryptedCourseImg)
                 .startCoordinate(extractStartCoordinate(postCourseDetailsReq.getCoordinates()))
@@ -348,6 +398,20 @@ public class CourseService {
                 .likeNum(0)
                 .userIdx(userIdx)
                 .status("ACTIVE")
+=======
+                    .courseName(postCourseDetailsReq.getCourseName())
+                    .courseImg(encryptedCourseImg)
+                    .startCoordinate(extractStartCoordinate(postCourseDetailsReq.getCoordinates()))
+                    .coordinate(encryptedCoordinates)
+                    .address(postCourseDetailsReq.getAddress())
+                    .length(postCourseDetailsReq.getLength())
+                    .courseTime(postCourseDetailsReq.getCourseTime())
+                    .description(postCourseDetailsReq.getDescription())
+                    .walkIdx(postCourseDetailsReq.getWalkIdx())
+                    .likeNum(0)
+                    .userIdx(userIdx)
+                    .status(CourseStatus.ACTIVE)
+>>>>>>> 4bea0dba29ac9038dfb7144254581ac42abb3d97
                 .build());
 
         if (savedCourse == null) {
@@ -480,7 +544,7 @@ public class CourseService {
 
         // 코스 이름 변경 시 중복 확인
         if (savedCourse.getCourseName().equals(patchCourseDetailsReq.getCourseName())) {
-            if (courseRepository.existsByCourseNameAndStatus(patchCourseDetailsReq.getCourseName(), "ACTIVE")) {
+            if (courseRepository.existsByCourseNameAndStatus(patchCourseDetailsReq.getCourseName(), CourseStatus.ACTIVE)) {
                 log.info("코스 이름 중복");
                 throw new BaseException(DUPLICATED_COURSE_NAME);
             }
@@ -597,4 +661,22 @@ public class CourseService {
                 .photos(photos)
                 .build();
     }
+
+    public void deleteCourse(int courseIdx, String userId) throws BaseException {
+        Course course = courseRepository.findByCourseIdx(courseIdx).orElseThrow(() -> new BaseException(NOT_EXIST_COURSE));
+        Integer userIdx = userService.getUserIdxByUserId(userId);
+
+        if(course.getUserIdx() != userIdx) {
+            throw new BaseException(INVALID_USERIDX);
+        }
+
+        course.updateStatus(CourseStatus.INACTIVE);
+        courseRepository.save(course);
+    }
+
+//    public void reportCourse(int courseIdx) throws BaseException{
+//        Course course = courseRepository.findByCourseIdx(courseIdx).orElseThrow(() -> new BaseException(NOT_EXIST_COURSE));
+//        course.updateStatus(CourseStatus.REPORT);
+//        courseRepository.save(course);
+//    }
 }

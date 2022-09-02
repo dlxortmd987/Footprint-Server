@@ -15,6 +15,7 @@ import com.umc.footprint.src.course.model.dto.GetWalkDetailsRes;
 import com.umc.footprint.src.course.model.dto.PatchCourseDetailsReq;
 import com.umc.footprint.src.course.model.dto.PostCourseDetailsReq;
 import com.umc.footprint.src.users.UserService;
+import com.umc.footprint.src.walks.model.dto.GetWalksRes;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -207,7 +208,7 @@ public class CourseController {
 
     @ResponseBody
     @GetMapping("/list/mark")
-    @ApiOperation(value = "찜한 코스 목록 조회", notes = "찜한 산책 목록이 없을 시 NOT_EXITST_MARK_COURSE 에러 발생")
+    @ApiOperation(value = "찜한 코스 목록 조회", notes = "찜한 산책 목록이 없을 시 null 반환")
     public BaseResponse<GetCourseListRes> getMarkCourseList() throws BaseException {
         String userId = jwtService.getUserId();
         try {
@@ -230,5 +231,46 @@ public class CourseController {
             return new BaseResponse<>(exception.getStatus());
         }
     }
+
+    @ResponseBody
+    @PatchMapping("/recommend/{courseIdx}/status")
+    @ApiOperation(value = "나의 추천 코스 삭제")
+    public BaseResponse<String> deleteCourse(@PathVariable("courseIdx") int courseIdx) throws BaseException {
+        String userId = jwtService.getUserId();
+        try {
+            courseService.deleteCourse(courseIdx, userId);
+            String result = "코스를 삭제했습니다";
+            return new BaseResponse<>(result);
+        } catch (BaseException exception) {
+            return new BaseResponse<>(exception.getStatus());
+        }
+    }
+
+    @GetMapping("/list/self")
+    @ApiOperation(value = "나의 모든 추천 가능 코스 보기 (모든 산책 보기)")
+    public BaseResponse<GetWalksRes> getMyAllCourse() throws BaseException {
+        String userId = jwtService.getUserId();
+        try {
+            GetWalksRes getWalksRes = courseService.getMyAllCourse(userId);
+            return new BaseResponse<>(getWalksRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>(exception.getStatus());
+        }
+    }
+
+    //TODO : 코스 신고 내역 저장 여부와 신고 프로세스 정리되면 다시 구현하기!
+//    @ResponseBody
+//    @PatchMapping("/recommend/{courseIdx}/report")
+//    @ApiOperation(value = "추천 코스 신고")
+//    public BaseResponse<String> reportCourse(@PathVariable("courseIdx") int courseIdx) throws BaseException {
+//        String userId = jwtService.getUserId();
+//        try {
+//            courseService.reportCourse(courseIdx);
+//            String result = "코스가 신고되었습니다";
+//            return new BaseResponse<>(result);
+//        } catch (BaseException exception) {
+//            return new BaseResponse<>(exception.getStatus());
+//        }
+//    }
 
 }

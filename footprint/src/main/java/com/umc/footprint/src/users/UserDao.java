@@ -13,7 +13,6 @@ import com.umc.footprint.src.users.model.dto.*;
 import com.umc.footprint.src.users.model.vo.ExistUser;
 import com.umc.footprint.src.users.model.vo.UserInfoAchieve;
 import com.umc.footprint.src.users.model.vo.UserInfoStat;
-import com.umc.footprint.src.common.model.vo.SearchWalk;
 import com.umc.footprint.src.walks.model.vo.UserDateWalk;
 import com.umc.footprint.utils.AES128;
 import lombok.extern.slf4j.Slf4j;
@@ -548,7 +547,7 @@ public class UserDao {
                     "    and cast(date_format(endAt, '%Y.%m.%d') as char(10))=? and T.status=?";
             List<Integer> walkIdxList = jdbcTemplate.queryForList(walkIdxQuery, int.class, tag, walkAt, "ACTIVE");
             log.debug("walkIdxList: {}", walkIdxList);
-            List<SearchWalk> walks = new ArrayList<>(); // 해당 날짜 + 해당 해시태그를 가지는 산책 기록 리스트
+            List<GetUserDateRes> walks = new ArrayList<>(); // 해당 날짜 + 해당 해시태그를 가지는 산책 기록 리스트
             for(Integer walkIdx : walkIdxList) {
                 // 산책 기록 하나 조회
                 String getUserDateWalkQuery = "select walkIdx, date_format(startAt, '%k:%i') as startTime, date_format(endAt, '%k:%i') as endTime, pathImageUrl\n" +
@@ -565,7 +564,7 @@ public class UserDao {
                         , walkIdx, "ACTIVE"
                 );
 
-                SearchWalk walk = new SearchWalk(userDateWalk, getTagList(walkIdx));
+                GetUserDateRes walk = new GetUserDateRes(userDateWalk, getTagList(walkIdx));
                 walks.add(walk);
             }
 
