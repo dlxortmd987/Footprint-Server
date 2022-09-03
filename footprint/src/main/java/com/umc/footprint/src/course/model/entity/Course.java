@@ -55,6 +55,7 @@ public class Course extends BaseEntity {
     @Column(name = "likeNum")
     private Integer likeNum;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private CourseStatus status;
 
