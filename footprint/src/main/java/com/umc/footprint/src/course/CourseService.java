@@ -98,7 +98,11 @@ public class CourseService {
                 // 2-2. 유저가 해당 코스를 mark 했는지 확인
                 Optional<Mark> userMark = markRepository.findByCourseIdxAndUserIdx(course.getCourseIdx(), userIdx);
 
-                boolean userCourseMark = userMark.isPresent();
+                boolean userCourseMark = false;
+
+                if (userMark.isPresent()) {
+                    userCourseMark = userMark.get().getMark();
+                }
 
                 // 2-3. 해당 코스에 사진이 들어있는지 확인
                 // 사진이 없다면 기본 이미지 URL 입력
