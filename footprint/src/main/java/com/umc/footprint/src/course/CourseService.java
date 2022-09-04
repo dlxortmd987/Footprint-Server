@@ -354,8 +354,8 @@ public class CourseService {
     public String postCourseDetails(PostCourseDetailsReq postCourseDetailsReq, String userId) throws BaseException {
         Integer userIdx = userService.getUserIdxByUserId(userId);
 
-        String encryptedCoordinates;
-        String encryptedCourseImg;
+        String encryptedCoordinates = "";
+        String courseImg = "";
 
         // 좌표 암호화
         try {
@@ -366,11 +366,15 @@ public class CourseService {
         }
 
         //코스 이미지 암호화
-        try {
-            encryptedCourseImg = new AES128(encryptProperties.getKey()).encrypt(postCourseDetailsReq.getCourseImg());
-        } catch (Exception exception) {
-            log.info("좌표 암호화 실패");
-            throw new BaseException(ENCRYPT_FAIL);
+        if (postCourseDetailsReq.getCourseImg() != null) {
+            try {
+                courseImg = new AES128(encryptProperties.getKey()).encrypt(postCourseDetailsReq.getCourseImg());
+            } catch (Exception exception) {
+                log.info("좌표 암호화 실패");
+                throw new BaseException(ENCRYPT_FAIL);
+            }
+        } else {
+            courseImg = defaultCourseImage;
         }
 
         // 코스 이름 중복 확인
@@ -379,14 +383,10 @@ public class CourseService {
             throw new BaseException(DUPLICATED_COURSE_NAME);
         }
 
-        if (postCourseDetailsReq.getCourseImg() == null) {
-            postCourseDetailsReq.setCourseImg(defaultCourseImage);
-        }
-
         // Course Entity 에 저장
         Course savedCourse = courseRepository.save(Course.builder()
                 .courseName(postCourseDetailsReq.getCourseName())
-                .courseImg(encryptedCourseImg)
+                .courseImg(courseImg)
                 .startCoordinate(extractStartCoordinate(postCourseDetailsReq.getCoordinates()))
                 .coordinate(encryptedCoordinates)
                 .address(postCourseDetailsReq.getAddress())
@@ -406,26 +406,28 @@ public class CourseService {
 
         // CourseTag Entity 에 저장
 
-        List<CourseTag> courseTags = new ArrayList<>();
-        for (HashtagInfo hashtagInfo : postCourseDetailsReq.getHashtags()) {
-            CourseTag courseTag = CourseTag.builder()
-                    .status("ACTIVE")
-                    .build();
+        if (!postCourseDetailsReq.getHashtags().isEmpty()) {
+            List<CourseTag> courseTags = new ArrayList<>();
+            for (HashtagInfo hashtagInfo : postCourseDetailsReq.getHashtags()) {
+                CourseTag courseTag = CourseTag.builder()
+                        .status("ACTIVE")
+                        .build();
 
-            courseTag.setCourse(savedCourse);
+                courseTag.setCourse(savedCourse);
 
-            courseTag.setHashtag(Hashtag.builder()
-                    .hashtagIdx(hashtagInfo.getHashtagIdx())
-                    .hashtag(hashtagInfo.getHashtag())
-                    .build());
+                courseTag.setHashtag(Hashtag.builder()
+                        .hashtagIdx(hashtagInfo.getHashtagIdx())
+                        .hashtag(hashtagInfo.getHashtag())
+                        .build());
 
-            courseTags.add(courseTag);
-        }
-        List<CourseTag> savedCourseTags = courseTagRepository.saveAll(courseTags);
+                courseTags.add(courseTag);
+            }
+            List<CourseTag> savedCourseTags = courseTagRepository.saveAll(courseTags);
 
-        if (savedCourseTags.isEmpty()) {
-            log.info("CourseTag 저장 실패");
-            throw new BaseException(DATABASE_ERROR);
+            if (savedCourseTags.isEmpty()) {
+                log.info("CourseTag 저장 실패");
+                throw new BaseException(DATABASE_ERROR);
+            }
         }
 
         return "코스가 등록되었습니다.";
@@ -553,42 +555,46 @@ public class CourseService {
 
         // 해당 코스 태그 entity 불러와서 INACTIVE 로 만들기
         List<CourseTag> savedCourseTags = courseTagRepository.findAllByCourseAndStatus(modifiedCourse, "ACTIVE");
-        List<CourseTag> inactiveCourseTags = new ArrayList<>();
-        for (CourseTag courseTag : savedCourseTags) {
-            CourseTag inactiveCourseTag = CourseTag.builder()
-                    .courseTagIdx(courseTag.getCourseTagIdx())
-                    .status("INACTIVE")
-                    .build();
-            inactiveCourseTag.setCourse(courseTag.getCourse());
-            inactiveCourseTag.setHashtag(courseTag.getHashtag());
-            inactiveCourseTags.add(inactiveCourseTag);
+        if (savedCourseTags != null) {
+            List<CourseTag> inactiveCourseTags = new ArrayList<>();
+            for (CourseTag courseTag : savedCourseTags) {
+                CourseTag inactiveCourseTag = CourseTag.builder()
+                        .courseTagIdx(courseTag.getCourseTagIdx())
+                        .status("INACTIVE")
+                        .build();
+                inactiveCourseTag.setCourse(courseTag.getCourse());
+                inactiveCourseTag.setHashtag(courseTag.getHashtag());
+                inactiveCourseTags.add(inactiveCourseTag);
+            }
+            courseTagRepository.saveAll(inactiveCourseTags);
         }
-        courseTagRepository.saveAll(inactiveCourseTags);
 
         // CourseTag Entity 에 새로 저장
-        List<CourseTag> beforeSavedCourseTags = new ArrayList<>();
+        if (!patchCourseDetailsReq.getHashtags().isEmpty()) {
+            List<CourseTag> beforeSavedCourseTags = new ArrayList<>();
 
-        // 코스, 해시 태그 매핑
-        for (HashtagInfo hashtagInfo : patchCourseDetailsReq.getHashtags()) {
-            CourseTag beforeSavedCourseTag = CourseTag.builder()
-                    .status("ACTIVE")
-                    .build();
+            // 코스, 해시 태그 매핑
+            for (HashtagInfo hashtagInfo : patchCourseDetailsReq.getHashtags()) {
+                CourseTag beforeSavedCourseTag = CourseTag.builder()
+                        .status("ACTIVE")
+                        .build();
 
-            beforeSavedCourseTag.setCourse(modifiedCourse);
+                beforeSavedCourseTag.setCourse(modifiedCourse);
 
-            beforeSavedCourseTag.setHashtag(
-                    Hashtag.builder()
-                            .hashtagIdx(hashtagInfo.getHashtagIdx())
-                            .hashtag(hashtagInfo.getHashtag())
-                            .build()
-            );
-            beforeSavedCourseTags.add(beforeSavedCourseTag);
-        }
-        List<CourseTag> modifiedCourseTags = courseTagRepository.saveAll(beforeSavedCourseTags);
+                beforeSavedCourseTag.setHashtag(
+                        Hashtag.builder()
+                                .hashtagIdx(hashtagInfo.getHashtagIdx())
+                                .hashtag(hashtagInfo.getHashtag())
+                                .build()
+                );
+                beforeSavedCourseTags.add(beforeSavedCourseTag);
+            }
+            List<CourseTag> modifiedCourseTags = courseTagRepository.saveAll(beforeSavedCourseTags);
 
-        if (modifiedCourseTags.isEmpty()) {
-            log.info("수정된 코스 태그 저장 실패");
-            throw new BaseException(DATABASE_ERROR);
+            if (modifiedCourseTags.isEmpty()) {
+                log.info("수정된 코스 태그 저장 실패");
+                throw new BaseException(DATABASE_ERROR);
+            }
         }
 
         return "코스가 수정되었습니다.";
