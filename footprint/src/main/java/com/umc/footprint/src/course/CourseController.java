@@ -7,7 +7,6 @@ import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.src.course.model.dto.GetCourseListRes;
-import com.umc.footprint.src.users.UserProvider;
 import com.umc.footprint.src.course.model.dto.GetCourseInfoRes;
 import com.umc.footprint.src.course.model.dto.GetCourseListReq;
 import com.umc.footprint.src.course.model.dto.GetCourseDetailsRes;
@@ -17,6 +16,8 @@ import com.umc.footprint.src.course.model.dto.PostCourseDetailsReq;
 import com.umc.footprint.src.users.UserService;
 import com.umc.footprint.src.walks.model.dto.GetWalksRes;
 import com.umc.footprint.utils.JwtService;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,13 @@ public class CourseController {
 
     @ResponseBody
     @PostMapping("/list")
+    @ApiOperation(value = "코스 리스트 조회", notes = "사용자 지도상에서 보이는 모든 코스 시작 위치정보")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "north", value = "유저 디바이스 가장 상단 위도 정보", dataType = "double", paramType = "body", required = true),
+            @ApiImplicitParam(name = "south", value = "유저 디바이스 가장 하단 위도 정보", dataType = "double", paramType = "body", required = true),
+            @ApiImplicitParam(name = "west", value = "유저 디바이스 가장 좌측 경도 정보", dataType = "double", paramType = "body", required = true),
+            @ApiImplicitParam(name = "east", value = "유저 디바이스 가장 우측 경도 정보", dataType = "double", paramType = "body", required = true)
+    })
     public BaseResponse<GetCourseListRes> getCourseList(@RequestBody String request) throws BaseException, JsonProcessingException {
 
         // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
@@ -52,6 +60,7 @@ public class CourseController {
 
     @ResponseBody
     @GetMapping("/{courseIdx}/infos")
+    @ApiOperation(value = "코스 세부 정보 조회", notes = "해당 경로에 대한 세부 정보(경로 좌표들 + 경로 세부정보)")
     public BaseResponse<GetCourseInfoRes> getCourseInfo(@PathVariable int courseIdx){
 
         try {

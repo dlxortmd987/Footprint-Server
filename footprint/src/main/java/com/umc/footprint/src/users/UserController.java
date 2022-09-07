@@ -17,6 +17,7 @@ import com.umc.footprint.src.users.model.vo.UserInfoAchieve;
 import com.umc.footprint.src.users.model.vo.UserInfoStat;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -111,6 +112,7 @@ public class UserController {
     // Path-variable
     @ResponseBody
     @GetMapping("/today")
+    @ApiOperation(value = "일별 정보 조회", notes = "오늘의 산책 달성률, 산책 시간, 거리, 칼로리, 오늘 목표")
     public BaseResponse<GetUserTodayRes> getToday(){
         try{
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
@@ -132,6 +134,7 @@ public class UserController {
     // Path-variable
     @ResponseBody
     @GetMapping("/{date}")
+    @ApiOperation(value = "유저 날짜별 산책관련 정보 조회", notes = "해당 날짜의 발자국 인덱스,  산책시간,  태그,  일별 발자국 횟수, 동선 이미지")
     public BaseResponse<List<GetUserDateRes>> getDateWalk(@PathVariable("date") String date){
 
         // Validation 1. 날짜 형식 검사
@@ -158,7 +161,8 @@ public class UserController {
      */
     // Path-variable
     @ResponseBody
-    @GetMapping("") // (GET) 127.0.0.1:3000
+    @GetMapping("")
+    @ApiOperation(value = "유저 정보 조회", notes = "해당 유저 관련 모든 정보")
     public BaseResponse<GetUserRes> getUser() {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
@@ -180,6 +184,14 @@ public class UserController {
      */
     @ResponseBody
     @PatchMapping("/infos/after")
+    @ApiOperation(value = "회원 정보 수정", notes = "회원 기본 정보 수정")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "nickname", value = "유저 닉네임", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "sex", value = "유저 성별", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "dayIdx", value = "산책 목표 요일 리스트", dataType = "List<Integer>", paramType = "body", required = true),
+            @ApiImplicitParam(name = "walkGoalTime", value = "산책 목표 시간", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "walkTimeSlot", value = "산책 목표 시간대", dataType = "int", paramType = "body", required = true)
+    })
     public BaseResponse<String> modifyUserInfo(@RequestBody String request) throws JsonProcessingException {
 
         PatchUserInfoReq patchUserInfoReq = new ObjectMapper().readValue(request, PatchUserInfoReq.class);
@@ -206,13 +218,14 @@ public class UserController {
         }
     }
 
-    /*
+    /**
      * 유저 "이번달" 목표 조회 API
      * [GET] /users/goals
      */
     // Path-variable
     @ResponseBody
-    @GetMapping("/goals") // (GET) 127.0.0.1:3000/users/goals
+    @GetMapping("/goals")
+    @ApiOperation(value = "유저 이번달 목표 조회 API", notes = "목표 요일, 시간, 시간대, 다음달 목표 수정 여부")
     public BaseResponse<GetUserGoalRes> getUserGoal() {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
@@ -235,7 +248,8 @@ public class UserController {
      */
     // Path-variable
     @ResponseBody
-    @GetMapping("/goals/next") // (GET) 127.0.0.1:3000/users/goals/next
+    @GetMapping("/goals/next")
+    @ApiOperation(value = "유저 다음달 목표 조회 API", notes = "목표 요일, 시간, 시간대, 다음달 목표 수정 여부")
     public BaseResponse<GetUserGoalRes> getUserGoalNext() {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
@@ -279,7 +293,13 @@ public class UserController {
      */
     // Path-variable
     @ResponseBody
-    @PatchMapping("/goals") // [PATCH] /users/goals
+    @PatchMapping("/goals")
+    @ApiOperation(value = "목표 수정", notes = "유저의 다음달 목표 수정")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "walkGoalTime", value = "산책 목표 시간", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "walkTimeSlot", value = "산책 목표 시간대", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "dayIdx", value = "산책 목표 요일 리스트", dataType = "List<Integer>", paramType = "body", required = true)
+    })
     public BaseResponse<String> modifyGoal(@RequestBody String request) throws JsonProcessingException {
 
         PatchUserGoalReq patchUserGoalReq = new ObjectMapper().readValue(request, PatchUserGoalReq.class);
@@ -420,6 +440,7 @@ public class UserController {
     // Path-variable
     @ResponseBody
     @GetMapping("/infos") // (GET) 127.0.0.1:3000/users/:userIdx/infos
+    @ApiOperation(value = "유저 통계 정보 조회", notes = "오늘 달성률, 이번달 달성률, 전체 누적 기록 횟수 + 주 O회(요일로 계산), 하루 몇분, 시간대 + 이전 3달 기준 요일별 산책 시간 백분율, 월별 기록 횟수, 월별 달성률")
     public BaseResponse<GetUserInfoRes> getUserInfo() {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
@@ -454,6 +475,17 @@ public class UserController {
     // Path-variable
     @ResponseBody
     @PostMapping("/infos") // [POST] /users/infos
+    @ApiOperation(value = "초기 회원 정보 등록", notes = "OAuth2.0 로그인 후 추가적으로 기입해야하는 필수/선택 회원 정보 입력")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "nickname", value = "유저 닉네임", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "sex", value = "유저 성별", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "birth", value = "유저 생년월일", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "height", value = "유저 키", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "weight", value = "유저 몸무게", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "dayIdx", value = "산책 목표 요일 리스트", dataType = "List<Integer>", paramType = "body", required = true),
+            @ApiImplicitParam(name = "walkGoalTime", value = "산책 목표 시간", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "walkTimeSlot", value = "산책 목표 시간대", dataType = "int", paramType = "body", required = true)
+    })
     public BaseResponse<String> postUserInfo(@RequestBody String request) throws JsonProcessingException {
 
         PatchUserInfoReq patchUserInfoReq = new ObjectMapper().readValue(request, PatchUserInfoReq.class);

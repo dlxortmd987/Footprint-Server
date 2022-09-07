@@ -3,6 +3,8 @@ package com.umc.footprint.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.ParameterBuilder;
 import springfox.documentation.builders.PathSelectors;
@@ -22,7 +24,7 @@ import java.util.List;
 @Configuration
 @EnableSwagger2
 @Profile({"local", "dev"})
-public class SwaggerConfig {
+public class SwaggerConfig extends WebMvcConfigurationSupport {
 
     @Bean
     public Docket restApi() {
@@ -43,6 +45,15 @@ public class SwaggerConfig {
                 .apis(RequestHandlerSelectors.basePackage("com.umc"))
                 .paths(PathSelectors.any())
                 .build();
+    }
+
+    @Override
+    protected void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("swagger-ui.html")
+                .addResourceLocations("classpath:/META-INF/resources/");
+
+        registry.addResourceHandler("/webjars/**")
+                .addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
 
 
