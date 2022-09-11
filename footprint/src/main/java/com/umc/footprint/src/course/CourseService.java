@@ -317,27 +317,28 @@ public class CourseService {
             throw new BaseException(INVALID_ENCRYPT_STRING);
         }
 
-        ArrayList<HashtagInfo> hashtags = new ArrayList<>();
-        ArrayList<String> photos = new ArrayList<>();
+        ArrayList<HashtagInfo> allHashtags = new ArrayList<>();
+        ArrayList<HashtagInfo> selectedHashtags = new ArrayList<>();
         for (Footprint footprint : savedWalk.getFootprintList()) {
-            // 해시태그 불러오기
+            // 모든 해시태그 불러오기
             List<Tag> savedTags = tagRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
             for (Tag savedTag : savedTags) {
-                hashtags.add(HashtagInfo.builder()
+                allHashtags.add(HashtagInfo.builder()
                         .hashtagIdx(savedTag.getHashtag().getHashtagIdx())
                         .hashtag(savedTag.getHashtag().getHashtag())
                         .build());
             }
+        }
 
-            // 사진 불러오기
-            List<Photo> savedPhotos = photoRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
-            try {
-                for (Photo savedPhoto : savedPhotos) {
-                    photos.add(new AES128(encryptProperties.getKey()).decrypt(savedPhoto.getImageUrl()));
-                }
-            } catch (Exception exception) {
-                throw new BaseException(INVALID_ENCRYPT_STRING);
-            }
+        // 선택한 해시태그 불러오기
+        List<CourseTag> activeTags = courseTagRepository.findAllByCourseAndStatus(savedCourse, "ACTIVE");
+        for (CourseTag courseTag : activeTags) {
+            selectedHashtags.add(
+                    HashtagInfo.builder()
+                            .hashtagIdx(courseTag.getHashtag().getHashtagIdx())
+                            .hashtag(courseTag.getHashtag().getHashtag())
+                            .build()
+            );
         }
 
         Duration between = Duration.between(savedWalk.getStartAt(), savedWalk.getEndAt());
@@ -345,12 +346,15 @@ public class CourseService {
 
         return GetCourseDetailsRes.builder()
                 .courseIdx(savedCourse.getCourseIdx())
+                .address(savedCourse.getAddress())
+                .description(savedCourse.getDescription())
                 .walkIdx(savedWalk.getWalkIdx())
                 .courseTime(courseTime)
+                .courseImg(savedCourse.getCourseImg())
                 .distance(savedWalk.getDistance())
                 .coordinates(coordinates)
-                .hashtags(hashtags)
-                .photos(photos)
+                .allHashtags(allHashtags)
+                .selectedHashtags(selectedHashtags)
                 .build();
     }
 
