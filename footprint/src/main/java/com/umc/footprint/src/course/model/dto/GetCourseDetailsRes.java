@@ -14,10 +14,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GetCourseDetailsRes {
     private final Integer courseIdx;
+    private final String address;
+    private final String description;
     private final Integer walkIdx;
     private final Integer courseTime;
     private final Double distance;
+    private final String courseImg;
     private final List<ArrayList<Double>> coordinates;
-    private final List<HashtagInfo> hashtags;
-    private final List<String> photos;
+    private final List<HashtagInfo> allHashtags;
+    private final List<HashtagInfo> selectedHashtags;
 }
