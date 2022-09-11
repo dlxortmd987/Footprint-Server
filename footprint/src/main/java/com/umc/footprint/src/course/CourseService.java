@@ -538,7 +538,7 @@ public class CourseService {
         }
 
         // 코스 이름 변경 시 중복 확인
-        if (savedCourse.getCourseName().equals(patchCourseDetailsReq.getCourseName())) {
+        if (!savedCourse.getCourseName().equals(patchCourseDetailsReq.getCourseName())) {
             if (courseRepository.existsByCourseNameAndStatus(patchCourseDetailsReq.getCourseName(), CourseStatus.ACTIVE)) {
                 log.info("코스 이름 중복");
                 throw new BaseException(DUPLICATED_COURSE_NAME);
