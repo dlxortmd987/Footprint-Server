@@ -33,7 +33,6 @@ public class CourseController {
     private final CourseService courseService;
     private final JwtService jwtService;
 
-    @ResponseBody
     @PostMapping("/list")
     @ApiOperation(value = "코스 리스트 조회", notes = "사용자 지도상에서 보이는 모든 코스 시작 위치정보")
     @ApiImplicitParams({
@@ -58,7 +57,6 @@ public class CourseController {
     }
 
 
-    @ResponseBody
     @GetMapping("/{courseIdx}/infos")
     @ApiOperation(value = "코스 세부 정보 조회", notes = "해당 경로에 대한 세부 정보(경로 좌표들 + 경로 세부정보)")
     public BaseResponse<GetCourseInfoRes> getCourseInfo(@PathVariable int courseIdx){
@@ -215,7 +213,6 @@ public class CourseController {
         }
     }
 
-    @ResponseBody
     @GetMapping("/list/mark")
     @ApiOperation(value = "찜한 코스 목록 조회", notes = "찜한 산책 목록이 없을 시 null 반환")
     public BaseResponse<GetCourseListRes> getMarkCourseList() throws BaseException {
@@ -228,7 +225,6 @@ public class CourseController {
         }
     }
 
-    @ResponseBody
     @GetMapping("/list/recommend")
     @ApiOperation(value = "나의 추천 코스 목록 조회")
     public BaseResponse<GetCourseListRes> getMyRecommendCourseList() throws BaseException {
@@ -241,17 +237,20 @@ public class CourseController {
         }
     }
 
-    @ResponseBody
     @PatchMapping("/recommend/{courseIdx}/status")
     @ApiOperation(value = "나의 추천 코스 삭제")
-    public BaseResponse<String> deleteCourse(@PathVariable("courseIdx") int courseIdx) throws BaseException {
-        String userId = jwtService.getUserId();
+    public BaseResponse<String> deleteCourse(@PathVariable("courseIdx") int courseIdx) {
         try {
+            // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
+            String userId = jwtService.getUserId();
+            log.debug("userId: {}", userId);
+
             courseService.deleteCourse(courseIdx, userId);
-            String result = "코스를 삭제했습니다";
+            String result = "코스를 삭제하였습니다.";
+
             return new BaseResponse<>(result);
         } catch (BaseException exception) {
-            return new BaseResponse<>(exception.getStatus());
+            return new BaseResponse<>((exception.getStatus()));
         }
     }
 
@@ -268,18 +267,5 @@ public class CourseController {
     }
 
     //TODO : 코스 신고 내역 저장 여부와 신고 프로세스 정리되면 다시 구현하기!
-//    @ResponseBody
-//    @PatchMapping("/recommend/{courseIdx}/report")
-//    @ApiOperation(value = "추천 코스 신고")
-//    public BaseResponse<String> reportCourse(@PathVariable("courseIdx") int courseIdx) throws BaseException {
-//        String userId = jwtService.getUserId();
-//        try {
-//            courseService.reportCourse(courseIdx);
-//            String result = "코스가 신고되었습니다";
-//            return new BaseResponse<>(result);
-//        } catch (BaseException exception) {
-//            return new BaseResponse<>(exception.getStatus());
-//        }
-//    }
 
 }

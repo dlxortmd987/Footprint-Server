@@ -661,6 +661,7 @@ public class CourseService {
                 .build();
     }
 
+    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public void deleteCourse(int courseIdx, String userId) throws BaseException {
         Course course = courseRepository.findByCourseIdx(courseIdx).orElseThrow(() -> new BaseException(NOT_EXIST_COURSE));
         Integer userIdx = userService.getUserIdxByUserId(userId);
@@ -673,9 +674,4 @@ public class CourseService {
         courseRepository.save(course);
     }
 
-//    public void reportCourse(int courseIdx) throws BaseException{
-//        Course course = courseRepository.findByCourseIdx(courseIdx).orElseThrow(() -> new BaseException(NOT_EXIST_COURSE));
-//        course.updateStatus(CourseStatus.REPORT);
-//        courseRepository.save(course);
-//    }
 }
