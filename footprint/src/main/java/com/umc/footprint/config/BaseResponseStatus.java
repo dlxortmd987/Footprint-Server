@@ -99,6 +99,7 @@ public enum BaseResponseStatus {
     MODIFY_WKT_FAIL(false, 4002, "WKT 변환을 실패하였습니다."),
     ENCRYPT_FAIL(false, 4003, "암호화를 실패하였습다."),
     MODIFY_OBJECT_FAIL(false, 4004, "Request 객체 변환에 실패하였습니다."),
+    DECRYPT_FAIL(false, 4005, "복호화를 실패하였습다."),
     S3UPLOAD_ERROR(false, 4080, "파일 업로드에 실패하였습니다."),
     MODIFY_USER_GOAL_FAIL(false,4160,"사용자 목표 변경에 실패하였습니다."),
     MODIFY_USERINFO_FAIL(false,4161,"유저 정보 변경에 실패하였습니다."),
