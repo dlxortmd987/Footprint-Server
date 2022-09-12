@@ -344,13 +344,24 @@ public class CourseService {
         Duration between = Duration.between(savedWalk.getStartAt(), savedWalk.getEndAt());
         Integer courseTime = (int) between.getSeconds()/60;
 
+        String decryptedImg;
+        if (savedCourse.getCourseImg() == null || savedCourse.getCourseImg().isEmpty()) {
+            decryptedImg = defaultCourseImage;
+        } else {
+            try {
+                decryptedImg = new AES128(encryptProperties.getKey()).decrypt(savedCourse.getCourseImg());
+            } catch (Exception exception) {
+                throw new BaseException(DECRYPT_FAIL);
+            }
+        }
+
         return GetCourseDetailsRes.builder()
                 .courseIdx(savedCourse.getCourseIdx())
                 .address(savedCourse.getAddress())
                 .description(savedCourse.getDescription())
                 .walkIdx(savedWalk.getWalkIdx())
                 .courseTime(courseTime)
-                .courseImg(savedCourse.getCourseImg())
+                .courseImg(decryptedImg)
                 .distance(savedWalk.getDistance())
                 .coordinates(coordinates)
                 .allHashtags(allHashtags)
