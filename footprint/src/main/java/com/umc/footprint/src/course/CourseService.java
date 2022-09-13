@@ -353,7 +353,7 @@ public class CourseService {
 
         String decryptedImg;
         if (savedCourse.getCourseImg() == null || savedCourse.getCourseImg().isEmpty()) {
-            decryptedImg = defaultCourseImage;
+            decryptedImg = "";
         } else {
             try {
                 decryptedImg = new AES128(encryptProperties.getKey()).decrypt(savedCourse.getCourseImg());
@@ -381,7 +381,7 @@ public class CourseService {
         Integer userIdx = userService.getUserIdxByUserId(userId);
 
         String encryptedCoordinates = "";
-        String courseImg = "";
+        String courseImg;
 
         // 좌표 암호화
         try {
@@ -392,15 +392,15 @@ public class CourseService {
         }
 
         //코스 이미지 암호화
-        if (postCourseDetailsReq.getCourseImg() != null) {
+        if (postCourseDetailsReq.getCourseImg() == null || postCourseDetailsReq.getCourseImg().isEmpty()) {
+            courseImg = "";
+        } else {
             try {
                 courseImg = new AES128(encryptProperties.getKey()).encrypt(postCourseDetailsReq.getCourseImg());
             } catch (Exception exception) {
-                log.info("좌표 암호화 실패");
+                log.info("요청한 코스 이미지 암호화 실패");
                 throw new BaseException(ENCRYPT_FAIL);
             }
-        } else {
-            courseImg = defaultCourseImage;
         }
 
         // 코스 이름 중복 확인
