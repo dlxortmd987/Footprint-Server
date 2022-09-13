@@ -25,7 +25,7 @@ public class Course extends BaseEntity {
     @Column(name = "courseName")
     private String courseName;
 
-    @Column(name = "courseImg")
+    @Column(name = "courseImg", columnDefinition = "longtext")
     private String courseImg;
 
     @Column(name = "startCoordinate")
