@@ -157,8 +157,7 @@ public class CourseService {
     }
 
     public GetCourseListRes getMyRecommendCourses(String userId) throws BaseException {
-//        Integer userIdx = userService.getUserIdxByUserId(userId);
-        Integer userIdx = 15;
+        Integer userIdx = userService.getUserIdxByUserId(userId);
         List<Course> courses = courseRepository.getAllByUserIdx(userIdx);
 
         List<CourseInfo> getCourses = new ArrayList<>();
