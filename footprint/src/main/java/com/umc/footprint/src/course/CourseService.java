@@ -360,9 +360,6 @@ public class CourseService {
             } catch (Exception exception) {
                 throw new BaseException(DECRYPT_FAIL);
             }
-            if (decryptedImg.equals(defaultCourseImage)) {
-                decryptedImg = "";
-            }
         }
 
         return GetCourseDetailsRes.builder()
@@ -384,7 +381,7 @@ public class CourseService {
         Integer userIdx = userService.getUserIdxByUserId(userId);
 
         String encryptedCoordinates = "";
-        String courseImg = "";
+        String courseImg;
 
         // 좌표 암호화
         try {
@@ -396,12 +393,7 @@ public class CourseService {
 
         //코스 이미지 암호화
         if (postCourseDetailsReq.getCourseImg() == null || postCourseDetailsReq.getCourseImg().isEmpty()) {
-            try {
-                courseImg = new AES128(encryptProperties.getKey()).encrypt(defaultCourseImage);
-            } catch (Exception exception) {
-                log.info("기본 코스 이미지 암호화 실패");
-                throw new BaseException(ENCRYPT_FAIL);
-            }
+            courseImg = "";
         } else {
             try {
                 courseImg = new AES128(encryptProperties.getKey()).encrypt(postCourseDetailsReq.getCourseImg());
