@@ -39,6 +39,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -106,7 +112,7 @@ public class CourseService {
 
                 // 2-3. 해당 코스에 사진이 들어있는지 확인
                 // 사진이 없다면 기본 이미지 URL 입력
-                String courseImgUrl = course.getCourseImg()!=null ? course.getCourseImg() : defaultCourseImage;
+                String courseImgUrl = getCourseImage(course.getCourseImg());
 
                 // 2-4. courseListResList에 해당 추천 코스 정보 add
                 courseListResList.add(CourseInfo.builder()
@@ -147,10 +153,14 @@ public class CourseService {
         for(Course course : courses) {
             List<String> courseTags = getCourseTags(course);
             int courseCountSum = getCourseCount(course.getCourseIdx());
-            String courseImgUrl = course.getCourseImg()!=null ? course.getCourseImg() : defaultCourseImage;
+            String courseImgUrl = getCourseImage(course.getCourseImg());
 
             getCourses.add(
-                    CourseInfo.of(course, courseCountSum, courseImgUrl, courseTags, Boolean.TRUE)
+                    CourseInfo.of(course,
+                            courseCountSum,
+                            courseImgUrl,
+                            courseTags,
+                            Boolean.TRUE)
             );
         }
         return new GetCourseListRes(getCourses);
@@ -164,8 +174,7 @@ public class CourseService {
         for(Course course : courses) {
             List<String> courseTags = getCourseTags(course);
             int courseCountSum = getCourseCount(course.getCourseIdx());
-            String courseImgUrl = course.getCourseImg()!=null ? course.getCourseImg() : defaultCourseImage;
-            log.debug("courseImage : {}", courseImgUrl);
+            String courseImgUrl = getCourseImage(course.getCourseImg());
 
             Optional<Mark> userMark = markRepository.findByCourseIdxAndUserIdx(course.getCourseIdx(), userIdx);
             boolean userCourseMark = false;
@@ -244,6 +253,16 @@ public class CourseService {
             courseCountSum += userCourse.getCourseCount();
         }
         return courseCountSum;
+    }
+
+    // 해당 코스 이미지 조회 및 복호화
+    @SneakyThrows
+    public String getCourseImage(String courseImg) {
+        courseImg = courseImg.trim();
+        if(courseImg.length()==0) {
+            return defaultCourseImage;
+        }
+        return new AES128(encryptProperties.getKey()).decrypt(courseImg);
     }
 
     /** API.34 원하는 코스의 경로 좌표와 상세 설명을 가져온다. */
