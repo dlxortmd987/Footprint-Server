@@ -157,7 +157,8 @@ public class CourseService {
     }
 
     public GetCourseListRes getMyRecommendCourses(String userId) throws BaseException {
-        Integer userIdx = userService.getUserIdxByUserId(userId);
+//        Integer userIdx = userService.getUserIdxByUserId(userId);
+        Integer userIdx = 15;
         List<Course> courses = courseRepository.getAllByUserIdx(userIdx);
 
         List<CourseInfo> getCourses = new ArrayList<>();
@@ -165,9 +166,16 @@ public class CourseService {
             List<String> courseTags = getCourseTags(course);
             int courseCountSum = getCourseCount(course.getCourseIdx());
             String courseImgUrl = course.getCourseImg()!=null ? course.getCourseImg() : defaultCourseImage;
+            log.debug("courseImage : {}", courseImgUrl);
+
+            Optional<Mark> userMark = markRepository.findByCourseIdxAndUserIdx(course.getCourseIdx(), userIdx);
+            boolean userCourseMark = false;
+            if (userMark.isPresent()) {
+                userCourseMark = userMark.get().getMark();
+            }
 
             getCourses.add(
-                    CourseInfo.of(course, courseCountSum, courseImgUrl, courseTags, Boolean.TRUE)
+                    CourseInfo.of(course, courseCountSum, courseImgUrl, courseTags, userCourseMark)
             );
         }
         return new GetCourseListRes(getCourses);
