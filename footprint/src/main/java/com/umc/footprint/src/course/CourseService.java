@@ -261,6 +261,8 @@ public class CourseService {
         courseImg = courseImg.trim();
         if(courseImg.length()==0) {
             return defaultCourseImage;
+        } else if(courseImg.startsWith("https://")) {
+            return courseImg;
         }
         return new AES128(encryptProperties.getKey()).decrypt(courseImg);
     }
