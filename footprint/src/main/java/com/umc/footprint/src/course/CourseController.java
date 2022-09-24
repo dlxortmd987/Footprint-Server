@@ -20,6 +20,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -213,6 +214,7 @@ public class CourseController {
         }
     }
 
+    @SneakyThrows
     @GetMapping("/list/mark")
     @ApiOperation(value = "찜한 코스 목록 조회", notes = "찜한 산책 목록이 없을 시 null 반환")
     public BaseResponse<GetCourseListRes> getMarkCourseList() throws BaseException {
@@ -225,6 +227,7 @@ public class CourseController {
         }
     }
 
+    @SneakyThrows
     @GetMapping("/list/recommend")
     @ApiOperation(value = "나의 추천 코스 목록 조회")
     public BaseResponse<GetCourseListRes> getMyRecommendCourseList() throws BaseException {
