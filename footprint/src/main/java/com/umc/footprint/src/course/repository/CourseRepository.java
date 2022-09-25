@@ -29,7 +29,8 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
             value = "select distinct c.courseIdx as courseIdx, c.address as address, c.description as description, c.walkIdx as walkIdx, w.startAt as startAt, w.endAt as endAt, w.distance as distance, c.courseImg as courseImg " +
                     "from Course c " +
                     "join Walk w on c.walkIdx = w.walkIdx " +
-                    "where c.courseName = :courseName and c.status = 'ACTIVE' and w.status = 'ACTIVE'"
+                    "where BINARY c.courseName = ? and c.status = 'ACTIVE' and w.status = 'ACTIVE'"
+            ,nativeQuery = true
     )
     CourseHashTagProjection findCourseDetails(@Param("courseName") String courseName);
 

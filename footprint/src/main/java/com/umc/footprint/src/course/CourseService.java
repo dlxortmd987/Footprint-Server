@@ -348,7 +348,7 @@ public class CourseService {
                 courseDetails.getWalkIdx(),
                 courseTime,
                 courseDetails.getDistance(),
-                courseDetails.getCourseImg(),
+                decryptedImg,
                 courseAllTags,
                 courseSelectedTags
         );
@@ -535,8 +535,15 @@ public class CourseService {
             patchCourseDetailsReq.setCourseImg(defaultCourseImage);
         }
 
+        String encryptCourseImg;
+        try {
+            encryptCourseImg = new AES128(encryptProperties.getKey()).encrypt(patchCourseDetailsReq.getCourseImg());
+        } catch (Exception exception) {
+            throw new BaseException(ENCRYPT_FAIL);
+        }
+
         // Course Entity 에 저장
-        savedCourse.updateCourse(patchCourseDetailsReq);
+        savedCourse.updateCourse(patchCourseDetailsReq, encryptCourseImg);
         Course modifiedCourse = courseRepository.save(savedCourse);
 
         if (modifiedCourse == null) {
