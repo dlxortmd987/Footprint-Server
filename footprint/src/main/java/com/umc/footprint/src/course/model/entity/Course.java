@@ -86,10 +86,11 @@ public class Course extends BaseEntity {
     /**
      * 코스 수정
      * @param patchCourseDetailsReq
+     * @param encryptCourseImg
      */
-    public void updateCourse(PatchCourseDetailsReq patchCourseDetailsReq) {
+    public void updateCourse(PatchCourseDetailsReq patchCourseDetailsReq, String encryptCourseImg) {
         this.courseName = patchCourseDetailsReq.getCourseName();
-        this.courseImg = patchCourseDetailsReq.getCourseImg();
+        this.courseImg = encryptCourseImg;
         this.address = patchCourseDetailsReq.getAddress();
         this.length = patchCourseDetailsReq.getLength();
         this.courseTime = patchCourseDetailsReq.getCourseTime();
