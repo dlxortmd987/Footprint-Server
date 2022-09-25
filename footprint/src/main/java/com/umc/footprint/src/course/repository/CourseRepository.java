@@ -23,7 +23,7 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     @Query(value = "SELECT * FROM Course WHERE courseIdx IN (:courseIdxes)", nativeQuery = true)
     List<Course> getAllByCourseIdx(@Param("courseIdxes") List<Integer> courseIdxes);
 
-    List<Course> getAllByUserIdx(int userIdx);
+    List<Course> getAllByUserIdxAndStatus(int userIdx, CourseStatus status);
 
     @Query(
             value = "select distinct c.courseIdx as courseIdx, c.address as address, c.description as description, c.walkIdx as walkIdx, w.startAt as startAt, w.endAt as endAt, w.distance as distance, c.courseImg as courseImg " +
