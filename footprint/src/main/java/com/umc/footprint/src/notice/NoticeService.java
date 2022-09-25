@@ -177,8 +177,6 @@ public class NoticeService {
     }
 
     public GetVersionCheckRes checkVersion(String userVersion) {
-//        List<Integer> userVersionToken = Arrays.stream(userVersion.split(".")).map(Integer::parseInt).collect(Collectors.toList());
-//        List<Integer> serverVersionToken = Arrays.stream(serverVersion.split(".")).map(Integer::parseInt).collect(Collectors.toList());
 
         Boolean whetherUpdate = null;
         if (userVersion.charAt(0) == serverVersion.charAt(0)) { // 업데이트 불필요

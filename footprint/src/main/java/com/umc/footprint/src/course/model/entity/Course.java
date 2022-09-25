@@ -86,14 +86,10 @@ public class Course extends BaseEntity {
     /**
      * 코스 수정
      * @param patchCourseDetailsReq
-     * @param startCoordinate
-     * @param encryptedCoordinates
      */
-    public void updateCourse(PatchCourseDetailsReq patchCourseDetailsReq, Point startCoordinate, String encryptedCoordinates) {
+    public void updateCourse(PatchCourseDetailsReq patchCourseDetailsReq) {
         this.courseName = patchCourseDetailsReq.getCourseName();
         this.courseImg = patchCourseDetailsReq.getCourseImg();
-        this.startCoordinate = startCoordinate;
-        this.coordinate = encryptedCoordinates;
         this.address = patchCourseDetailsReq.getAddress();
         this.length = patchCourseDetailsReq.getLength();
         this.courseTime = patchCourseDetailsReq.getCourseTime();

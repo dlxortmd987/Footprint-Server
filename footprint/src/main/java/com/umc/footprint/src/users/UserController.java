@@ -44,8 +44,11 @@ public class UserController {
     private final BadgeService badgeService;
 
     /**
+     * 16 API
      * 유저 로그인 API
      * [POST] /users/auth/login
+     * @return PostLoginRes
+     * @throws JsonProcessingException
      */
     @ResponseBody
     @PostMapping("/auth/login")
@@ -83,6 +86,7 @@ public class UserController {
     }
 
     /**
+     * 17 API
      * 유저 자동 로그인 API
      * [GET] /users/autologin
      */
@@ -105,10 +109,10 @@ public class UserController {
 
     }
 
-        /**
-         * 유저 오늘 산책관련 정보 조회 API
-         * [GET] /users/today
-         */
+    /**
+     * 유저 오늘 산책관련 정보 조회 API
+     * [GET] /users/today
+     */
     // Path-variable
     @ResponseBody
     @GetMapping("/today")
@@ -549,6 +553,7 @@ public class UserController {
     }
 
     /**
+     * 18 API
      * 태그 검색 API
      * [GET] /users/tags?tag=""
      */

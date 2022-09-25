@@ -18,7 +18,7 @@ public interface CourseTagRepository extends JpaRepository<CourseTag, Integer> {
             value = "select h.hashtagIdx as hashtagIdx, h.hashtag as hashtag " +
                     "from CourseTag ct " +
                     "join Hashtag h on h = ct.hashtag " +
-                    "where ct.course.courseIdx = :courseIdx"
+                    "where ct.course.courseIdx = :courseIdx and ct.status = 'ACTIVE'"
     )
     List<HashTagProjection> findCourseSelectedTags(@Param("courseIdx") Integer courseIdx);
 }

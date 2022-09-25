@@ -41,12 +41,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -529,16 +523,6 @@ public class CourseService {
             throw new BaseException(NOT_EXIST_COURSE);
         }
 
-        String encryptedCoordinates;
-
-        // 좌표 암호화
-        try {
-            encryptedCoordinates = new AES128(encryptProperties.getKey()).encrypt(walkService.convert2DListToString(patchCourseDetailsReq.getCoordinates()));
-        } catch (Exception exception) {
-            log.info("좌표 암호화 실패");
-            throw new BaseException(ENCRYPT_FAIL);
-        }
-
         // 코스 이름 변경 시 중복 확인
         if (!savedCourse.getCourseName().equals(patchCourseDetailsReq.getCourseName())) {
             if (courseRepository.existsByCourseNameAndStatus(patchCourseDetailsReq.getCourseName(), CourseStatus.ACTIVE)) {
@@ -552,10 +536,7 @@ public class CourseService {
         }
 
         // Course Entity 에 저장
-        Point startCoordinate = extractStartCoordinate(patchCourseDetailsReq.getCoordinates());
-        log.info("start coordinate: {}", startCoordinate.toString());
-
-        savedCourse.updateCourse(patchCourseDetailsReq, startCoordinate, encryptedCoordinates);
+        savedCourse.updateCourse(patchCourseDetailsReq);
         Course modifiedCourse = courseRepository.save(savedCourse);
 
         if (modifiedCourse == null) {
