@@ -159,21 +159,6 @@ public class UserService {
 
     // 유저 정보 수정(Patch)
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-    public void modifyUserInfo(int userIdx, PatchUserInfoReq patchUserInfoReq) throws BaseException {
-        try {
-            int result = userDao.modifyUserInfo(userIdx, patchUserInfoReq);
-
-            if (result == 0) { // 유저 정보 변경 실패
-                throw new BaseException(MODIFY_USERINFO_FAIL);
-            }
-        } catch (Exception exception) { // DB에 이상이 있는 경우 에러 메시지를 보냅니다.
-            exception.printStackTrace();
-            throw new BaseException(DATABASE_ERROR);
-        }
-    }
-
-    // 유저 정보 수정(Patch)
-    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public void modifyUserInfoJPA(String userId, PatchUserInfoReq patchUserInfoReq) throws BaseException {
         try {
             int userIdx = getUserIdxByUserId(userId);

@@ -12,7 +12,6 @@ public class PatchCourseDetailsReq {
     private Integer courseIdx;
     private String courseName;
     private String courseImg;
-    private List<List<Double>> coordinates;
     private List<HashtagInfo> hashtags;
     private String address;
     private Double length;
@@ -21,11 +20,10 @@ public class PatchCourseDetailsReq {
     private String description;
 
     @Builder
-    public PatchCourseDetailsReq(Integer courseIdx, String courseName, String courseImg, List<List<Double>> coordinates, List<HashtagInfo> hashtags, String address, Double length, Integer courseTime, Integer walkIdx, String description) {
+    public PatchCourseDetailsReq(Integer courseIdx, String courseName, String courseImg, List<HashtagInfo> hashtags, String address, Double length, Integer courseTime, Integer walkIdx, String description) {
         this.courseIdx = courseIdx;
         this.courseName = courseName;
         this.courseImg = courseImg;
-        this.coordinates = coordinates;
         this.hashtags = hashtags;
         this.address = address;
         this.length = length;

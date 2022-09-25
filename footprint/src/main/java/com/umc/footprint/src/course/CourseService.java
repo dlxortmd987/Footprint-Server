@@ -9,6 +9,8 @@ import com.umc.footprint.src.common.model.vo.HashtagInfo;
 import com.umc.footprint.src.common.repository.PhotoRepository;
 import com.umc.footprint.src.common.repository.TagRepository;
 import com.umc.footprint.src.course.model.dto.*;
+import com.umc.footprint.src.course.model.dto.projection.CourseHashTagProjection;
+import com.umc.footprint.src.course.model.dto.projection.HashTagProjection;
 import com.umc.footprint.src.course.model.entity.Course;
 import com.umc.footprint.src.course.model.entity.CourseTag;
 import com.umc.footprint.src.course.model.entity.Mark;
@@ -39,12 +41,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -321,80 +317,41 @@ public class CourseService {
      * @throws BaseException
      */
     public GetCourseDetailsRes getCourseDetails(String courseName) throws BaseException {
+        CourseHashTagProjection courseDetails = courseRepository.findCourseDetails(courseName);
 
-        Course savedCourse = courseRepository.findByCourseNameAndStatus(courseName, CourseStatus.ACTIVE);
-
-        if (savedCourse == null) {
+        if (courseDetails == null) {
             log.info("코스 이름에 해당하는 코스가 없습니다.");
             throw new BaseException(NOT_EXIST_COURSE);
         }
 
-        Walk savedWalk = walkRepository.findById(savedCourse.getWalkIdx()).get();
+        List<HashTagProjection> courseAllTags = courseRepository.findCourseAllTags(courseDetails.getWalkIdx());
+        List<HashTagProjection> courseSelectedTags = courseTagRepository.findCourseSelectedTags(courseDetails.getCourseIdx());
 
-        if (savedWalk.getStatus().equals("INACTIVE")) {
-            log.info("삭제된 산책입니다.");
-            throw new BaseException(DELETED_WALK);
-        }
-
-        List<ArrayList<Double>> coordinates;
-
-        // 좌표 변환
-        try {
-            coordinates = walkService.convertStringTo2DList(savedCourse.getCoordinate());
-        } catch (Exception exception) {
-            throw new BaseException(INVALID_ENCRYPT_STRING);
-        }
-
-        ArrayList<HashtagInfo> allHashtags = new ArrayList<>();
-        ArrayList<HashtagInfo> selectedHashtags = new ArrayList<>();
-        for (Footprint footprint : savedWalk.getFootprintList()) {
-            // 모든 해시태그 불러오기
-            List<Tag> savedTags = tagRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
-            for (Tag savedTag : savedTags) {
-                allHashtags.add(HashtagInfo.builder()
-                        .hashtagIdx(savedTag.getHashtag().getHashtagIdx())
-                        .hashtag(savedTag.getHashtag().getHashtag())
-                        .build());
-            }
-        }
-
-        // 선택한 해시태그 불러오기
-        List<CourseTag> activeTags = courseTagRepository.findAllByCourseAndStatus(savedCourse, "ACTIVE");
-        for (CourseTag courseTag : activeTags) {
-            selectedHashtags.add(
-                    HashtagInfo.builder()
-                            .hashtagIdx(courseTag.getHashtag().getHashtagIdx())
-                            .hashtag(courseTag.getHashtag().getHashtag())
-                            .build()
-            );
-        }
-
-        Duration between = Duration.between(savedWalk.getStartAt(), savedWalk.getEndAt());
+        Duration between = Duration.between(courseDetails.getStartAt(), courseDetails.getEndAt());
         Integer courseTime = (int) between.getSeconds()/60;
 
         String decryptedImg;
-        if (savedCourse.getCourseImg() == null || savedCourse.getCourseImg().isEmpty()) {
+        if (courseDetails.getCourseImg() == null || courseDetails.getCourseImg().isEmpty()) {
             decryptedImg = "";
         } else {
             try {
-                decryptedImg = new AES128(encryptProperties.getKey()).decrypt(savedCourse.getCourseImg());
+                decryptedImg = new AES128(encryptProperties.getKey()).decrypt(courseDetails.getCourseImg());
             } catch (Exception exception) {
                 throw new BaseException(DECRYPT_FAIL);
             }
         }
 
-        return GetCourseDetailsRes.builder()
-                .courseIdx(savedCourse.getCourseIdx())
-                .address(savedCourse.getAddress())
-                .description(savedCourse.getDescription())
-                .walkIdx(savedWalk.getWalkIdx())
-                .courseTime(courseTime)
-                .courseImg(decryptedImg)
-                .distance(savedWalk.getDistance())
-                .coordinates(coordinates)
-                .allHashtags(allHashtags)
-                .selectedHashtags(selectedHashtags)
-                .build();
+        return new GetCourseDetailsRes(
+                courseDetails.getCourseIdx(),
+                courseDetails.getAddress(),
+                courseDetails.getDescription(),
+                courseDetails.getWalkIdx(),
+                courseTime,
+                courseDetails.getDistance(),
+                courseDetails.getCourseImg(),
+                courseAllTags,
+                courseSelectedTags
+        );
     }
 
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
@@ -566,16 +523,6 @@ public class CourseService {
             throw new BaseException(NOT_EXIST_COURSE);
         }
 
-        String encryptedCoordinates;
-
-        // 좌표 암호화
-        try {
-            encryptedCoordinates = new AES128(encryptProperties.getKey()).encrypt(walkService.convert2DListToString(patchCourseDetailsReq.getCoordinates()));
-        } catch (Exception exception) {
-            log.info("좌표 암호화 실패");
-            throw new BaseException(ENCRYPT_FAIL);
-        }
-
         // 코스 이름 변경 시 중복 확인
         if (!savedCourse.getCourseName().equals(patchCourseDetailsReq.getCourseName())) {
             if (courseRepository.existsByCourseNameAndStatus(patchCourseDetailsReq.getCourseName(), CourseStatus.ACTIVE)) {
@@ -589,10 +536,7 @@ public class CourseService {
         }
 
         // Course Entity 에 저장
-        Point startCoordinate = extractStartCoordinate(patchCourseDetailsReq.getCoordinates());
-        log.info("start coordinate: {}", startCoordinate.toString());
-
-        savedCourse.updateCourse(patchCourseDetailsReq, startCoordinate, encryptedCoordinates);
+        savedCourse.updateCourse(patchCourseDetailsReq);
         Course modifiedCourse = courseRepository.save(savedCourse);
 
         if (modifiedCourse == null) {
