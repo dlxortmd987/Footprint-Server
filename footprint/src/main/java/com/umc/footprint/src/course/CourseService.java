@@ -254,13 +254,16 @@ public class CourseService {
     // 해당 코스 이미지 조회 및 복호화
     @SneakyThrows
     public String getCourseImage(String courseImg) {
-        courseImg = courseImg.trim();
-        if(courseImg.length()==0) {
+        if(courseImg.length()==0 || courseImg.equals("")) {
             return defaultCourseImage;
         } else if(courseImg.startsWith("https://")) {
             return courseImg;
         }
-        return new AES128(encryptProperties.getKey()).decrypt(courseImg);
+        courseImg = new AES128(encryptProperties.getKey()).decrypt(courseImg);
+        if(courseImg.equals("")) {
+            courseImg = defaultCourseImage;
+        }
+        return courseImg;
     }
 
     /** API.34 원하는 코스의 경로 좌표와 상세 설명을 가져온다. */
