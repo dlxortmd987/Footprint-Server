@@ -327,7 +327,7 @@ public class CourseService {
             throw new BaseException(NOT_EXIST_COURSE);
         }
 
-        List<HashTagProjection> courseAllTags = courseRepository.findCourseAllTags(courseDetails.getWalkIdx());
+        List<HashTagProjection> courseAllTags = walkRepository.findCourseAllTags(courseDetails.getWalkIdx());
         List<HashTagProjection> courseSelectedTags = courseTagRepository.findCourseSelectedTags(courseDetails.getCourseIdx());
 
         Duration between = Duration.between(courseDetails.getStartAt(), courseDetails.getEndAt());
@@ -639,6 +639,62 @@ public class CourseService {
             for (Photo savedPhoto : savedPhotos) {
                 photos.add(savedPhoto.getImageUrl());
             }
+        }
+
+        Duration between = Duration.between(savedWalk.getStartAt(), savedWalk.getEndAt());
+        Integer walkTime = (int) between.getSeconds()/60;
+
+        return GetWalkDetailsRes.builder()
+                .walkIdx(savedWalk.getWalkIdx())
+                .walkTime(walkTime)
+                .distance(savedWalk.getDistance())
+                .coordinates(coordinates)
+                .hashtags(hashtags)
+                .photos(photos)
+                .build();
+    }
+
+    public GetWalkDetailsRes getWalkDetails_v2(Integer walkNumber, String userId) throws BaseException {
+        Integer userIdx = userService.getUserIdxByUserId(userId);
+
+        Walk savedWalk = walkService.getWalkByNumber(walkNumber, userIdx);
+
+
+        if (savedWalk == null) {
+            log.info("{} 번째 산책을 찾을 수 없습니다.", walkNumber);
+            throw new BaseException(NOT_EXIST_WALK);
+        }
+
+
+        List<ArrayList<Double>> coordinates;
+
+        // 좌표 변환
+        try {
+            coordinates = walkService.convertStringTo2DList(savedWalk.getCoordinate());
+        } catch (Exception exception) {
+            throw new BaseException(INVALID_ENCRYPT_STRING);
+        }
+
+        List<HashTagProjection> walkTags = walkRepository.findCourseAllTags(savedWalk.getWalkIdx());
+        List<String> walkPhotos = photoRepository.findByWalkIdx(savedWalk.getWalkIdx());
+
+        ArrayList<HashtagInfo> hashtags = new ArrayList<>();
+        for (HashTagProjection hashTagProjection : walkTags) {
+            hashtags.add(
+                    HashtagInfo.builder()
+                            .hashtagIdx(hashTagProjection.getHashtagIdx())
+                            .hashtag(hashTagProjection.getHashtag())
+                            .build()
+            );
+        }
+        ArrayList<String> photos = new ArrayList<>();
+        try {
+            for (String walkPhoto : walkPhotos) {
+                photos.add(new AES128(encryptProperties.getKey()).decrypt(walkPhoto));
+            }
+        } catch (Exception exception) {
+            log.info("사진 암호화 실패");
+            throw new BaseException(DECRYPT_FAIL);
         }
 
         Duration between = Duration.between(savedWalk.getStartAt(), savedWalk.getEndAt());

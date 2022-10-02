@@ -1,15 +1,15 @@
 package com.umc.footprint.src.walks.repository;
 
-import com.umc.footprint.src.walks.model.entity.Walk;
-import com.umc.footprint.src.users.model.vo.GetDayRateResInterface;
+import com.umc.footprint.src.badge.model.vo.ObtainedBadgeInterface;
+import com.umc.footprint.src.course.model.dto.projection.HashTagProjection;
 import com.umc.footprint.src.footprints.model.vo.GetFootprintCountInterface;
 import com.umc.footprint.src.goal.model.vo.GetMonthTotalInterface;
-import com.umc.footprint.src.badge.model.vo.ObtainedBadgeInterface;
+import com.umc.footprint.src.users.model.vo.GetDayRateResInterface;
+import com.umc.footprint.src.walks.model.entity.Walk;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
@@ -83,4 +83,13 @@ public interface WalkRepository extends JpaRepository<Walk, Integer> {
     ,nativeQuery = true)
     List<Integer> getDayOfWeekByQuery(@Param(value = "userIdx") int userIdx);
 
+    @Query(
+            value = "select h.hashtagIdx as hashtagIdx, h.hashtag as hashtag " +
+                    "from Walk w " +
+                    "join Footprint f on w = f.walk " +
+                    "join Tag t on f = t.footprint " +
+                    "join Hashtag h on h = t.hashtag " +
+                    "where w.walkIdx = :walkIdx and w.status = 'ACTIVE' and f.status = 'ACTIVE' and t.status = 'ACTIVE'"
+    )
+    List<HashTagProjection> findCourseAllTags(@Param("walkIdx") Integer walkIdx);
 }

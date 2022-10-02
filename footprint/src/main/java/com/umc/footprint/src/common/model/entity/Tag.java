@@ -25,6 +25,9 @@ public class Tag {
     @Column(name = "status", length = 20, nullable = false)
     private String status;
 
+    @Column(name = "walkIdx")
+    private Integer walkIdx;
+
     @OneToOne(targetEntity = Hashtag.class, fetch = FetchType.LAZY)
     @JoinColumn(name = "hashtagIdx")
     private Hashtag hashtag;
@@ -54,6 +57,10 @@ public class Tag {
         if (!footprint.getTagList().contains(this)) {
             footprint.addTagList(this);
         }
+    }
+
+    public void setWalk(Integer walkIdx) {
+        this.walkIdx = walkIdx;
     }
 
     public void setStatus(String status) {

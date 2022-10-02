@@ -299,12 +299,15 @@ public class WalkService {
                         Tag beforeSaveTag = Tag.builder()
                                 .userIdx(userIdx)
                                 .status("ACTIVE")
+
                                 .build();
                         beforeSaveTag.setHashtag(beforeSaveHashtag);
                         beforeSaveTag.setFootprint(beforeSaveFootprint);
+                        beforeSaveTag.setWalk(savedWalkIdx);
 
                         beforeSaveFootprint.addTagList(beforeSaveTag);
                         beforeSaveTagList.add(beforeSaveTag);
+
                     }
 
                     footprintRepository.save(beforeSaveFootprint);
