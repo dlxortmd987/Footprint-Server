@@ -2,6 +2,7 @@ package com.umc.footprint.src.course.model.entity;
 
 import com.umc.footprint.src.common.model.entity.Hashtag;
 import com.umc.footprint.src.course.model.entity.Course;
+import com.umc.footprint.src.course.model.vo.CourseStatus;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,11 +28,12 @@ public class CourseTag {
     @JoinColumn(name = "hashtagIdx")
     private Hashtag hashtag;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private String status;
+    private CourseStatus status;
 
     @Builder
-    public CourseTag(Integer courseTagIdx, String status) {
+    public CourseTag(Integer courseTagIdx, CourseStatus status) {
         this.courseTagIdx = courseTagIdx;
         this.status = status;
     }

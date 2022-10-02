@@ -233,7 +233,7 @@ public class CourseService {
 
     // 해당 코스의 해시태그 목록 조회
     public List<String> getCourseTags(Course course) {
-        List<CourseTag> courseTagMappingList = courseTagRepository.findAllByCourse(course);
+        List<CourseTag> courseTagMappingList = courseTagRepository.findAllByCourseAndStatus(course, CourseStatus.ACTIVE);
         List<String> courseTags = new ArrayList<>();
         for(CourseTag courseTag: courseTagMappingList){
             courseTags.add(courseTag.getHashtag().getHashtag());
@@ -254,13 +254,16 @@ public class CourseService {
     // 해당 코스 이미지 조회 및 복호화
     @SneakyThrows
     public String getCourseImage(String courseImg) {
-        courseImg = courseImg.trim();
-        if(courseImg.length()==0) {
+        if(courseImg.length()==0 || courseImg.equals("")) {
             return defaultCourseImage;
         } else if(courseImg.startsWith("https://")) {
             return courseImg;
         }
-        return new AES128(encryptProperties.getKey()).decrypt(courseImg);
+        courseImg = new AES128(encryptProperties.getKey()).decrypt(courseImg);
+        if(courseImg.equals("")) {
+            courseImg = defaultCourseImage;
+        }
+        return courseImg;
     }
 
     /** API.34 원하는 코스의 경로 좌표와 상세 설명을 가져온다. */
@@ -414,7 +417,7 @@ public class CourseService {
             List<CourseTag> courseTags = new ArrayList<>();
             for (HashtagInfo hashtagInfo : postCourseDetailsReq.getHashtags()) {
                 CourseTag courseTag = CourseTag.builder()
-                        .status("ACTIVE")
+                        .status(CourseStatus.ACTIVE)
                         .build();
 
                 courseTag.setCourse(savedCourse);
@@ -552,13 +555,13 @@ public class CourseService {
         }
 
         // 해당 코스 태그 entity 불러와서 INACTIVE 로 만들기
-        List<CourseTag> savedCourseTags = courseTagRepository.findAllByCourseAndStatus(modifiedCourse, "ACTIVE");
+        List<CourseTag> savedCourseTags = courseTagRepository.findAllByCourseAndStatus(modifiedCourse, CourseStatus.ACTIVE);
         if (savedCourseTags != null) {
             List<CourseTag> inactiveCourseTags = new ArrayList<>();
             for (CourseTag courseTag : savedCourseTags) {
                 CourseTag inactiveCourseTag = CourseTag.builder()
                         .courseTagIdx(courseTag.getCourseTagIdx())
-                        .status("INACTIVE")
+                        .status(CourseStatus.INACTIVE)
                         .build();
                 inactiveCourseTag.setCourse(courseTag.getCourse());
                 inactiveCourseTag.setHashtag(courseTag.getHashtag());
@@ -574,7 +577,7 @@ public class CourseService {
             // 코스, 해시 태그 매핑
             for (HashtagInfo hashtagInfo : patchCourseDetailsReq.getHashtags()) {
                 CourseTag beforeSavedCourseTag = CourseTag.builder()
-                        .status("ACTIVE")
+                        .status(CourseStatus.ACTIVE)
                         .build();
 
                 beforeSavedCourseTag.setCourse(modifiedCourse);
