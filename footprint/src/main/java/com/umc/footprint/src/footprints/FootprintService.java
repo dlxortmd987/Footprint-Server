@@ -5,13 +5,22 @@ import static com.umc.footprint.config.BaseResponseStatus.*;
 
 import com.umc.footprint.config.EncryptProperties;
 import com.umc.footprint.src.AwsS3Service;
-import com.umc.footprint.src.footprints.model.GetFootprintRes;
-import com.umc.footprint.src.footprints.model.PatchFootprintReq;
+import com.umc.footprint.src.common.model.entity.Hashtag;
+import com.umc.footprint.src.common.model.entity.Photo;
+import com.umc.footprint.src.common.model.entity.Tag;
+import com.umc.footprint.src.common.repository.HashtagRepository;
+import com.umc.footprint.src.common.repository.PhotoRepository;
+import com.umc.footprint.src.common.repository.TagRepository;
+import com.umc.footprint.src.footprints.model.dto.GetFootprintRes;
+import com.umc.footprint.src.footprints.model.dto.PatchFootprintReq;
 
-import com.umc.footprint.src.model.*;
-import com.umc.footprint.src.repository.*;
+import com.umc.footprint.src.footprints.model.entity.Footprint;
+import com.umc.footprint.src.footprints.repository.FootprintRepository;
+import com.umc.footprint.src.users.repository.UserRepository;
 import com.umc.footprint.src.walks.WalkService;
 
+import com.umc.footprint.src.walks.model.entity.Walk;
+import com.umc.footprint.src.walks.repository.WalkRepository;
 import com.umc.footprint.utils.AES128;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -106,7 +115,7 @@ public class FootprintService {
                 for(String tag : patchFootprintReq.getTagList()){
                     hashtagList.add(
                             Hashtag.builder()
-                            .hashtag(new AES128(encryptProperties.getKey()).encrypt(tag))
+                            .hashtag(tag)
                             .build()
                     );
                 }
@@ -166,14 +175,10 @@ public class FootprintService {
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public void deleteFootprintJPA(int footprintIdx) throws BaseException {
         try {
-            Optional<Footprint> targetFootprint = footprintRepository.findByFootprintIdx(footprintIdx);
-
-            if(targetFootprint.isEmpty()) { // 발자국이 존재하지 않을 때
-                throw new BaseException(NO_EXIST_FOOTPRINT);
-            }
+            Footprint targetFootprint = footprintRepository.findByFootprintIdx(footprintIdx).orElseThrow(() -> new BaseException(NO_EXIST_FOOTPRINT));
 
             // Photo status 변경
-            List<Photo> photoByFootprintIdx = photoRepository.findPhotoByFootprint(targetFootprint.get());
+            List<Photo> photoByFootprintIdx = photoRepository.findPhotoByFootprint(targetFootprint);
 
             for(Photo photo : photoByFootprintIdx){
                 photo.setStatus("INACTIVE");
@@ -181,7 +186,7 @@ public class FootprintService {
             }
 
             // Hashtag status 변경
-            List<Tag> TagByFootprintIdx = tagRepository.findByFootprint(targetFootprint.get());
+            List<Tag> TagByFootprintIdx = tagRepository.findByFootprint(targetFootprint);
 
             for(Tag tag : TagByFootprintIdx){
                 tag.setStatus("INACTIVE");
@@ -189,8 +194,8 @@ public class FootprintService {
             }
 
             // Footprint status 변경
-            targetFootprint.get().setStatus("INACTIVE");
-            footprintRepository.save(targetFootprint.get());
+            targetFootprint.setStatus("INACTIVE");
+            footprintRepository.save(targetFootprint);
 
 
         } catch (Exception exception) {
@@ -245,7 +250,7 @@ public class FootprintService {
             log.debug("Footprint Handling");
             for (Footprint footprint : footprintList) {
                 List<String> decryptPhotoList = new ArrayList<>();
-                List<String> decryptTagList = new ArrayList<>();
+                List<String> tagList = new ArrayList<>();
 
                 log.debug("사진 복호화");
                 List<Photo> photoList = photoRepository.findAllByFootprintAndStatus(footprint, "ACTIVE");
@@ -254,19 +259,19 @@ public class FootprintService {
                         decryptPhotoList.add(new AES128(encryptProperties.getKey()).decrypt(photo.getImageUrl()));
                     }
                 }
-                log.debug("태그 복호화");
+                log.debug("태그 리스트 초기화");
                 for (Tag tag : footprint.getTagList()) {
                     if (tag.getStatus().equals("ACTIVE")) {
-                        decryptTagList.add(new AES128(encryptProperties.getKey()).decrypt(tag.getHashtag().getHashtag()));
+                        tagList.add(tag.getHashtag().getHashtag());
                     }
                 }
                 log.debug("response 객체에 추가");
                 getFootprintRes.add(GetFootprintRes.builder()
                         .footprintIdx(footprint.getFootprintIdx())
-                        .recordAt(footprint.getRecordAt())
+                        .recordAt(footprint.getCreateAt())
                         .write(new AES128(encryptProperties.getKey()).decrypt(footprint.getRecord()))
                         .photoList(decryptPhotoList)
-                        .tagList(decryptTagList)
+                        .tagList(tagList)
                         .onWalk(footprint.getOnWalk())
                         .build());
             }
@@ -284,7 +289,7 @@ public class FootprintService {
         Walk walkByNumber = walkService.getWalkByNumber(walkNumber, userIdx);
         PageRequest pageRequest = PageRequest.of(footprintNumber - 1, 1);
         try {
-            Page<Footprint> footprintPage = footprintRepository.findByWalkAndStatusOrderByRecordAtAsc(walkByNumber, "ACTIVE", pageRequest);
+            Page<Footprint> footprintPage = footprintRepository.findByWalkAndStatusOrderByCreateAtAsc(walkByNumber, "ACTIVE", pageRequest);
             if (footprintPage.getTotalElements() == 0) {
                 throw new BaseException(DELETED_FOOTPRINT);
             }

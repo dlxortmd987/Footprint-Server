@@ -1,13 +1,14 @@
 package com.umc.footprint.src.footprints;
 
-import com.umc.footprint.src.users.UserProvider;
-import com.umc.footprint.src.walks.WalkProvider;
+import com.umc.footprint.src.footprints.model.dto.GetFootprintReq;
+import com.umc.footprint.src.footprints.model.dto.GetFootprintRes;
+import com.umc.footprint.src.footprints.model.dto.PatchFootprintReq;
+import com.umc.footprint.src.users.UserService;
 import com.umc.footprint.utils.JwtService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import com.umc.footprint.src.footprints.model.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.umc.footprint.config.BaseException;
@@ -17,22 +18,13 @@ import java.util.List;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/footprints")
 public class FootprintController {
-    private final FootprintProvider footprintProvider;
+
     private final FootprintService footprintService;
     private final JwtService jwtService;
-    private final UserProvider userProvider;
-    private final WalkProvider walkProvider;
-
-    @Autowired
-    public FootprintController(FootprintProvider footprintProvider, FootprintService footprintService, JwtService jwtService, UserProvider userProvider, WalkProvider walkProvider) {
-        this.footprintProvider = footprintProvider;
-        this.footprintService = footprintService;
-        this.jwtService = jwtService;
-        this.userProvider = userProvider;
-        this.walkProvider = walkProvider;
-    }
+    private final UserService userService;
 
     /**
      * 발자국 조회 API
@@ -61,7 +53,7 @@ public class FootprintController {
      */
     @ResponseBody
     @PatchMapping("/{walkIdx}/{footprintIdx}")
-    public BaseResponse<String> modifyFootprint(@PathVariable("walkIdx") int walkIdx,@PathVariable("footprintIdx") int footprintIdx, GetFootprint footprint) {
+    public BaseResponse<String> modifyFootprint(@PathVariable("walkIdx") int walkIdx,@PathVariable("footprintIdx") int footprintIdx, GetFootprintReq footprint) {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
@@ -91,7 +83,7 @@ public class FootprintController {
             String userId = jwtService.getUserId();
             log.debug("userId: {}", userId);
             // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
+            int userIdx = userService.getUserIdxByUserId(userId);
 
             // Walk 테이블 전체에서 인덱스
             int wholeWalkIdx = footprintService.getWalkWholeIdx(walkIdx, userIdx);

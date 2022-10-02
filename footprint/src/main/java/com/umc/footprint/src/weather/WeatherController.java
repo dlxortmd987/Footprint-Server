@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.src.weather.model.PostWeatherReq;
 import com.umc.footprint.src.weather.model.PostWeatherRes;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +38,11 @@ public class WeatherController {
 
     @ResponseBody
     @PostMapping("")
+    @ApiOperation(value = "날씨 조회", notes = "위도/경도 좌표를 사용하여 현재 위치의 온도/날씨 유형 정보 제공")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "nx", value = "현재 사용자 디바이스 위도 좌표", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "ny", value = "현재 사용자 디바이스 경도 좌표", dataType = "String", paramType = "body", required = true)
+    })
     public BaseResponse<PostWeatherRes> PostWeather(@RequestBody String request) throws IOException {
 
         PostWeatherReq postWeatherReq = new ObjectMapper().readValue(request, PostWeatherReq.class);

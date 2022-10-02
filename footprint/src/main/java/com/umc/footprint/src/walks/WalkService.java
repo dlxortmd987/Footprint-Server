@@ -2,10 +2,33 @@ package com.umc.footprint.src.walks;
 
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.EncryptProperties;
-import com.umc.footprint.src.footprints.FootprintDao;
-import com.umc.footprint.src.model.*;
-import com.umc.footprint.src.repository.*;
-import com.umc.footprint.src.walks.model.*;
+import com.umc.footprint.src.badge.model.Badge;
+import com.umc.footprint.src.badge.model.BadgeRepository;
+import com.umc.footprint.src.badge.model.UserBadge;
+import com.umc.footprint.src.badge.model.UserBadgeRepository;
+import com.umc.footprint.src.badge.model.vo.BadgeInfo;
+import com.umc.footprint.src.badge.model.vo.ObtainedBadgeInterface;
+import com.umc.footprint.src.common.model.entity.Hashtag;
+import com.umc.footprint.src.common.model.entity.Photo;
+import com.umc.footprint.src.common.model.entity.Tag;
+import com.umc.footprint.src.common.repository.HashtagRepository;
+import com.umc.footprint.src.common.repository.PhotoRepository;
+import com.umc.footprint.src.common.repository.TagRepository;
+import com.umc.footprint.src.footprints.model.entity.Footprint;
+import com.umc.footprint.src.footprints.model.vo.FootprintInfo;
+import com.umc.footprint.src.footprints.repository.FootprintRepository;
+import com.umc.footprint.src.goal.model.entity.Goal;
+import com.umc.footprint.src.goal.repository.GoalRepository;
+import com.umc.footprint.src.users.UserService;
+import com.umc.footprint.src.users.model.entity.User;
+import com.umc.footprint.src.users.repository.UserRepository;
+import com.umc.footprint.src.walks.model.dto.GetWalkInfoRes;
+import com.umc.footprint.src.walks.model.dto.PostWalkReq;
+import com.umc.footprint.src.walks.model.dto.PostWalkRes;
+import com.umc.footprint.src.walks.model.entity.Walk;
+import com.umc.footprint.src.walks.model.vo.WalkInfo;
+import com.umc.footprint.src.walks.model.vo.GetWalkTime;
+import com.umc.footprint.src.walks.repository.WalkRepository;
 import com.umc.footprint.utils.AES128;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -17,15 +40,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +57,6 @@ import static com.umc.footprint.config.Constant.MINUTES_TO_SECONDS;
 @Service
 @RequiredArgsConstructor
 public class WalkService {
-    private final WalkDao walkDao;
     private final UserRepository userRepository;
     private final WalkRepository walkRepository;
     private final FootprintRepository footprintRepository;
@@ -51,11 +66,187 @@ public class WalkService {
     private final GoalRepository goalRepository;
     private final UserBadgeRepository userBadgeRepository;
     private final BadgeRepository badgeRepository;
+    private final UserService userService;
     private final EncryptProperties encryptProperties;
-    private final FootprintDao footprintDao;
+
+    @Transactional(readOnly = true)
+    public List<Walk> getMyAllWalk(int userIdx) {
+        return walkRepository.getAllByUserIdx(userIdx);
+    }
+
+//    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
+//    public List<PostWalkRes> saveRecord_v2(String userId, PostWalkReq request) throws BaseException {
+//        log.debug("Validation 1. 동선 이미지가 안왔을 경우");
+//        if (request.getWalk().getThumbnail().isEmpty()) {
+//            throw new BaseException(EMPTY_WALK_PHOTO);
+//        }
+//
+//        // userIdx 추출
+//        int userIdx = userRepository.findByUserId(userId).getUserIdx();
+//
+//        String encryptImage;
+//        String safeCoordinate;
+//        Double goalRate = getGoalRate(request.getWalk(), userIdx);
+//
+//        log.info("산책 대표 이미지 및 좌표 암호화");
+//        try {
+//            encryptImage = new AES128(encryptProperties.getKey()).encrypt(request.getWalk().getThumbnail());
+//            safeCoordinate = new AES128(encryptProperties.getKey()).encrypt(convert2DListToString(changeSafeCoordinate(request.getWalk().getCoordinates())));
+//        } catch (Exception exception) {
+//            log.info("암호화 실패");
+//            throw new BaseException(ENCRYPT_FAIL);
+//        }
+//
+//        log.info("Walk Object 생성");
+//        Walk newWalk = Walk.builder()
+//                .startAt(request.getWalk().getStartAt())
+//                .endAt(request.getWalk().getEndAt())
+//                .distance(request.getWalk().getDistance())
+//                .coordinate(safeCoordinate)
+//                .pathImageUrl(encryptImage)
+//                .userIdx(userIdx)
+//                .goalRate(goalRate)
+//                .calorie(request.getWalk().getCalorie())
+//                .status("ACTIVE")
+//                .build();
+//
+//        log.info("Footprint Object 리스트 생성");
+//        List<Footprint> footprints = new ArrayList<>();
+//
+//        if (!request.getFootprintList().isEmpty()) {
+//            for (FootprintInfo footprintInfo : request.getFootprintList()) {
+//                String strCoordinates = convertListToString(footprintInfo.getCoordinates());
+//                String encryptCoordinate;
+//                String encryptRecord;
+//
+//                log.info("발자국 좌표 및 기록 암호화");
+//                try {
+//                    encryptCoordinate = new AES128(encryptProperties.getKey()).encrypt(strCoordinates);
+//                    encryptRecord = new AES128(encryptProperties.getKey()).encrypt(footprintInfo.getWrite());
+//                } catch (Exception exception) {
+//                    log.info("발자국 좌표, 기록 암호화 실패");
+//                    throw new BaseException(ENCRYPT_FAIL);
+//                }
+//
+//                log.info("Footprint Object 생성");
+//                Footprint newFootprint = Footprint.builder()
+//                        .coordinate(encryptCoordinate)
+//                        .record(encryptRecord)
+//                        .onWalk(footprintInfo.getOnWalk())
+//                        .status("ACTIVE")
+//                        .build();
+//
+//                log.info("Tag Object 리스트 생성");
+//                List<Tag> tagList = new ArrayList<>();
+//
+//                for (String hashtag : footprintInfo.getHashtagList()) {
+//                    log.info("Tag Object 생성");
+//                    Tag newTag = Tag.builder()
+//                            .userIdx(userIdx)
+//                            .status("ACTIVE")
+//                            .build();
+//                    log.info("Hashtag Object 생성");
+//                    Hashtag newHashtag = Hashtag.builder()
+//                            .hashtag(hashtag)
+//                            .build();
+//                    log.info("Tag에 Hashtag 매핑");
+//                    newTag.setHashtag(newHashtag);
+//                    newFootprint.addTagList(newTag);
+//                }
+//
+//                log.info("Footprint에 Tag 추가");
+//                newWalk.addFootprint(newFootprint);
+//                footprints.add(newFootprint);
+//
+//                log.info("Photo Object 리스트 생성");
+//                List<Photo> photoList = new ArrayList<>();
+//                for (String photoUrl : footprintInfo.getPhotos()) {
+//                    String encryptPhotoUrl;
+//
+//                    log.info("이미지 암호화");
+//                    try {
+//                        encryptPhotoUrl = new AES128(encryptProperties.getKey()).encrypt(photoUrl);
+//                    } catch (Exception exception) {
+//                        log.info("이미지 암호화 실패");
+//                        throw new BaseException(ENCRYPT_FAIL);
+//                    }
+//
+//                    log.info("Photo Object 생성");
+//                    Photo newPhoto = Photo.builder()
+//                            .userIdx(userIdx)
+//                            .imageUrl(encryptPhotoUrl)
+//                            .status("ACTIVE")
+//                            .build();
+//                    newPhoto.setFootprint(newFootprint);
+//                    photoList.add(newPhoto);
+//                }
+//
+//                // 저장
+//                walkRepository.save(newWalk);
+//                photoRepository.saveAll(photoList);
+//            }
+//        } else {
+//            log.info("발자국이 없는 산책입니다.");
+//        }
+//
+//        try {
+//            // badge 획득 여부 확인 및 id 반환
+//            log.debug("10. badge 획득 여부 확인 후 얻은 badgeIdxList 반환");
+//            List<BadgeInfo> badgeInfoList = new ArrayList<>();
+//            List<Integer> acquiredBadgeIdxList = getAcquiredBadgeIdxList(userIdx);
+//            Collections.sort(acquiredBadgeIdxList);
+//
+//            // UserBadge 테이블에 획득한 뱃지 삽입
+//            log.debug("11. 얻은 뱃지 리스트 UserBadge 테이블에 삽입");
+//            if (!acquiredBadgeIdxList.isEmpty()) { // 획득한 뱃지가 있을 경우 삽입
+//                for (Integer acquiredBadgeIdx : acquiredBadgeIdxList) {
+//                    userBadgeRepository.save(
+//                            UserBadge.builder()
+//                                    .badgeIdx(acquiredBadgeIdx)
+//                                    .userIdx(userIdx)
+//                                    .status("ACTIVE")
+//                                    .build()
+//                    );
+//                }
+//            }
+//
+//            // 처음 산책인지 확인
+//            if (!checkFirstWalk(userIdx)) {
+//                User byUserId = userRepository.findByUserId(userId);
+//                byUserId.setBadgeIdx(1);
+//                userRepository.save(byUserId);
+//            }
+//
+//            log.debug("새롭게 얻은 뱃지 리스트: {}", acquiredBadgeIdxList);
+//
+//
+//            //획득한 뱃지 넣기 (뱃지 아이디로 뱃지 이름이랑 그림 반환)
+//            log.debug("12. 뱃지 리스트로 이름과 url 반환 후 request 객체에 저장");
+//            badgeInfoList = getBadgeInfo(acquiredBadgeIdxList);
+//
+//            log.debug("response로 반환할 뱃지 이름: {}", badgeInfoList.stream().map(BadgeInfo::getBadgeName).collect(Collectors.toList()));
+//
+//            List<PostWalkRes> postWalkResList = new ArrayList<>();
+//            for (BadgeInfo badgeInfo : badgeInfoList) {
+//                postWalkResList.add(
+//                        PostWalkRes.builder()
+//                                .badgeIdx(badgeInfo.getBadgeIdx())
+//                                .badgeName(badgeInfo.getBadgeName())
+//                                .badgeUrl(badgeInfo.getBadgeUrl())
+//                                .build()
+//                );
+//            }
+//
+//            return postWalkResList;
+//
+//        } catch (Exception exception) {
+//            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+//            throw new BaseException(DATABASE_ERROR);
+//        }
+//    }
 
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-    public List<PostWalkRes> saveRecord(String userId,PostWalkReq request) throws BaseException {
+    public List<PostWalkRes> saveRecord(String userId, PostWalkReq request) throws BaseException {
         log.debug("Validation 1. 동선 이미지가 안왔을 경우");
         if (request.getWalk().getThumbnail().isEmpty()) {
             throw new BaseException(EMPTY_WALK_PHOTO);
@@ -63,7 +254,6 @@ public class WalkService {
 
         // userIdx 추출
         int userIdx = userRepository.findByUserId(userId).getUserIdx();
-
 
         try {
             String encryptImage = new AES128(encryptProperties.getKey()).encrypt(request.getWalk().getThumbnail());
@@ -85,18 +275,16 @@ public class WalkService {
                     .calorie(request.getWalk().getCalorie())
                     .status("ACTIVE")
                     .build();
-            walkRepository.save(beforeSaveWalk);
+            Integer savedWalkIdx = walkRepository.save(beforeSaveWalk).getWalkIdx();
 
             if (!request.getFootprintList().isEmpty()) {
-                for (SaveFootprint footprint : request.getFootprintList()) {
+                for (FootprintInfo footprint : request.getFootprintList()) {
 
                     String strCoordinates = convertListToString(footprint.getCoordinates());
                     Footprint beforeSaveFootprint = Footprint.builder()
                             .coordinate(new AES128(encryptProperties.getKey()).encrypt(strCoordinates))
                             .record(new AES128(encryptProperties.getKey()).encrypt(footprint.getWrite()))
-                            .recordAt(footprint.getRecordAt())
                             .onWalk(footprint.getOnWalk())
-                            .updateAt(LocalDateTime.now())
                             .status("ACTIVE")
                             .build();
                     beforeSaveFootprint.setWalk(beforeSaveWalk);
@@ -105,18 +293,21 @@ public class WalkService {
 
                     for (String hashtag : footprint.getHashtagList()) {
                         Hashtag beforeSaveHashtag = Hashtag.builder()
-                                .hashtag(new AES128(encryptProperties.getKey()).encrypt(hashtag))
+                                .hashtag(hashtag)
                                 .build();
                         hashtagRepository.save(beforeSaveHashtag);
                         Tag beforeSaveTag = Tag.builder()
                                 .userIdx(userIdx)
                                 .status("ACTIVE")
+
                                 .build();
                         beforeSaveTag.setHashtag(beforeSaveHashtag);
                         beforeSaveTag.setFootprint(beforeSaveFootprint);
+                        beforeSaveTag.setWalk(savedWalkIdx);
 
                         beforeSaveFootprint.addTagList(beforeSaveTag);
                         beforeSaveTagList.add(beforeSaveTag);
+
                     }
 
                     footprintRepository.save(beforeSaveFootprint);
@@ -136,7 +327,7 @@ public class WalkService {
 
             // badge 획득 여부 확인 및 id 반환
             log.debug("10. badge 획득 여부 확인 후 얻은 badgeIdxList 반환");
-            List<PostWalkRes> postWalkResList = new ArrayList<>();
+            List<BadgeInfo> badgeInfoList = new ArrayList<>();
             List<Integer> acquiredBadgeIdxList = getAcquiredBadgeIdxList(userIdx);
             Collections.sort(acquiredBadgeIdxList);
 
@@ -166,9 +357,20 @@ public class WalkService {
 
             //획득한 뱃지 넣기 (뱃지 아이디로 뱃지 이름이랑 그림 반환)
             log.debug("12. 뱃지 리스트로 이름과 url 반환 후 request 객체에 저장");
-            postWalkResList = getBadgeInfo(acquiredBadgeIdxList);
+            badgeInfoList = getBadgeInfo(acquiredBadgeIdxList);
 
-            log.debug("response로 반환할 뱃지 이름: {}", postWalkResList.stream().map(PostWalkRes::getBadgeName).collect(Collectors.toList()));
+            log.debug("response로 반환할 뱃지 이름: {}", badgeInfoList.stream().map(BadgeInfo::getBadgeName).collect(Collectors.toList()));
+
+            List<PostWalkRes> postWalkResList = new ArrayList<>();
+            for (BadgeInfo badgeInfo : badgeInfoList) {
+                postWalkResList.add(
+                        PostWalkRes.builder()
+                                .badgeIdx(badgeInfo.getBadgeIdx())
+                                .badgeName(badgeInfo.getBadgeName())
+                                .badgeUrl(badgeInfo.getBadgeUrl())
+                                .build()
+                );
+            }
 
             return postWalkResList;
 
@@ -178,7 +380,7 @@ public class WalkService {
         }
     }
 
-    public Double getGoalRate(SaveWalk walk, int userIdx) throws BaseException {
+    public Double getGoalRate(WalkInfo walk, int userIdx) throws BaseException {
         try {
             // 산책 시간
             Long walkTime = Duration.between(walk.getStartAt(), walk.getEndAt()).getSeconds();
@@ -217,20 +419,20 @@ public class WalkService {
         }
     }
 
-    public List<PostWalkRes> getBadgeInfo(List<Integer> acquiredBadgeIdxList) throws BaseException {
+    public List<BadgeInfo> getBadgeInfo(List<Integer> acquiredBadgeIdxList) throws BaseException {
         try {
-            List<PostWalkRes> postWalkResList = new ArrayList<>();
+            List<BadgeInfo> badgeInfoList = new ArrayList<>();
             List<Badge> allById = badgeRepository.findAllById(acquiredBadgeIdxList);
             for (Badge badge : allById) {
-                postWalkResList.add(
-                        PostWalkRes.builder()
+                badgeInfoList.add(
+                        BadgeInfo.builder()
                                 .badgeIdx(badge.getBadgeIdx())
                                 .badgeName(badge.getBadgeName())
                                 .badgeUrl(badge.getBadgeUrl())
                                 .build()
                 );
             }
-            return postWalkResList;
+            return badgeInfoList;
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
@@ -359,7 +561,7 @@ public class WalkService {
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public String deleteWalk(int walkIdx, String userId) throws BaseException {
         try {
-            Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
+            Integer userIdx = userService.getUserIdxByUserId(userId);
 
             Walk walkByNumber = getWalkByNumber(walkIdx, userIdx);
 
@@ -441,7 +643,7 @@ public class WalkService {
         return coordinate;
     }
 
-    public GetWalkInfo getWalkInfo(int walkIdx, String userId) throws BaseException {
+    public GetWalkInfoRes getWalkInfo(int walkIdx, String userId) throws BaseException {
         try {
             log.debug("walkIdx: {}", walkIdx);
             Integer userIdx = userRepository.findByUserId(userId).getUserIdx();
@@ -471,7 +673,7 @@ public class WalkService {
                 footCoordinate.add(convertStringToList(footprint.getCoordinate()));
             }
 
-            GetWalkInfo getWalkInfo = GetWalkInfo.builder()
+            GetWalkInfoRes getWalkInfoRes = GetWalkInfoRes.builder()
                     .walkIdx(walkByNumber.getWalkIdx())
                     .getWalkTime(getWalkTime)
                     .calorie(walkByNumber.getCalorie())
@@ -481,14 +683,14 @@ public class WalkService {
                     .pathImageUrl(new AES128(encryptProperties.getKey()).decrypt(walkByNumber.getPathImageUrl()))
                     .coordinate(convertStringTo2DList(walkByNumber.getCoordinate()))
                     .build();
-            return getWalkInfo;
+            return getWalkInfoRes;
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
     }
 
-    public Walk getWalkByNumber(int walkIdx, int userIdx) throws BaseException {
-        PageRequest pageRequest = PageRequest.of(walkIdx - 1, 1);
+    public Walk getWalkByNumber(int walkNumber, int userIdx) throws BaseException {
+        PageRequest pageRequest = PageRequest.of(walkNumber - 1, 1);
         try {
             Page<Walk> walkPage = walkRepository.findByUserIdxAndStatusOrderByStartAtAsc(userIdx, "ACTIVE", pageRequest);
             if (walkPage.getTotalElements() == 0) {
@@ -497,6 +699,7 @@ public class WalkService {
             Walk walkByNumber = walkPage.get().collect(Collectors.toList()).get(0);
             return walkByNumber;
         } catch (Exception exception) {
+            log.info("삭제된 산책입니다.");
             throw new BaseException(INVALID_WALKIDX);
         }
     }

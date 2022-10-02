@@ -5,13 +5,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.config.BaseResponseStatus;
+import com.umc.footprint.src.footprints.model.dto.GetFootprintCount;
+import com.umc.footprint.src.badge.BadgeService;
+import com.umc.footprint.src.badge.model.BadgeDateInfo;
+import com.umc.footprint.src.goal.GoalService;
+import com.umc.footprint.src.goal.model.dto.GetUserGoalRes;
+import com.umc.footprint.src.goal.model.dto.PatchUserGoalReq;
 import com.umc.footprint.src.users.model.*;
-import com.umc.footprint.src.walks.model.GetFootprintCountInterface;
+import com.umc.footprint.src.users.model.dto.*;
+import com.umc.footprint.src.users.model.vo.UserInfoAchieve;
+import com.umc.footprint.src.users.model.vo.UserInfoStat;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -25,23 +34,21 @@ import static com.umc.footprint.utils.ValidationRegax.isRegexEmail;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/users")
 public class UserController {
 
-    private final UserProvider userProvider;
     private final UserService userService;
+    private final GoalService goalService;
     private final JwtService jwtService;
-
-    @Autowired
-    public UserController(UserProvider userProvider, UserService userService, JwtService jwtService) {
-        this.userProvider = userProvider;
-        this.userService = userService;
-        this.jwtService = jwtService;
-    }
+    private final BadgeService badgeService;
 
     /**
+     * 16 API
      * 유저 로그인 API
      * [POST] /users/auth/login
+     * @return PostLoginRes
+     * @throws JsonProcessingException
      */
     @ResponseBody
     @PostMapping("/auth/login")
@@ -79,6 +86,7 @@ public class UserController {
     }
 
     /**
+     * 17 API
      * 유저 자동 로그인 API
      * [GET] /users/autologin
      */
@@ -101,22 +109,21 @@ public class UserController {
 
     }
 
-        /**
-         * 유저 오늘 산책관련 정보 조회 API
-         * [GET] /users/today
-         */
+    /**
+     * 유저 오늘 산책관련 정보 조회 API
+     * [GET] /users/today
+     */
     // Path-variable
     @ResponseBody
     @GetMapping("/today")
+    @ApiOperation(value = "일별 정보 조회", notes = "오늘의 산책 달성률, 산책 시간, 거리, 칼로리, 오늘 목표")
     public BaseResponse<GetUserTodayRes> getToday(){
         try{
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
-            GetUserTodayRes userTodayRes = userService.getUserToday(userIdx);
+            GetUserTodayRes userTodayRes = userService.getUserToday(userId);
 
             return new BaseResponse<>(userTodayRes);
         } catch (BaseException exception){
@@ -131,6 +138,7 @@ public class UserController {
     // Path-variable
     @ResponseBody
     @GetMapping("/{date}")
+    @ApiOperation(value = "유저 날짜별 산책관련 정보 조회", notes = "해당 날짜의 발자국 인덱스,  산책시간,  태그,  일별 발자국 횟수, 동선 이미지")
     public BaseResponse<List<GetUserDateRes>> getDateWalk(@PathVariable("date") String date){
 
         // Validation 1. 날짜 형식 검사
@@ -138,15 +146,12 @@ public class UserController {
             return new BaseResponse<>(new BaseException(BaseResponseStatus.INVALID_DATE).getStatus());
         }
 
-        // Provider 연결
         try{
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
-            List<GetUserDateRes> userDateRes = userService.getUserDate(userIdx,date);
+            List<GetUserDateRes> userDateRes = userService.getUserDate(userId, date);
 
             return new BaseResponse<>(userDateRes);
         } catch (BaseException exception){
@@ -160,16 +165,15 @@ public class UserController {
      */
     // Path-variable
     @ResponseBody
-    @GetMapping("") // (GET) 127.0.0.1:3000
+    @GetMapping("")
+    @ApiOperation(value = "유저 정보 조회", notes = "해당 유저 관련 모든 정보")
     public BaseResponse<GetUserRes> getUser() {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
-            GetUserRes getUserRes = userService.getUser(userIdx);
+            GetUserRes getUserRes = userService.getUser(userId);
             return new BaseResponse<>(getUserRes);
         } catch (BaseException exception) {
             exception.printStackTrace();
@@ -184,6 +188,14 @@ public class UserController {
      */
     @ResponseBody
     @PatchMapping("/infos/after")
+    @ApiOperation(value = "회원 정보 수정", notes = "회원 기본 정보 수정")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "nickname", value = "유저 닉네임", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "sex", value = "유저 성별", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "dayIdx", value = "산책 목표 요일 리스트", dataType = "List<Integer>", paramType = "body", required = true),
+            @ApiImplicitParam(name = "walkGoalTime", value = "산책 목표 시간", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "walkTimeSlot", value = "산책 목표 시간대", dataType = "int", paramType = "body", required = true)
+    })
     public BaseResponse<String> modifyUserInfo(@RequestBody String request) throws JsonProcessingException {
 
         PatchUserInfoReq patchUserInfoReq = new ObjectMapper().readValue(request, PatchUserInfoReq.class);
@@ -192,8 +204,6 @@ public class UserController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
             if (patchUserInfoReq.getNickname().length() > 8) { // 닉네임 8자 초과
                 throw new BaseException(BaseResponseStatus.MAX_NICKNAME_LENGTH);
@@ -202,7 +212,7 @@ public class UserController {
                 throw new BaseException(BaseResponseStatus.INVALID_BIRTH);
             }
 
-            userService.modifyUserInfoJPA(userIdx, patchUserInfoReq);
+            userService.modifyUserInfoJPA(userId, patchUserInfoReq);
 
             String result = "유저 정보가 수정되었습니다.";
             
@@ -212,22 +222,23 @@ public class UserController {
         }
     }
 
-    /*
+    /**
      * 유저 "이번달" 목표 조회 API
      * [GET] /users/goals
      */
     // Path-variable
     @ResponseBody
-    @GetMapping("/goals") // (GET) 127.0.0.1:3000/users/goals
+    @GetMapping("/goals")
+    @ApiOperation(value = "유저 이번달 목표 조회 API", notes = "목표 요일, 시간, 시간대, 다음달 목표 수정 여부")
     public BaseResponse<GetUserGoalRes> getUserGoal() {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
             // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
+            int userIdx = userService.getUserIdxByUserId(userId);
 
-            GetUserGoalRes getUserGoalRes = userService.getUserGoal(userIdx);
+            GetUserGoalRes getUserGoalRes = goalService.getUserGoal(userIdx);
             return new BaseResponse<>(getUserGoalRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -241,16 +252,17 @@ public class UserController {
      */
     // Path-variable
     @ResponseBody
-    @GetMapping("/goals/next") // (GET) 127.0.0.1:3000/users/goals/next
+    @GetMapping("/goals/next")
+    @ApiOperation(value = "유저 다음달 목표 조회 API", notes = "목표 요일, 시간, 시간대, 다음달 목표 수정 여부")
     public BaseResponse<GetUserGoalRes> getUserGoalNext() {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
             // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
+            int userIdx = userService.getUserIdxByUserId(userId);
 
-            GetUserGoalRes getUserGoalRes = userService.getUserGoalNext(userIdx);
+            GetUserGoalRes getUserGoalRes = goalService.getUserGoalNext(userIdx);
             return new BaseResponse<>(getUserGoalRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -285,7 +297,13 @@ public class UserController {
      */
     // Path-variable
     @ResponseBody
-    @PatchMapping("/goals") // [PATCH] /users/goals
+    @PatchMapping("/goals")
+    @ApiOperation(value = "목표 수정", notes = "유저의 다음달 목표 수정")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "walkGoalTime", value = "산책 목표 시간", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "walkTimeSlot", value = "산책 목표 시간대", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "dayIdx", value = "산책 목표 요일 리스트", dataType = "List<Integer>", paramType = "body", required = true)
+    })
     public BaseResponse<String> modifyGoal(@RequestBody String request) throws JsonProcessingException {
 
         PatchUserGoalReq patchUserGoalReq = new ObjectMapper().readValue(request, PatchUserGoalReq.class);
@@ -322,9 +340,9 @@ public class UserController {
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
             // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
+            int userIdx = userService.getUserIdxByUserId(userId);
 
-            userService.modifyGoalJPA(userIdx, patchUserGoalReq);
+            goalService.modifyGoalJPA(userIdx, patchUserGoalReq);
 
             String result ="목표가 수정되었습니다.";
 
@@ -364,14 +382,14 @@ public class UserController {
      */
     @ResponseBody
     @GetMapping("/badges/status") //매달 첫 접속마다 요청되는 뱃지 확인 API - 이번달 획득 뱃지의 정보를 전달, 없으면 null 반환
-    public BaseResponse<BadgeInfo> getMonthlyBadgeStatus() throws BaseException {
+    public BaseResponse<BadgeDateInfo> getMonthlyBadgeStatus() throws BaseException {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
 
-            BadgeInfo badgeInfo = userService.getMonthlyBadgeStatus(userId);
-            return new BaseResponse<>(badgeInfo);
+            BadgeDateInfo badgeDateInfo = badgeService.getMonthlyBadgeStatus(userId);
+            return new BaseResponse<>(badgeDateInfo);
         }
         catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -390,7 +408,7 @@ public class UserController {
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
 
-            GetUserBadges getUserBadges = userService.getUserBadges(userId);
+            GetUserBadges getUserBadges = badgeService.getUserBadges(userId);
             return new BaseResponse<>(getUserBadges);
         }
         catch (BaseException exception) {
@@ -404,14 +422,14 @@ public class UserController {
      */
     @ResponseBody
     @PatchMapping("/badges/title/{badgeIdx}")
-    public BaseResponse<BadgeInfo> modifyRepBadge(@PathVariable("badgeIdx") int badgeIdx) throws BaseException {
+    public BaseResponse<BadgeDateInfo> modifyRepBadge(@PathVariable("badgeIdx") int badgeIdx) throws BaseException {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
 
-            BadgeInfo patchRepBadgeInfo = userService.modifyRepBadge(userId, badgeIdx);
-            return new BaseResponse<>(patchRepBadgeInfo);
+            BadgeDateInfo patchRepBadgeDateInfo = badgeService.modifyRepBadge(userId, badgeIdx);
+            return new BaseResponse<>(patchRepBadgeDateInfo);
         }
         catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -426,21 +444,20 @@ public class UserController {
     // Path-variable
     @ResponseBody
     @GetMapping("/infos") // (GET) 127.0.0.1:3000/users/:userIdx/infos
+    @ApiOperation(value = "유저 통계 정보 조회", notes = "오늘 달성률, 이번달 달성률, 전체 누적 기록 횟수 + 주 O회(요일로 계산), 하루 몇분, 시간대 + 이전 3달 기준 요일별 산책 시간 백분율, 월별 기록 횟수, 월별 달성률")
     public BaseResponse<GetUserInfoRes> getUserInfo() {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
             // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
-//
-//            GetUserInfoRes getUserInfoRes = userProvider.getUserInfo(userIdx);
+            int userIdx = userService.getUserIdxByUserId(userId);
 
             // 1. user 달성률 정보
             UserInfoAchieve userInfoAchieve = userService.getUserInfoAchieve(userIdx);
             System.out.println("userInfoAchieve = " + userInfoAchieve);
             // 2. user 이번달 목표 정보
-            GetUserGoalRes getUserGoalRes = userService.getUserGoal(userIdx);
+            GetUserGoalRes getUserGoalRes = goalService.getUserGoal(userIdx);
             System.out.println("getUserGoalRes = " + getUserGoalRes);
             // 3. user 통계 정보
             UserInfoStat userInfoStat = userService.getUserInfoStat(userIdx);
@@ -462,6 +479,17 @@ public class UserController {
     // Path-variable
     @ResponseBody
     @PostMapping("/infos") // [POST] /users/infos
+    @ApiOperation(value = "초기 회원 정보 등록", notes = "OAuth2.0 로그인 후 추가적으로 기입해야하는 필수/선택 회원 정보 입력")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "nickname", value = "유저 닉네임", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "sex", value = "유저 성별", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "birth", value = "유저 생년월일", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "height", value = "유저 키", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "weight", value = "유저 몸무게", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "dayIdx", value = "산책 목표 요일 리스트", dataType = "List<Integer>", paramType = "body", required = true),
+            @ApiImplicitParam(name = "walkGoalTime", value = "산책 목표 시간", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "walkTimeSlot", value = "산책 목표 시간대", dataType = "int", paramType = "body", required = true)
+    })
     public BaseResponse<String> postUserInfo(@RequestBody String request) throws JsonProcessingException {
 
         PatchUserInfoReq patchUserInfoReq = new ObjectMapper().readValue(request, PatchUserInfoReq.class);
@@ -471,7 +499,7 @@ public class UserController {
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
             // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
+            int userIdx = userService.getUserIdxByUserId(userId);
 
             // Validaion 1. userIdx 가 0 이하일 경우 exception
             if(userIdx <= 0)
@@ -525,6 +553,7 @@ public class UserController {
     }
 
     /**
+     * 18 API
      * 태그 검색 API
      * [GET] /users/tags?tag=""
      */
@@ -560,10 +589,8 @@ public class UserController {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
-            // userId로 userIdx 추출
-            int userIdx = userProvider.getUserIdx(userId);
 
-            userService.deleteUserJPA(userIdx);
+            userService.deleteUser(userId);
 
             return new BaseResponse<>("탈퇴 성공:(");
         }

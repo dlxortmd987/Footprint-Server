@@ -41,5 +41,10 @@ public class CheckController {
         return new BaseResponse<>(decryptedString);
     }
 
-
+    @ResponseBody
+    @GetMapping("/decrypt/hashtag")
+    public BaseResponse<String> decryptHashtag() throws BaseException, Exception {
+        checkService.decryptHashtag();
+        return new BaseResponse<>("변환 성공");
+    }
 }
