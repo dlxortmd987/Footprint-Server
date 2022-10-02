@@ -1,7 +1,6 @@
 package com.umc.footprint.src.course.repository;
 
 import com.umc.footprint.src.course.model.dto.projection.CourseHashTagProjection;
-import com.umc.footprint.src.course.model.dto.projection.HashTagProjection;
 import com.umc.footprint.src.course.model.entity.Course;
 import com.umc.footprint.src.course.model.vo.CourseStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -34,15 +33,6 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     )
     CourseHashTagProjection findCourseDetails(@Param("courseName") String courseName);
 
-    @Query(
-            value = "select h.hashtagIdx as hashtagIdx, h.hashtag as hashtag " +
-                    "from Walk w " +
-                    "join Footprint f on w = f.walk " +
-                    "join Tag t on f = t.footprint " +
-                    "join Hashtag h on h = t.hashtag " +
-                    "where w.walkIdx = :walkIdx and w.status = 'ACTIVE' and f.status = 'ACTIVE' and t.status = 'ACTIVE'"
-    )
-    List<HashTagProjection> findCourseAllTags(@Param("walkIdx") Integer walkIdx);
 
 
 }
