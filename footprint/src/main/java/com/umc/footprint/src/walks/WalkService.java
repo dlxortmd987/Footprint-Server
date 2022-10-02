@@ -27,7 +27,7 @@ import com.umc.footprint.src.walks.model.dto.PostWalkReq;
 import com.umc.footprint.src.walks.model.dto.PostWalkRes;
 import com.umc.footprint.src.walks.model.entity.Walk;
 import com.umc.footprint.src.walks.model.vo.WalkInfo;
-import com.umc.footprint.src.walks.model.vo.WalkTime;
+import com.umc.footprint.src.walks.model.vo.GetWalkTime;
 import com.umc.footprint.src.walks.repository.WalkRepository;
 import com.umc.footprint.utils.AES128;
 import lombok.RequiredArgsConstructor;
@@ -659,7 +659,7 @@ public class WalkService {
                 diffStr = hours + ":" + diffStr;
             }
 
-            WalkTime walkTime = WalkTime.builder()
+            GetWalkTime getWalkTime = GetWalkTime.builder()
                     .date(walkByNumber.getStartAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")))
                     .startAt(walkByNumber.getStartAt().format(DateTimeFormatter.ofPattern("HH:mm")))
                     .endAt(walkByNumber.getEndAt().format(DateTimeFormatter.ofPattern("HH:mm")))
@@ -675,7 +675,7 @@ public class WalkService {
 
             GetWalkInfoRes getWalkInfoRes = GetWalkInfoRes.builder()
                     .walkIdx(walkByNumber.getWalkIdx())
-                    .walkTime(walkTime)
+                    .getWalkTime(getWalkTime)
                     .calorie(walkByNumber.getCalorie())
                     .distance(walkByNumber.getDistance())
                     .footCount(footprintList.size())

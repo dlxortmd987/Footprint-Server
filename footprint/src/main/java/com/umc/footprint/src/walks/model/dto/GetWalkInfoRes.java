@@ -1,6 +1,6 @@
 package com.umc.footprint.src.walks.model.dto;
 
-import com.umc.footprint.src.walks.model.vo.WalkTime;
+import com.umc.footprint.src.walks.model.vo.GetWalkTime;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -11,7 +11,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GetWalkInfoRes {
     private final int walkIdx;
-    private final WalkTime walkTime;
+    private final GetWalkTime getWalkTime;
     private final int calorie;
     private final double distance;
     private final int footCount;
