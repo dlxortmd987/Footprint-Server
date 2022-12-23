@@ -14,6 +14,11 @@ import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import com.umc.footprint.domain.course.model.dto.*;
+import com.umc.footprint.domain.users.UserService;
+import com.umc.footprint.domain.walks.model.dto.GetWalksRes;
+import com.umc.footprint.utils.JwtService;
+import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -68,6 +73,9 @@ public class CourseControllerV2 {
      * @return 찜하기 or 찜하기 취소
      */
     @PatchMapping("/mark/{courseIdx}")
+    @ApiOperation(value = "코스 북마크 수정", notes = "코스 북마크 등록 및 수정", response = BaseResponse.class)
+    @ApiImplicitParam(value = "수정하는 코스 인덱스", name = "courseIdx")
+    // TODO: 찜하기 수정 API response 값 문서화
     public BaseResponse<String> modifyMark(@PathVariable("courseIdx") int courseIdx) {
         try {
             String userId = jwtService.getUserId();
@@ -88,6 +96,8 @@ public class CourseControllerV2 {
      * @return GetCourseInfoRes 코스 정보
      */
     @GetMapping("/path")
+    @ApiOperation(value = "코스 수정 전 코스 정보 조회", notes = "이미 만들어진 코스 수정 전 원래 코스 정보 로딩")
+    @ApiImplicitParam(name = "courseName", value = "수정하는 코스 이름", required = true, dataTypeClass = String.class, example = "코스1")
     public BaseResponse<GetCourseDetailsRes> getCourseDetails(@RequestParam(name = "courseName") String courseName) {
         try {
             GetCourseDetailsRes getCourseInfoRes = courseService.getCourseDetails(courseName);
@@ -139,6 +149,12 @@ public class CourseControllerV2 {
      * @throws BaseException
      */
     @PatchMapping("/like/{courseIdx}/{evaluate}")
+    @ApiOperation(value = "코스 평가", notes = "코스 완주 후 평가. 좋아요 또는 다음에, 신고")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "courseIdx", value = "평가하는 코스 인덱스", dataTypeClass = Integer.class, required = true),
+            @ApiImplicitParam(name = "evaluate", value = "평가 하는 값", example = "1(좋았어요), 0(나머지)", dataTypeClass = Integer.class, required = true)
+    })
+    // TODO: 코스 평가 API response 문서화
     public BaseResponse<String> modifyCourseLike(@PathVariable(name = "courseIdx") Integer courseIdx, @PathVariable(name = "evaluate") Integer evaluate) throws BaseException {
         String userId = jwtService.getUserId();
         log.debug("userId: {}", userId);
