@@ -188,6 +188,8 @@ public class CourseControllerV2 {
      * @return GetWalkDetailsRes 산책 정보
      */
     @GetMapping("/path/{walkNumber}")
+    @ApiOperation(value = "코스 생성 전 산책 정보 조회", notes = "코스 생성 요청 전 원본 산책 정보 로딩")
+    @ApiImplicitParam(name = "walkNumber", value = "사용자의 n 번째 산책", required = true, dataTypeClass = Integer.class, example = "3")
     public BaseResponse<GetWalkDetailsRes> getWalkDetails(@PathVariable(name = "walkNumber") Integer walkNumber) throws BaseException {
         String userId = jwtService.getUserId();
         log.debug("userId: {}", userId);
