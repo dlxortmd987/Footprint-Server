@@ -9,13 +9,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PostWalkRes {
     // 뱃지 이름, 뱃지 url
-    @ApiModelProperty(example = "뱃지 인덱스")
+    @ApiModelProperty(value = "뱃지 인덱스", example = "2")
     private int badgeIdx;
 
-    @ApiModelProperty(example = "뱃지 이름")
+    @ApiModelProperty(value = "뱃지 이름", example = "누적 10km")
     private String badgeName;
 
-    @ApiModelProperty(example = "뱃지 사진 Url")
+    @ApiModelProperty(value = "뱃지 사진 Url")
     private String badgeUrl;
 
     @Builder
