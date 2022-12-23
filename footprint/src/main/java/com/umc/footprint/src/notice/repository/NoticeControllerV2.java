@@ -1,14 +1,12 @@
 package com.umc.footprint.src.notice.repository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.src.notice.NoticeService;
 import com.umc.footprint.src.notice.model.dto.*;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,15 +15,11 @@ import java.util.Optional;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/v2/notices")
 public class NoticeControllerV2 {
 
     private final NoticeService noticeService;
-
-    @Autowired
-    public NoticeController(NoticeService noticeService){
-        this.noticeService = noticeService;
-    }
 
     // 페이징 처리된 리스트 목록 조회 GET API
     @ResponseBody
