@@ -1,12 +1,8 @@
 package com.umc.footprint.src.course;
 
-
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
-import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.src.course.model.dto.*;
 import com.umc.footprint.src.users.UserService;
 import com.umc.footprint.src.walks.model.dto.GetWalksRes;
@@ -14,11 +10,6 @@ import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import com.umc.footprint.domain.course.model.dto.*;
-import com.umc.footprint.domain.users.UserService;
-import com.umc.footprint.domain.walks.model.dto.GetWalksRes;
-import com.umc.footprint.utils.JwtService;
-import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;

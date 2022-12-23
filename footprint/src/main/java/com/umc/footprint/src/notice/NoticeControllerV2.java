@@ -1,10 +1,10 @@
-package com.umc.footprint.domain.notice;
+package com.umc.footprint.src.notice;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
-import com.umc.footprint.domain.notice.model.dto.*;
+import com.umc.footprint.src.notice.model.dto.*;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;

@@ -1,13 +1,10 @@
-package com.umc.footprint.domain.walks;
+package com.umc.footprint.src.walks;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
-import com.umc.footprint.domain.walks.model.dto.GetWalkInfoRes;
-import com.umc.footprint.domain.walks.model.dto.PostWalkReq;
-import com.umc.footprint.domain.walks.model.dto.PostWalkRes;
+import com.umc.footprint.src.walks.model.dto.GetWalkInfoRes;
+import com.umc.footprint.src.walks.model.dto.PostWalkReq;
+import com.umc.footprint.src.walks.model.dto.PostWalkRes;
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;

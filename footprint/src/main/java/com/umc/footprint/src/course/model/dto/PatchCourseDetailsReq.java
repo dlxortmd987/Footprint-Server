@@ -1,4 +1,4 @@
-package com.umc.footprint.domain.course.model.dto;
+package com.umc.footprint.src.course.model.dto;
 
 import com.umc.footprint.src.common.model.vo.HashtagInfo;
 import io.swagger.annotations.ApiModelProperty;
