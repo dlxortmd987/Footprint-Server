@@ -1,12 +1,9 @@
 package com.umc.footprint.src.walks.model.dto;
 
-import com.umc.footprint.src.badge.model.vo.BadgeInfo;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Getter
 @NoArgsConstructor

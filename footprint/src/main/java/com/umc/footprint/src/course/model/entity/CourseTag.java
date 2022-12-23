@@ -1,7 +1,6 @@
 package com.umc.footprint.src.course.model.entity;
 
 import com.umc.footprint.src.common.model.entity.Hashtag;
-import com.umc.footprint.src.course.model.entity.Course;
 import com.umc.footprint.src.course.model.vo.CourseStatus;
 import lombok.AccessLevel;
 import lombok.Builder;

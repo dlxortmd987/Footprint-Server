@@ -1,10 +1,15 @@
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
 package com.umc.footprint.src.users;
+=======
+package com.umc.footprint.domain.users;
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
 import com.umc.footprint.config.BaseResponseStatus;
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
 import com.umc.footprint.src.badge.BadgeService;
 import com.umc.footprint.src.badge.model.BadgeDateInfo;
 import com.umc.footprint.src.footprints.model.dto.GetFootprintCount;
@@ -15,14 +20,23 @@ import com.umc.footprint.src.users.model.GetUserBadges;
 import com.umc.footprint.src.users.model.dto.*;
 import com.umc.footprint.src.users.model.vo.UserInfoAchieve;
 import com.umc.footprint.src.users.model.vo.UserInfoStat;
+=======
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
 import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
+=======
+import io.swagger.annotations.ApiParam;
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
+=======
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -31,11 +45,19 @@ import java.util.Set;
 import static com.umc.footprint.config.BaseResponseStatus.*;
 import static com.umc.footprint.utils.ValidationRegax.isRegexEmail;
 
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
+=======
+
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v2/users")
 public class UserControllerV2 {
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
+=======
+
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
     private final UserService userService;
     private final GoalService goalService;
     private final JwtService jwtService;
@@ -46,14 +68,21 @@ public class UserControllerV2 {
      * 유저 로그인 API
      * [POST] /users/auth/login
      * @return PostLoginRes
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
      * @throws JsonProcessingException
+=======
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
      */
     @ResponseBody
     @PostMapping("/auth/login")
     @ApiOperation(value = "로그인 및 회원가입", notes = "기존 회원은 로그인, 신규 회원은 회원 가입을 진행 (판별 기준은 이메일)")
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
     @ApiImplicitParam(name = "postLoginReq", value = "로그인 정보", required = true)
     public BaseResponse<PostLoginRes> postUser(@RequestBody PostLoginReq postLoginReq) throws JsonProcessingException {
 
+=======
+    public BaseResponse<PostLoginRes> postUser(@RequestBody @ApiParam(value = "로그인 정보", required = true) PostLoginReq postLoginReq) {
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
         // 유저 id를 입력하지 않은 경우
         if (postLoginReq.getUserId().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_USERID);
@@ -185,7 +214,20 @@ public class UserControllerV2 {
     @ResponseBody
     @PatchMapping("/infos/after")
     @ApiOperation(value = "회원 정보 수정", notes = "회원 기본 정보 수정")
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
     public BaseResponse<String> modifyUserInfo(@RequestBody PatchUserInfoReq patchUserInfoReq) throws JsonProcessingException {
+=======
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "nickname", value = "유저 닉네임", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "sex", value = "유저 성별", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "dayIdx", value = "산책 목표 요일 리스트", dataType = "List<Integer>", paramType = "body", required = true),
+            @ApiImplicitParam(name = "walkGoalTime", value = "산책 목표 시간", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "walkTimeSlot", value = "산책 목표 시간대", dataType = "int", paramType = "body", required = true)
+    })
+    public BaseResponse<String> modifyUserInfo(@RequestBody String request) throws JsonProcessingException {
+
+        PatchUserInfoReq patchUserInfoReq = new ObjectMapper().readValue(request, PatchUserInfoReq.class);
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
 
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
@@ -202,7 +244,11 @@ public class UserControllerV2 {
             userService.modifyUserInfoJPA(userId, patchUserInfoReq);
 
             String result = "유저 정보가 수정되었습니다.";
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
 
+=======
+            
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
             return new BaseResponse<>(result);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
@@ -276,7 +322,11 @@ public class UserControllerV2 {
         }
 
     }
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
 
+=======
+  
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
 
     /**
      * 목표 수정 API
@@ -286,7 +336,18 @@ public class UserControllerV2 {
     @ResponseBody
     @PatchMapping("/goals")
     @ApiOperation(value = "목표 수정", notes = "유저의 다음달 목표 수정")
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
     public BaseResponse<String> modifyGoal(@RequestBody PatchUserGoalReq patchUserGoalReq) throws JsonProcessingException {
+=======
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "walkGoalTime", value = "산책 목표 시간", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "walkTimeSlot", value = "산책 목표 시간대", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "dayIdx", value = "산책 목표 요일 리스트", dataType = "List<Integer>", paramType = "body", required = true)
+    })
+    public BaseResponse<String> modifyGoal(@RequestBody String request) throws JsonProcessingException {
+
+        PatchUserGoalReq patchUserGoalReq = new ObjectMapper().readValue(request, PatchUserGoalReq.class);
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
 
         // Validaion 1. dayIdx 길이 확인
         if(patchUserGoalReq.getDayIdx().size() == 0) // 요일 0개 선택
@@ -314,8 +375,13 @@ public class UserControllerV2 {
         // Validaion 5. walkTimeSlot 범위 확인
         if(patchUserGoalReq.getWalkTimeSlot() > 7 || patchUserGoalReq.getWalkTimeSlot() < 1)
             return new BaseResponse<>(new BaseException(BaseResponseStatus.INVALID_WALK_TIME_SLOT).getStatus());
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
 
         try {
+=======
+       
+       try {
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
             log.debug("유저 id: {}", userId);
@@ -452,7 +518,11 @@ public class UserControllerV2 {
 
     }
 
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
     /**
+=======
+   /**
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
      * 초기 정보 등록 API
      * [POST] /users/infos
      */
@@ -460,7 +530,23 @@ public class UserControllerV2 {
     @ResponseBody
     @PostMapping("/infos") // [POST] /users/infos
     @ApiOperation(value = "초기 회원 정보 등록", notes = "OAuth2.0 로그인 후 추가적으로 기입해야하는 필수/선택 회원 정보 입력")
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
     public BaseResponse<String> postUserInfo(@RequestBody PatchUserInfoReq patchUserInfoReq) throws JsonProcessingException {
+=======
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "nickname", value = "유저 닉네임", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "sex", value = "유저 성별", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "birth", value = "유저 생년월일", dataType = "String", paramType = "body", required = true),
+            @ApiImplicitParam(name = "height", value = "유저 키", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "weight", value = "유저 몸무게", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "dayIdx", value = "산책 목표 요일 리스트", dataType = "List<Integer>", paramType = "body", required = true),
+            @ApiImplicitParam(name = "walkGoalTime", value = "산책 목표 시간", dataType = "int", paramType = "body", required = true),
+            @ApiImplicitParam(name = "walkTimeSlot", value = "산책 목표 시간대", dataType = "int", paramType = "body", required = true)
+    })
+    public BaseResponse<String> postUserInfo(@RequestBody String request) throws JsonProcessingException {
+
+        PatchUserInfoReq patchUserInfoReq = new ObjectMapper().readValue(request, PatchUserInfoReq.class);
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
 
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
@@ -528,7 +614,11 @@ public class UserControllerV2 {
     // Query String
     @ResponseBody
     @GetMapping("/tags")
+<<<<<<< HEAD:footprint/src/main/java/com/umc/footprint/src/users/UserControllerV2.java
     public BaseResponse<List<GetTagRes>> getTags(@RequestParam(required = false) String tag) {
+=======
+    public BaseResponse<List<GetTagRes>> getTags(@RequestParam(required = false) @ApiParam(value = "해시 태그 값(#제외)", example = "식후산책", required = true) String tag) {
+>>>>>>> bc5278a (refactor: 자동 로그인, 로그인, 태그 검색 API swagger 문서화):footprint/src/main/java/com/umc/footprint/domain/users/UserControllerV2.java
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
