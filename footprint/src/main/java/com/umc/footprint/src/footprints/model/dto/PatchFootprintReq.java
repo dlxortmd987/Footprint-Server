@@ -3,7 +3,6 @@ package com.umc.footprint.src.footprints.model.dto;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 @Getter

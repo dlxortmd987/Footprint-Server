@@ -92,7 +92,7 @@ public class UserService {
                 dateSet.add(
                         // 날짜 + 요일 ex) 2022. 5. 8 일
                         walkHashtag.getEndAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd")).replace(".0", ". ")
-                        + " " + walkHashtag.getEndAt().getDayOfWeek().getDisplayName(TextStyle.NARROW, Locale.KOREAN)
+                                + " " + walkHashtag.getEndAt().getDayOfWeek().getDisplayName(TextStyle.NARROW, Locale.KOREAN)
                 );
             }
 
@@ -165,7 +165,7 @@ public class UserService {
             Optional<User> user = userRepository.findByUserIdx(userIdx);
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            user.get().setBirth(LocalDate.parse(patchUserInfoReq.getBirth(),formatter).atStartOfDay());
+            user.get().setBirth(LocalDate.parse(patchUserInfoReq.getBirth(), formatter).atStartOfDay());
             user.get().setNickname(patchUserInfoReq.getNickname());
             user.get().setSex(patchUserInfoReq.getSex());
             user.get().setHeight(patchUserInfoReq.getHeight());
@@ -182,22 +182,22 @@ public class UserService {
 
     // 해당 userIdx를 갖는 Info 정보 저장
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-    public int postUserInfo(int userIdx, PatchUserInfoReq patchUserInfoReq) throws BaseException{
+    public int postUserInfo(int userIdx, PatchUserInfoReq patchUserInfoReq) throws BaseException {
         try {
             int resultInfo = userDao.modifyUserInfo(userIdx, patchUserInfoReq);
             log.debug("resultInfo: {}", resultInfo);
 
             // 요일별 인덱스 차이 해결을 위한 임시 코드
             List<Integer> dayIdxList = new ArrayList<>();
-            for (Integer dayIdx: patchUserInfoReq.getDayIdx()){
-                if(dayIdx == 7)
+            for (Integer dayIdx : patchUserInfoReq.getDayIdx()) {
+                if (dayIdx == 7)
                     dayIdxList.add(1);
                 else
-                    dayIdxList.add(dayIdx+1);
+                    dayIdxList.add(dayIdx + 1);
             }
             Collections.sort(dayIdxList);
             patchUserInfoReq.setDayIdx(dayIdxList);
-            log.debug("dayIdxList : {}",dayIdxList);
+            log.debug("dayIdxList : {}", dayIdxList);
             //
 
             int result = userDao.postGoal(userIdx, patchUserInfoReq);
@@ -205,7 +205,7 @@ public class UserService {
             int resultNext = userDao.postGoalNext(userIdx, patchUserInfoReq);
             log.debug("resultNext: {}", resultNext);
 
-            if(resultInfo == 0 || result == 0 || resultNext == 0)
+            if (resultInfo == 0 || result == 0 || resultNext == 0)
                 return 0;
             return 1;
 
@@ -247,43 +247,43 @@ public class UserService {
 
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public PostLoginRes postUserLogin(PostLoginReq postLoginReq) throws BaseException {
-        { // email 중복 확인 있으면 status에 Done 넣고 return
-            try {
-                String encryptEmail = new AES128(encryptProperties.getKey()).encrypt(postLoginReq.getEmail());
-                PostLoginRes result = checkEmail(encryptEmail);
-                log.debug("유저의 status: {}", result.getStatus());
-                // status: NONE -> 회원가입(유저 정보 db에 등록 필요)
-                // status: ACTIVE -> 로그인
-                // status: ACTIVE -> 정보 입력 필요
-                switch (result.getStatus()) {
-                    case "NONE":
-                        // 암호화
-                        String jwt = jwtService.createJwt(postLoginReq.getUserId());
-                        // 유저 정보 db에 등록
-                        postLoginReq.setEncryptedInfos(new AES128(encryptProperties.getKey()).encrypt(postLoginReq.getUsername()), encryptEmail);
-                        userRepository.save(postLoginReq.toUserEntity());
-                        userBadgeRepository.save(
-                                UserBadge.builder()
-                                        .badgeIdx(0)
-                                        .userIdx(userRepository.findByUserId(postLoginReq.getUserId()).getUserIdx())
-                                        .status("ACTIVE")
-                                        .build()
-                        );
+        // email 중복 확인 있으면 status에 Done 넣고 return
+        try {
+            String encryptEmail = new AES128(encryptProperties.getKey()).encrypt(postLoginReq.getEmail());
+            PostLoginRes result = checkEmail(encryptEmail);
+            log.debug("유저의 status: {}", result.getStatus());
+            // status: NONE -> 회원가입(유저 정보 db에 등록 필요)
+            // status: ACTIVE -> 로그인
+            // status: ACTIVE -> 정보 입력 필요
+            switch (result.getStatus()) {
+                case "NONE":
+                    // 암호화
+                    String jwt = jwtService.createJwt(postLoginReq.getUserId());
+                    // 유저 정보 db에 등록
+                    postLoginReq.setEncryptedInfos(new AES128(encryptProperties.getKey()).encrypt(postLoginReq.getUsername()), encryptEmail);
+                    userRepository.save(postLoginReq.toUserEntity());
+                    userBadgeRepository.save(
+                            UserBadge.builder()
+                                    .badgeIdx(0)
+                                    .userIdx(userRepository.findByUserId(postLoginReq.getUserId()).getUserIdx())
+                                    .status("ACTIVE")
+                                    .build()
+                    );
 
-                        return PostLoginRes.builder()
-                                .jwtId(jwt)
-                                .status("ONGOING")
-                                .checkMonthChanged(false)
-                                .build();
-                    case "ACTIVE":
-                    case "ONGOING":
-                        return result;
-                }
-                return null;
-            } catch (Exception exception) {
-                throw new BaseException(DATABASE_ERROR);
+                    return PostLoginRes.builder()
+                            .jwtId(jwt)
+                            .status("ONGOING")
+                            .checkMonthChanged(false)
+                            .build();
+                case "ACTIVE":
+                case "ONGOING":
+                    return result;
             }
+            return null;
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
         }
+
     }
 
     public PostLoginRes modifyUserLogAt(String userId) throws BaseException {
@@ -317,7 +317,7 @@ public class UserService {
 
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
     public void deleteUser(String userId) throws BaseException {
-        try{
+        try {
             int userIdx = getUserIdxByUserId(userId);
             // GoalNext 테이블
             Optional<GoalNext> goalNext = goalNextRepository.findByUserIdx(userIdx);
@@ -329,33 +329,33 @@ public class UserService {
 
             // Goal 테이블
             List<Goal> goalList = goalRepository.findByUserIdx(userIdx);
-            for(Goal goal : goalList){
+            for (Goal goal : goalList) {
                 goalRepository.deleteById(goal.getPlanIdx());
             }
 
             // GoalDay 테이블
             List<GoalDay> goalDayList = goalDayRepository.findByUserIdx(userIdx);
-            for(GoalDay goalDay : goalDayList){
+            for (GoalDay goalDay : goalDayList) {
                 goalDayRepository.deleteById(goalDay.getPlanIdx());
             }
 
             // UserBadge 테이블
             List<UserBadge> userBadgeList = userBadgeRepository.findAllByUserIdx(userIdx);
-            for(UserBadge userBadge: userBadgeList){
+            for (UserBadge userBadge : userBadgeList) {
                 userBadgeRepository.deleteById(userBadge.getCollectionIdx());
             }
 
             // Tag 테이블
             List<Tag> tagList = tagRepository.findAllByUserIdx(userIdx);
-            for(Tag tag : tagList){
+            for (Tag tag : tagList) {
                 tagRepository.deleteById(tag.getTagIdx());
             }
 
             // Photo 테이블 -> s3에서 이미지 url 먼저 삭제 후 테이블 삭제 필요
             List<Photo> photoList = photoRepository.findAllByUserIdx(userIdx);
-            for(Photo photo : photoList){
+            for (Photo photo : photoList) {
                 String decryptedImageUrl = new AES128(encryptProperties.getKey()).decrypt(photo.getImageUrl());
-                String fileName = decryptedImageUrl.substring(decryptedImageUrl.lastIndexOf("/")+1); // 파일 이름만 자르기
+                String fileName = decryptedImageUrl.substring(decryptedImageUrl.lastIndexOf("/") + 1); // 파일 이름만 자르기
                 awsS3Service.deleteFile(fileName);
 
                 photoRepository.deleteById(photo.getPhotoIdx());
@@ -364,11 +364,11 @@ public class UserService {
 
             // Walk + Footprint 테이블
             List<Walk> walkList = walkRepository.findAllByUserIdx(userIdx);
-            for(Walk walk : walkList){
+            for (Walk walk : walkList) {
                 List<Footprint> footprintList = walk.getFootprintList();
 
                 // Walk에 해당하는 Footprint 모두 삭제
-                for(Footprint footprint : footprintList){
+                for (Footprint footprint : footprintList) {
                     footprintRepository.deleteById(footprint.getFootprintIdx());
                 }
 
@@ -390,7 +390,7 @@ public class UserService {
         }
     }
 
-    public GetUserTodayRes getUserToday(String userId) throws BaseException{
+    public GetUserTodayRes getUserToday(String userId) throws BaseException {
         int userIdx = getUserIdxByUserId(userId);
         List<Walk> userWalkList = walkRepository.findAllByStatusAndUserIdx("ACTIVE", userIdx);
         System.out.println("userWalkList.size() = " + userWalkList.size());
@@ -401,14 +401,14 @@ public class UserService {
         double todayTotalDist = 0;
         int todayTotalCal = 0;
 
-        for(Walk userWalk : userWalkList){
-            if(userWalk.getStartAt().toLocalDate().isEqual(today)){
+        for (Walk userWalk : userWalkList) {
+            if (userWalk.getStartAt().toLocalDate().isEqual(today)) {
                 // 1. 오늘 목표 달성량 추출
                 todayGoalRate += userWalk.getGoalRate();
 
                 // 2. 오늘 산책 누적 시간 추출
-                Duration timeDiff = Duration.between(userWalk.getStartAt(),userWalk.getEndAt());
-                todayTotalTime += timeDiff.getSeconds()/60;
+                Duration timeDiff = Duration.between(userWalk.getStartAt(), userWalk.getEndAt());
+                todayTotalTime += timeDiff.getSeconds() / 60;
 
                 // 3. 오늘 산책 누적 거리 추출
                 todayTotalDist += userWalk.getDistance();
@@ -418,18 +418,18 @@ public class UserService {
             }
         }
         // 1-1. 목표 달성량 100 초과시 100으로 설정
-        if(todayGoalRate > 100)
+        if (todayGoalRate > 100)
             todayGoalRate = 100;
 
         // 3-1. 누적 거리 소수점 셋째자리 절삭
-        todayTotalDist = Math.floor(todayTotalDist*100)/100.0;
+        todayTotalDist = Math.floor(todayTotalDist * 100) / 100.0;
 
         // 5. 오늘 산책 목표 시간 추출
         List<GoalDay> userGoalDayList = goalDayRepository.findByUserIdx(userIdx);
         GoalDay goalDay = GoalDay.builder().build();
-        for(GoalDay gd : userGoalDayList ){
+        for (GoalDay gd : userGoalDayList) {
             LocalDate goalDayCreateAt = gd.getCreateAt().toLocalDate();
-            if(goalDayCreateAt.getMonth().equals(LocalDate.now().getMonth()) && goalDayCreateAt.getYear() == LocalDate.now().getYear()){
+            if (goalDayCreateAt.getMonth().equals(LocalDate.now().getMonth()) && goalDayCreateAt.getYear() == LocalDate.now().getYear()) {
                 goalDay = gd;
                 break;
             }
@@ -477,9 +477,9 @@ public class UserService {
 
         List<Goal> userGoalList = goalRepository.findByUserIdx(userIdx);
         Goal userGoal = Goal.builder().build();
-        for(Goal goal : userGoalList ){
+        for (Goal goal : userGoalList) {
             LocalDate goalCreateAt = goal.getCreateAt().toLocalDate();
-            if(goalCreateAt.getMonth().equals(LocalDate.now().getMonth()) && goalCreateAt.getYear() == LocalDate.now().getYear()){
+            if (goalCreateAt.getMonth().equals(LocalDate.now().getMonth()) && goalCreateAt.getYear() == LocalDate.now().getYear()) {
                 userGoal = goal;
                 break;
             }
@@ -513,7 +513,7 @@ public class UserService {
             for (Walk userWalk : userWalkList) {
                 count++;
 
-                if(!userWalk.getStartAt().toLocalDate().equals(LocalDate.parse(date,formatter)))
+                if (!userWalk.getStartAt().toLocalDate().equals(LocalDate.parse(date, formatter)))
                     continue;
 
                 userDateWalk = UserDateWalk.builder()
@@ -542,14 +542,14 @@ public class UserService {
             }
 
             return getUserDateResList;
-        } catch(Exception exception){
+        } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
 
     }
 
 
-    public UserInfoAchieve getUserInfoAchieve(int userIdx){
+    public UserInfoAchieve getUserInfoAchieve(int userIdx) {
 
         List<Walk> walkList = walkRepository.findAllByStatusAndUserIdx("ACTIVE", userIdx);
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
@@ -557,21 +557,21 @@ public class UserService {
         System.out.println("CHECK POINT 1");
 
         List<Walk> todayWalkList = walkList.stream()
-                                    .filter(s -> s.getStartAt().toLocalDate().equals(today))
-                                    .collect(Collectors.toList());
+                .filter(s -> s.getStartAt().toLocalDate().equals(today))
+                .collect(Collectors.toList());
 
         System.out.println("CHECK POINT 2");
 
         /** 1. 오늘 목표 달성률 계산 = todayGoalRate */
         double totalGoalRate = 0;
-        for(Walk todayWalk : todayWalkList){
+        for (Walk todayWalk : todayWalkList) {
             totalGoalRate += todayWalk.getGoalRate();
         }
 
         System.out.println("CHECK POINT 3");
 
         /** 2. 이번달 목표 달성률 계산 = monthGoalRate */
-        int monthGoalRate = calcMonthGoalRate(userIdx,0);
+        int monthGoalRate = calcMonthGoalRate(userIdx, 0);
 
         System.out.println("CHECK POINT 4");
 
@@ -580,55 +580,55 @@ public class UserService {
 
         System.out.println("CHECK POINT 5");
 
-        return new UserInfoAchieve((int)totalGoalRate,monthGoalRate,userWalkCount);
+        return new UserInfoAchieve((int) totalGoalRate, monthGoalRate, userWalkCount);
     }
 
-    public UserInfoStat getUserInfoStat(int userIdx){
+    public UserInfoStat getUserInfoStat(int userIdx) {
         // [ 1. 이전 3달 기준 요일별 산책 비율 ] = List<String> mostWalkDay & List<Double> userWeekDayRate
 
         // 1-1. 이전 3달 기준 요일별 산책 수 확인
-        List<Integer> userWeekDayCount = new ArrayList<>(Arrays.asList(0,0,0,0,0,0,0));
+        List<Integer> userWeekDayCount = new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0, 0));
         List<Double> userWeekDayRate = new ArrayList<>();
 
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         List<Walk> userWalkList = walkRepository.findAllByStatusAndUserIdx("ACTIVE", userIdx);
 
-        for(Walk userWalk : userWalkList){
-            if(userWalk.getStartAt().toLocalDate().isAfter(today.minusMonths(3))){
+        for (Walk userWalk : userWalkList) {
+            if (userWalk.getStartAt().toLocalDate().isAfter(today.minusMonths(3))) {
                 DayOfWeek dayOfWeek = userWalk.getStartAt().getDayOfWeek();
-                if(dayOfWeek.equals(DayOfWeek.SUNDAY)){
-                    userWeekDayCount.set(0,userWeekDayCount.get(0)+1);
-                } else if(dayOfWeek.equals(DayOfWeek.MONDAY)){
-                    userWeekDayCount.set(1,userWeekDayCount.get(1)+1);
-                } else if(dayOfWeek.equals(DayOfWeek.TUESDAY)){
-                    userWeekDayCount.set(2,userWeekDayCount.get(2)+1);
-                } else if(dayOfWeek.equals(DayOfWeek.WEDNESDAY)){
-                    userWeekDayCount.set(3,userWeekDayCount.get(3)+1);
-                } else if(dayOfWeek.equals(DayOfWeek.THURSDAY)){
-                    userWeekDayCount.set(4,userWeekDayCount.get(4)+1);
-                } else if(dayOfWeek.equals(DayOfWeek.FRIDAY)){
-                    userWeekDayCount.set(5,userWeekDayCount.get(5)+1);
-                } else if(dayOfWeek.equals(DayOfWeek.SATURDAY)){
-                    userWeekDayCount.set(6,userWeekDayCount.get(6)+1);
+                if (dayOfWeek.equals(DayOfWeek.SUNDAY)) {
+                    userWeekDayCount.set(0, userWeekDayCount.get(0) + 1);
+                } else if (dayOfWeek.equals(DayOfWeek.MONDAY)) {
+                    userWeekDayCount.set(1, userWeekDayCount.get(1) + 1);
+                } else if (dayOfWeek.equals(DayOfWeek.TUESDAY)) {
+                    userWeekDayCount.set(2, userWeekDayCount.get(2) + 1);
+                } else if (dayOfWeek.equals(DayOfWeek.WEDNESDAY)) {
+                    userWeekDayCount.set(3, userWeekDayCount.get(3) + 1);
+                } else if (dayOfWeek.equals(DayOfWeek.THURSDAY)) {
+                    userWeekDayCount.set(4, userWeekDayCount.get(4) + 1);
+                } else if (dayOfWeek.equals(DayOfWeek.FRIDAY)) {
+                    userWeekDayCount.set(5, userWeekDayCount.get(5) + 1);
+                } else if (dayOfWeek.equals(DayOfWeek.SATURDAY)) {
+                    userWeekDayCount.set(6, userWeekDayCount.get(6) + 1);
                 }
             }
         }
 
         // 1-2. 이전 3달 기준 전체 산책 수 구하기
         int entireCount = 0;
-        for(Integer dayCount : userWeekDayCount){
+        for (Integer dayCount : userWeekDayCount) {
             entireCount += dayCount;
         }
         // 1-3. 가장 산책이 많은 요일 추출 (동일 max 존재시 둘다 return) = List<String> mostWalkDay
         List<String> mostWalkDay = new ArrayList<>();
 
-        if(entireCount == 0) // 최근 3개월간 산책 기록이 없을때
+        if (entireCount == 0) // 최근 3개월간 산책 기록이 없을때
             mostWalkDay.add("최근 3개월간 산책을 하지 않았어요");
-        else{
+        else {
             int max = Collections.max(userWeekDayCount);
 
-            for (int i=0; i<userWeekDayCount.size(); i++){
-                if(userWeekDayCount.get(i) == max) {
+            for (int i = 0; i < userWeekDayCount.size(); i++) {
+                if (userWeekDayCount.get(i) == max) {
                     switch (i) {
                         case 0:
                             mostWalkDay.add("일");
@@ -659,11 +659,11 @@ public class UserService {
         // 1-4. 요일별 비율 구하기
         // *** 순서 : 일 월 화 수 목 금 토 ***
         // *** 순서 : 일 월 화 수 목 금 토 ***
-        for(Integer dayCount : userWeekDayCount){
+        for (Integer dayCount : userWeekDayCount) {
             if (entireCount == 0)
                 userWeekDayRate.add(0.0);
             else
-                userWeekDayRate.add(dayCount/(double)entireCount*100);
+                userWeekDayRate.add(dayCount / (double) entireCount * 100);
         }
 
         // [ 2. 이전 6달 범위 월별 산책 횟수 ] = thisMonthWalkCount + List<Integer> monthlyWalkCount
@@ -673,20 +673,20 @@ public class UserService {
         int thisMonthWalkCount = userWalkList.size();
 
         // 2-2. 이전 6달 범위 유저 월별 산책 횟수 가져오기
-        List<Integer> monthlyWalkCount = new ArrayList<>(Arrays.asList(0,0,0,0,0,0,0));
-        for(Walk userWalk : userWalkList){
-            if(userWalk.getStartAt().getMonth().equals(today.minusMonths(5).getMonth())){
-                monthlyWalkCount.set(1,monthlyWalkCount.get(1)+1);
-            }else if(userWalk.getStartAt().getMonth().equals(today.minusMonths(4).getMonth())){
-                monthlyWalkCount.set(2,monthlyWalkCount.get(2)+1);
-            }else if(userWalk.getStartAt().getMonth().equals(today.minusMonths(3).getMonth())){
-                monthlyWalkCount.set(3,monthlyWalkCount.get(3)+1);
-            }else if(userWalk.getStartAt().getMonth().equals(today.minusMonths(2).getMonth())){
-                monthlyWalkCount.set(4,monthlyWalkCount.get(4)+1);
-            }else if(userWalk.getStartAt().getMonth().equals(today.minusMonths(1).getMonth())){
-                monthlyWalkCount.set(5,monthlyWalkCount.get(5)+1);
-            }else if(userWalk.getStartAt().getMonth().equals(today.getMonth())){
-                monthlyWalkCount.set(6,monthlyWalkCount.get(6)+1);
+        List<Integer> monthlyWalkCount = new ArrayList<>(Arrays.asList(0, 0, 0, 0, 0, 0, 0));
+        for (Walk userWalk : userWalkList) {
+            if (userWalk.getStartAt().getMonth().equals(today.minusMonths(5).getMonth())) {
+                monthlyWalkCount.set(1, monthlyWalkCount.get(1) + 1);
+            } else if (userWalk.getStartAt().getMonth().equals(today.minusMonths(4).getMonth())) {
+                monthlyWalkCount.set(2, monthlyWalkCount.get(2) + 1);
+            } else if (userWalk.getStartAt().getMonth().equals(today.minusMonths(3).getMonth())) {
+                monthlyWalkCount.set(3, monthlyWalkCount.get(3) + 1);
+            } else if (userWalk.getStartAt().getMonth().equals(today.minusMonths(2).getMonth())) {
+                monthlyWalkCount.set(4, monthlyWalkCount.get(4) + 1);
+            } else if (userWalk.getStartAt().getMonth().equals(today.minusMonths(1).getMonth())) {
+                monthlyWalkCount.set(5, monthlyWalkCount.get(5) + 1);
+            } else if (userWalk.getStartAt().getMonth().equals(today.getMonth())) {
+                monthlyWalkCount.set(6, monthlyWalkCount.get(6) + 1);
             }
         }
 
@@ -696,37 +696,37 @@ public class UserService {
         int sumGoalRate = 0;
 
         // 현재 달 + 이전 5달 범위의 월별 달성률 계산 by getMonthGoalRate()
-        for(int i=5; i>=0 ; i--) {
+        for (int i = 5; i >= 0; i--) {
             int goalRate = calcMonthGoalRate(userIdx, i); // Method getMonthGoalRate
             if (goalRate > 100) // 100 초과시 100으로 저장
                 goalRate = 100;
             monthlyGoalRate.add(goalRate);
-            sumGoalRate += monthlyGoalRate.get(5-i);
+            sumGoalRate += monthlyGoalRate.get(5 - i);
         }
 
-        int avgGoalRate = (int)((double)sumGoalRate / 6);
+        int avgGoalRate = (int) ((double) sumGoalRate / 6);
 
         // monthlyGoalRate index 0에 avgGoalRate 추가
-        monthlyGoalRate.add(0,avgGoalRate);
+        monthlyGoalRate.add(0, avgGoalRate);
 
-        return new UserInfoStat(mostWalkDay,userWeekDayRate,thisMonthWalkCount,monthlyWalkCount,monthlyGoalRate.get(6),monthlyGoalRate);
+        return new UserInfoStat(mostWalkDay, userWeekDayRate, thisMonthWalkCount, monthlyWalkCount, monthlyGoalRate.get(6), monthlyGoalRate);
 
     }
 
 
-    public int calcMonthGoalRate(int userIdx, int beforeMonth){
+    public int calcMonthGoalRate(int userIdx, int beforeMonth) {
 
         // 0. 해당 달에 사용자 목표 기록이 있는지 확인
         List<Goal> userGoalList = goalRepository.findByUserIdx(userIdx);
         boolean isGoalExist = false;
-        for(Goal goal : userGoalList){
+        for (Goal goal : userGoalList) {
             LocalDate goalCreateAt = goal.getCreateAt().toLocalDate();
-            if(goalCreateAt.getMonth().equals(LocalDate.now().minusMonths(beforeMonth).getMonth()) && goalCreateAt.getYear() == LocalDate.now(ZoneId.of("Asia/Seoul")).minusMonths(beforeMonth).getYear()){
+            if (goalCreateAt.getMonth().equals(LocalDate.now().minusMonths(beforeMonth).getMonth()) && goalCreateAt.getYear() == LocalDate.now(ZoneId.of("Asia/Seoul")).minusMonths(beforeMonth).getYear()) {
                 isGoalExist = true;
                 break;
             }
         }
-        if(isGoalExist == false){
+        if (isGoalExist == false) {
             return 0;
         }
 
@@ -745,9 +745,9 @@ public class UserService {
 
         // 1. 사용자의 원하는 달 전체 산책 시간 확인 (초 단위)
         int userMonthWalkTime = 0;
-        for(Walk monthWalk : monthWalkList){
-            System.out.println("Duration.between(monthWalk.getStartAt(),monthWalk.getEndAt()) = " + Duration.between(monthWalk.getStartAt(),monthWalk.getEndAt()).getSeconds());
-            userMonthWalkTime += (int)Duration.between(monthWalk.getStartAt(),monthWalk.getEndAt()).getSeconds();
+        for (Walk monthWalk : monthWalkList) {
+            System.out.println("Duration.between(monthWalk.getStartAt(),monthWalk.getEndAt()) = " + Duration.between(monthWalk.getStartAt(), monthWalk.getEndAt()).getSeconds());
+            userMonthWalkTime += (int) Duration.between(monthWalk.getStartAt(), monthWalk.getEndAt()).getSeconds();
         }
 
         System.out.println("CHECK POINT. calc 4");
@@ -755,9 +755,9 @@ public class UserService {
         // 2. 이번달 목표시간 계산
         List<GoalDay> userGoalDayList = goalDayRepository.findByUserIdx(userIdx);
         GoalDay userGoalDay = GoalDay.builder().build();
-        for(GoalDay goalDay : userGoalDayList ){
+        for (GoalDay goalDay : userGoalDayList) {
             LocalDate goalDayCreateAt = goalDay.getCreateAt().toLocalDate();
-            if(goalDayCreateAt.getMonth().equals(LocalDate.now().getMonth()) && goalDayCreateAt.getYear() == LocalDate.now().getYear()){
+            if (goalDayCreateAt.getMonth().equals(LocalDate.now().getMonth()) && goalDayCreateAt.getYear() == LocalDate.now().getYear()) {
                 userGoalDay = goalDay;
                 break;
             }
@@ -771,19 +771,19 @@ public class UserService {
         System.out.println("CHECK POINT. calc 5");
 
         List<Integer> dayIdxList = new ArrayList<>();
-        if(userGoalDay.getMon().equals(1))
+        if (userGoalDay.getMon().equals(1))
             dayIdxList.add(1);
-        if(userGoalDay.getTue().equals(1))
+        if (userGoalDay.getTue().equals(1))
             dayIdxList.add(2);
-        if(userGoalDay.getWed().equals(1))
+        if (userGoalDay.getWed().equals(1))
             dayIdxList.add(3);
-        if(userGoalDay.getThu().equals(1))
+        if (userGoalDay.getThu().equals(1))
             dayIdxList.add(4);
-        if(userGoalDay.getFri().equals(1))
+        if (userGoalDay.getFri().equals(1))
             dayIdxList.add(5);
-        if(userGoalDay.getSat().equals(1))
+        if (userGoalDay.getSat().equals(1))
             dayIdxList.add(6);
-        if(userGoalDay.getSun().equals(1))
+        if (userGoalDay.getSun().equals(1))
             dayIdxList.add(7);
 
         System.out.println("CHECK POINT. calc 6");
@@ -795,18 +795,18 @@ public class UserService {
 
         // 2-2-2. 해당 월 첫 요일 알아오기
         // *** 1:월 / 2:화 / ... / 7:일 ***
-        LocalDate firstDay = LocalDate.of(month.getYear(), month.getMonth(),1);
+        LocalDate firstDay = LocalDate.of(month.getYear(), month.getMonth(), 1);
         DayOfWeek dayOfWeek = firstDay.getDayOfWeek();
         int firstDayIdx = dayOfWeek.getValue(); // 첫 요일 인덱스
 
         // 2-2-3. 첫 요일 기준 그 달의 요일 수 계산
-        int weekNum = monthLength/7;
-        int moreDay = monthLength%7;
+        int weekNum = monthLength / 7;
+        int moreDay = monthLength % 7;
 
         // 2-2-4. 해당 달의 요일별 횟수 저장
         // dayCountArray[0] = 해당 달의 첫 요일(2021년 1월 기준 토요일)
-        int[] dayCountArray = {weekNum,weekNum,weekNum,weekNum,weekNum,weekNum,weekNum};
-        for (int i=0; i<moreDay; i++){
+        int[] dayCountArray = {weekNum, weekNum, weekNum, weekNum, weekNum, weekNum, weekNum};
+        for (int i = 0; i < moreDay; i++) {
             dayCountArray[i]++;
         }
 
@@ -814,36 +814,36 @@ public class UserService {
 
         // 2-3. 해당 달 목표 시간 계산
         // 2-3-1. GoalDay Table이 true 인 요일만 countDay에 sum
-        int countDay =0 ; // 해당 달의 선택한 일수 총합
+        int countDay = 0; // 해당 달의 선택한 일수 총합
         int loopIdx = firstDayIdx; // firstDayIdx 를 시작으로 loop 을 돌 idx
-        for (int i=0; i<7; i++) {
+        for (int i = 0; i < 7; i++) {
             switch (loopIdx % 7) {
                 case 1: // 월요일
-                    if(userGoalDay.getMon() == 1)
+                    if (userGoalDay.getMon() == 1)
                         countDay += dayCountArray[i];
                     break;
                 case 2: // 화요일
-                    if(userGoalDay.getTue() == 1)
+                    if (userGoalDay.getTue() == 1)
                         countDay += dayCountArray[i];
                     break;
                 case 3: // 수요일
-                    if(userGoalDay.getWed() == 1)
+                    if (userGoalDay.getWed() == 1)
                         countDay += dayCountArray[i];
                     break;
                 case 4: // 목요일
-                    if(userGoalDay.getThu() == 1)
+                    if (userGoalDay.getThu() == 1)
                         countDay += dayCountArray[i];
                     break;
                 case 5: // 금요일
-                    if(userGoalDay.getFri() == 1)
+                    if (userGoalDay.getFri() == 1)
                         countDay += dayCountArray[i];
                     break;
                 case 6: // 토요일
-                    if(userGoalDay.getSat() == 1)
+                    if (userGoalDay.getSat() == 1)
                         countDay += dayCountArray[i];
                     break;
                 case 0: // 일요일
-                    if(userGoalDay.getSun() == 1)
+                    if (userGoalDay.getSun() == 1)
                         countDay += dayCountArray[i];
                     break;
             }
@@ -852,10 +852,10 @@ public class UserService {
 
         // 2-3-2. 하루 산책 목표 시간 확인
         Goal userGoal = Goal.builder().build();
-        for(Goal goal : userGoalList ){
+        for (Goal goal : userGoalList) {
             LocalDate goalCreateAt = goal.getCreateAt().toLocalDate();
             System.out.println("beforeMonth = " + beforeMonth);
-            if(goalCreateAt.getMonth().equals(LocalDate.now().minusMonths(beforeMonth).getMonth()) && goalCreateAt.getYear() == LocalDate.now(ZoneId.of("Asia/Seoul")).minusMonths(beforeMonth).getYear()){
+            if (goalCreateAt.getMonth().equals(LocalDate.now().minusMonths(beforeMonth).getMonth()) && goalCreateAt.getYear() == LocalDate.now(ZoneId.of("Asia/Seoul")).minusMonths(beforeMonth).getYear()) {
                 System.out.println("goalCreateAt = " + goalCreateAt);
                 userGoal = goal;
                 break;
@@ -874,29 +874,28 @@ public class UserService {
         System.out.println("userMonthGoalTime = " + userMonthGoalTime);
 
         // 3. 이번달 목표 달성률 계산
-        int monthGoalRate = (int)((userMonthWalkTime/ (double)( userMonthGoalTime*60 )) * 100);
+        int monthGoalRate = (int) ((userMonthWalkTime / (double) (userMonthGoalTime * 60)) * 100);
         System.out.println("monthGoalRate = " + monthGoalRate);
 
-        if(monthGoalRate > 100)
+        if (monthGoalRate > 100)
             monthGoalRate = 100;
 
         return monthGoalRate;
     }
 
     public GetUserRes getUser(String userId) throws BaseException {
-        try{
+        try {
             int userIdx = getUserIdxByUserId(userId);
             Optional<User> user = userRepository.findByUserIdx(userIdx);
 
-            if(user == null){
+            if (user == null) {
                 throw new BaseException(INVALID_USERIDX);
             }
 
             String status = user.get().getStatus();
             if (status.equals("INACTIVE")) {
                 throw new BaseException(INACTIVE_USER);
-            }
-            else if (status.equals("BLACK")) {
+            } else if (status.equals("BLACK")) {
                 throw new BaseException(BLACK_USER);
             }
 
@@ -905,12 +904,12 @@ public class UserService {
             // Badge Url
             Optional<Badge> badge = badgeRepository.findById(user.get().getBadgeIdx());
             String badgeUrl = "";
-            if(badge.get().getBadgeUrl() != null)
+            if (badge.get().getBadgeUrl() != null)
                 badgeUrl = badge.get().getBadgeUrl();
 
             // Birth
             Timestamp birth = Timestamp.valueOf("1900-01-01 00:00:00");
-            if(user.get().getBirth() != null)
+            if (user.get().getBirth() != null)
                 birth = Timestamp.valueOf(user.get().getBirth());
 
             return GetUserRes.builder()
@@ -980,11 +979,11 @@ public class UserService {
             List<GetFootprintCount> getFootprintCounts = new ArrayList<>();
 
             LocalDate nowDate = LocalDate.now();
-            LocalDate paramDate = LocalDate.of(year,month,1);
-            if(month<1 || month>12) {
+            LocalDate paramDate = LocalDate.of(year, month, 1);
+            if (month < 1 || month > 12) {
                 throw new BaseException(INVALID_DATE);
             }
-            if(nowDate.isBefore(paramDate)) {
+            if (nowDate.isBefore(paramDate)) {
                 return getFootprintCounts;
             }
 
@@ -994,7 +993,7 @@ public class UserService {
                     month
             );
 
-            for(GetFootprintCountInterface i : getMonthFootprints) {
+            for (GetFootprintCountInterface i : getMonthFootprints) {
                 getFootprintCounts.add(
                         new GetFootprintCount(i.getDay(), i.getWalkCount())
                 );
@@ -1007,19 +1006,17 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public User checkUserStatus(String userId) throws BaseException{
+    public User checkUserStatus(String userId) throws BaseException {
         User user = userRepository.getByUserId(userId)
-                .orElseThrow(()-> new BaseException(INVALID_USERIDX));
+                .orElseThrow(() -> new BaseException(INVALID_USERIDX));
 
         if (user.getStatus().equals("INACTIVE")) {
             throw new BaseException(INACTIVE_USER);
-        }
-        else if (user.getStatus().equals("BLACK")) {
+        } else if (user.getStatus().equals("BLACK")) {
             throw new BaseException(BLACK_USER);
         }
         return user;
     }
-
 
 
     public Integer getUserIdxByUserId(String userId) throws BaseException {

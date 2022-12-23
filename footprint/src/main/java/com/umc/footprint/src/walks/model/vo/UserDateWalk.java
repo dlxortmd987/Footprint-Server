@@ -1,5 +1,6 @@
 package com.umc.footprint.src.walks.model.vo;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
 
 /*
@@ -9,9 +10,17 @@ import lombok.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class UserDateWalk {
+
+    @ApiModelProperty(value = "산책 인덱스", example = "3")
     private int walkIdx;
+
+    @ApiModelProperty(value = "산책 시작 시간", example = "14:00")
     private String startTime;
+
+    @ApiModelProperty(value = "산책 마친 시간", example = "14:20")
     private String endTime;
+
+    @ApiModelProperty(value = "산책 동선 이미지", example = "https://t1.daumcdn.net/cfile/blog/9990B6445E22F3BE2C")
     private String pathImageUrl;
 
     @Builder

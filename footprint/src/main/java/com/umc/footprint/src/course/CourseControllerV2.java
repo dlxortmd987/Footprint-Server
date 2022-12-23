@@ -1,12 +1,8 @@
 package com.umc.footprint.src.course;
 
-
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
-import com.umc.footprint.config.BaseResponseStatus;
 import com.umc.footprint.src.course.model.dto.*;
 import com.umc.footprint.src.users.UserService;
 import com.umc.footprint.src.walks.model.dto.GetWalksRes;
@@ -68,6 +64,9 @@ public class CourseControllerV2 {
      * @return 찜하기 or 찜하기 취소
      */
     @PatchMapping("/mark/{courseIdx}")
+    @ApiOperation(value = "코스 북마크 수정", notes = "코스 북마크 등록 및 수정", response = BaseResponse.class)
+    @ApiImplicitParam(value = "수정하는 코스 인덱스", name = "courseIdx")
+    // TODO: 찜하기 수정 API response 값 문서화
     public BaseResponse<String> modifyMark(@PathVariable("courseIdx") int courseIdx) {
         try {
             String userId = jwtService.getUserId();
@@ -88,6 +87,8 @@ public class CourseControllerV2 {
      * @return GetCourseInfoRes 코스 정보
      */
     @GetMapping("/path")
+    @ApiOperation(value = "코스 수정 전 코스 정보 조회", notes = "이미 만들어진 코스 수정 전 원래 코스 정보 로딩")
+    @ApiImplicitParam(name = "courseName", value = "수정하는 코스 이름", required = true, dataTypeClass = String.class, example = "코스1")
     public BaseResponse<GetCourseDetailsRes> getCourseDetails(@RequestParam(name = "courseName") String courseName) {
         try {
             GetCourseDetailsRes getCourseInfoRes = courseService.getCourseDetails(courseName);
@@ -101,25 +102,15 @@ public class CourseControllerV2 {
      * API 39
      * 코스 저장
      * [Post] /courses/recommend
-     * @param request
+     * @param postCourseDetailsReq
      * @return 코스 등록 or 코스 등록 실패
      */
     @PostMapping("/recommend")
-    public BaseResponse<String> postCourseDetails(@RequestBody String request) throws BaseException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-
-        PostCourseDetailsReq postCourseDetailsReq;
-
+    @ApiOperation(value = "코스 등록")
+    // TODO: 코스 등록 response 문서화
+    public BaseResponse<String> postCourseDetails(@RequestBody PostCourseDetailsReq postCourseDetailsReq) throws BaseException {
         String userId = jwtService.getUserId();
         log.debug("userId: {}", userId);
-
-        try {
-            postCourseDetailsReq = objectMapper.readValue(request, PostCourseDetailsReq.class);
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            return new BaseResponse<>(BaseResponseStatus.MODIFY_OBJECT_FAIL);
-        }
 
         try {
             String result = courseService.postCourseDetails(postCourseDetailsReq, userId);
@@ -139,6 +130,12 @@ public class CourseControllerV2 {
      * @throws BaseException
      */
     @PatchMapping("/like/{courseIdx}/{evaluate}")
+    @ApiOperation(value = "코스 평가", notes = "코스 완주 후 평가. 좋아요 또는 다음에, 신고")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "courseIdx", value = "평가하는 코스 인덱스", dataTypeClass = Integer.class, required = true),
+            @ApiImplicitParam(name = "evaluate", value = "평가 하는 값", example = "1(좋았어요), 0(나머지)", dataTypeClass = Integer.class, required = true)
+    })
+    // TODO: 코스 평가 API response 문서화
     public BaseResponse<String> modifyCourseLike(@PathVariable(name = "courseIdx") Integer courseIdx, @PathVariable(name = "evaluate") Integer evaluate) throws BaseException {
         String userId = jwtService.getUserId();
         log.debug("userId: {}", userId);
@@ -154,24 +151,16 @@ public class CourseControllerV2 {
     /**
      * API 41
      * 코스 수정
-     * [PATCH] /courses/recommend?courseName=""
-     * @param request
+     * [PATCH] /courses/recommend
+     * @param postCourseDetailsReq
      * @return
      */
     @PatchMapping("/recommend")
-    public BaseResponse<String> modifyCourseDetails(@RequestBody String request) throws BaseException {
+    @ApiOperation(value = "코스 수정")
+    // TODO: 코스 수정 API response 문서화
+    public BaseResponse<String> modifyCourseDetails(@RequestBody PatchCourseDetailsReq postCourseDetailsReq) throws BaseException {
         String userId = jwtService.getUserId();
         log.debug("userId: {}", userId);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-
-        PatchCourseDetailsReq postCourseDetailsReq;
-        try {
-            postCourseDetailsReq = objectMapper.readValue(request, PatchCourseDetailsReq.class);
-        } catch (Exception exception) {
-            return new BaseResponse<>(BaseResponseStatus.MODIFY_OBJECT_FAIL);
-        }
 
         try {
             String result = courseService.modifyCourseDetails(postCourseDetailsReq, userId);
@@ -190,6 +179,8 @@ public class CourseControllerV2 {
      * @return GetWalkDetailsRes 산책 정보
      */
     @GetMapping("/path/{walkNumber}")
+    @ApiOperation(value = "코스 생성 전 산책 정보 조회", notes = "코스 생성 요청 전 원본 산책 정보 로딩")
+    @ApiImplicitParam(name = "walkNumber", value = "사용자의 n 번째 산책", required = true, dataTypeClass = Integer.class, example = "3")
     public BaseResponse<GetWalkDetailsRes> getWalkDetails(@PathVariable(name = "walkNumber") Integer walkNumber) throws BaseException {
         String userId = jwtService.getUserId();
         log.debug("userId: {}", userId);

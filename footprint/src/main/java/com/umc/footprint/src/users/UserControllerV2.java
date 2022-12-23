@@ -19,6 +19,7 @@ import com.umc.footprint.utils.JwtService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -46,14 +47,11 @@ public class UserControllerV2 {
      * 유저 로그인 API
      * [POST] /users/auth/login
      * @return PostLoginRes
-     * @throws JsonProcessingException
      */
     @ResponseBody
     @PostMapping("/auth/login")
     @ApiOperation(value = "로그인 및 회원가입", notes = "기존 회원은 로그인, 신규 회원은 회원 가입을 진행 (판별 기준은 이메일)")
-    @ApiImplicitParam(name = "postLoginReq", value = "로그인 정보", required = true)
-    public BaseResponse<PostLoginRes> postUser(@RequestBody PostLoginReq postLoginReq) throws JsonProcessingException {
-
+    public BaseResponse<PostLoginRes> postUser(@RequestBody @ApiParam(value = "로그인 정보", required = true) PostLoginReq postLoginReq) {
         // 유저 id를 입력하지 않은 경우
         if (postLoginReq.getUserId().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_USERID);
@@ -185,8 +183,7 @@ public class UserControllerV2 {
     @ResponseBody
     @PatchMapping("/infos/after")
     @ApiOperation(value = "회원 정보 수정", notes = "회원 기본 정보 수정")
-    public BaseResponse<String> modifyUserInfo(@RequestBody PatchUserInfoReq patchUserInfoReq) throws JsonProcessingException {
-
+    public BaseResponse<String> modifyUserInfo(@RequestBody PatchUserInfoReq patchUserInfoReq) {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
             String userId = jwtService.getUserId();
@@ -277,7 +274,6 @@ public class UserControllerV2 {
 
     }
 
-
     /**
      * 목표 수정 API
      * [PATCH] /users/goals
@@ -286,7 +282,7 @@ public class UserControllerV2 {
     @ResponseBody
     @PatchMapping("/goals")
     @ApiOperation(value = "목표 수정", notes = "유저의 다음달 목표 수정")
-    public BaseResponse<String> modifyGoal(@RequestBody PatchUserGoalReq patchUserGoalReq) throws JsonProcessingException {
+    public BaseResponse<String> modifyGoal(@RequestBody PatchUserGoalReq patchUserGoalReq) {
 
         // Validaion 1. dayIdx 길이 확인
         if(patchUserGoalReq.getDayIdx().size() == 0) // 요일 0개 선택
@@ -452,7 +448,7 @@ public class UserControllerV2 {
 
     }
 
-    /**
+   /**
      * 초기 정보 등록 API
      * [POST] /users/infos
      */
@@ -460,7 +456,7 @@ public class UserControllerV2 {
     @ResponseBody
     @PostMapping("/infos") // [POST] /users/infos
     @ApiOperation(value = "초기 회원 정보 등록", notes = "OAuth2.0 로그인 후 추가적으로 기입해야하는 필수/선택 회원 정보 입력")
-    public BaseResponse<String> postUserInfo(@RequestBody PatchUserInfoReq patchUserInfoReq) throws JsonProcessingException {
+    public BaseResponse<String> postUserInfo(@RequestBody PatchUserInfoReq patchUserInfoReq) {
 
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
@@ -528,6 +524,8 @@ public class UserControllerV2 {
     // Query String
     @ResponseBody
     @GetMapping("/tags")
+    @ApiOperation(value = "태그 검색", notes = "# 안붙인 문자열로 해시태그 조회")
+    @ApiImplicitParam(name = "tag", value = "해시 태그 값", example = "식후산책")
     public BaseResponse<List<GetTagRes>> getTags(@RequestParam(required = false) String tag) {
         try {
             // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)

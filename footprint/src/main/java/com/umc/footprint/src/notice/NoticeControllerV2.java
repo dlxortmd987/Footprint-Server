@@ -1,12 +1,14 @@
-package com.umc.footprint.src.notice.repository;
+package com.umc.footprint.src.notice;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.umc.footprint.config.BaseException;
 import com.umc.footprint.config.BaseResponse;
-import com.umc.footprint.src.notice.NoticeService;
 import com.umc.footprint.src.notice.model.dto.*;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import lombok.RequiredArgsConstructor;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,11 +17,15 @@ import java.util.Optional;
 
 @Slf4j
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/v2/notices")
 public class NoticeControllerV2 {
 
     private final NoticeService noticeService;
+
+    @Autowired
+    public NoticeControllerV2(NoticeService noticeService){
+        this.noticeService = noticeService;
+    }
 
     // 페이징 처리된 리스트 목록 조회 GET API
     @ResponseBody
@@ -70,7 +76,12 @@ public class NoticeControllerV2 {
     @ResponseBody
     @PostMapping("/key")
     @ApiOperation(value = "주요 공지 조회", notes = "유저가 확인하지 않은 주요 공지 사항의 내용을 모두 조회")
-    public BaseResponse<PostKeyNoticeRes> postKeyNotice(@RequestBody PostKeyNoticeReq postKeyNoticeReq) throws BaseException, JsonProcessingException {
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "checkedKeyNoticeIdxList", value = "유저가 이미 확인한 주요 공지 인덱스 리스트", dataType = "List<Integer>", paramType = "body", required = true),
+    })
+    public BaseResponse<PostKeyNoticeRes> postKeyNotice(@RequestBody String request) throws BaseException, JsonProcessingException {
+
+        PostKeyNoticeReq postKeyNoticeReq = new ObjectMapper().readValue(request, PostKeyNoticeReq.class);
 
         try{
 
@@ -87,7 +98,8 @@ public class NoticeControllerV2 {
      * [GET] /notices/version/:userVersion
      */
     @GetMapping("/version/{userVersion}")
-    public BaseResponse<GetVersionCheckRes> checkVersion(@PathVariable("userVersion") String userVersion) {
+    @ApiOperation(value = "유저의 버전 확인", notes = "유저의 버전이 맞지 않으면 강제 업데이트를 시키기 위한 용도")
+    public BaseResponse<GetVersionCheckRes> checkVersion(@PathVariable("userVersion") @ApiParam(value = "유저의 버전", example = "1.0.0") String userVersion) {
         GetVersionCheckRes versionCheck = noticeService.checkVersion(userVersion);
 
         return new BaseResponse<>(versionCheck);
