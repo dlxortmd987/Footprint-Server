@@ -160,24 +160,16 @@ public class CourseControllerV2 {
     /**
      * API 41
      * 코스 수정
-     * [PATCH] /courses/recommend?courseName=""
-     * @param request
+     * [PATCH] /courses/recommend
+     * @param postCourseDetailsReq
      * @return
      */
     @PatchMapping("/recommend")
-    public BaseResponse<String> modifyCourseDetails(@RequestBody String request) throws BaseException {
+    @ApiOperation(value = "코스 수정")
+    // TODO: 코스 수정 API response 문서화
+    public BaseResponse<String> modifyCourseDetails(@RequestBody PatchCourseDetailsReq postCourseDetailsReq) throws BaseException {
         String userId = jwtService.getUserId();
         log.debug("userId: {}", userId);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-
-        PatchCourseDetailsReq postCourseDetailsReq;
-        try {
-            postCourseDetailsReq = objectMapper.readValue(request, PatchCourseDetailsReq.class);
-        } catch (Exception exception) {
-            return new BaseResponse<>(BaseResponseStatus.MODIFY_OBJECT_FAIL);
-        }
 
         try {
             String result = courseService.modifyCourseDetails(postCourseDetailsReq, userId);
