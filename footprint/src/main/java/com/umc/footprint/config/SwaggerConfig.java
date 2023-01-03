@@ -22,46 +22,55 @@ import java.util.Arrays;
 import java.util.List;
 
 @Configuration
-@EnableSwagger2
 @Profile({"local", "dev"})
-public class SwaggerConfig extends WebMvcConfigurationSupport {
+public class SwaggerConfig {
 
     @Bean
-    public Docket restApi() {
-        ParameterBuilder parameterBuilder = new ParameterBuilder();
-        parameterBuilder.name("X-ACCESS-TOKEN")
-                .description("사용자 인증을 위한 JWT 토큰")
-                .modelRef(new ModelRef("string"))
-                .parameterType("header")
-                .required(false)
-                .build();
-
-        List<Parameter> parameters = new ArrayList<>();
-        parameters.add(parameterBuilder.build());
-        return new Docket(DocumentationType.SWAGGER_2)
-                .globalOperationParameters(parameters)
-                .apiInfo(apiInfo())
+    public Docket api() {
+        return new Docket(DocumentationType.OAS_30) // open api spec 3.0
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.umc"))
+                .apis(RequestHandlerSelectors.any())
                 .paths(PathSelectors.any())
                 .build();
     }
 
-    @Override
-    protected void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("swagger-ui.html")
-                .addResourceLocations("classpath:/META-INF/resources/");
-
-        registry.addResourceHandler("/webjars/**")
-                .addResourceLocations("classpath:/META-INF/resources/webjars/");
-    }
-
-
-    private ApiInfo apiInfo() {
-        return new ApiInfoBuilder()
-                .title("Footprint Spring Boot REST API")
-                .version("1.0.0")
-                .description("발자국 API Swagger API")
-                .build();
-    }
+//
+//    @Bean
+//    public Docket restApi() {
+//        ParameterBuilder parameterBuilder = new ParameterBuilder();
+//        parameterBuilder.name("X-ACCESS-TOKEN")
+//                .description("사용자 인증을 위한 JWT 토큰")
+//                .modelRef(new ModelRef("string"))
+//                .parameterType("header")
+//                .required(false)
+//                .build();
+//
+//        List<Parameter> parameters = new ArrayList<>();
+//        parameters.add(parameterBuilder.build());
+//        return new Docket(DocumentationType.SWAGGER_2)
+//                .globalOperationParameters(parameters)
+//                .apiInfo(apiInfo())
+//                .select()
+//                .apis(RequestHandlerSelectors.basePackage("com.umc"))
+//                .paths(PathSelectors.any())
+//                .build();
+//    }
+//
+//    @Override
+//    protected void addResourceHandlers(ResourceHandlerRegistry registry) {
+//        registry.addResourceHandler("swagger-ui.html")
+//                .addResourceLocations("classpath:/META-INF/resources/");
+//
+//        registry.addResourceHandler("/webjars/**")
+//                .addResourceLocations("classpath:/META-INF/resources/webjars/");
+//    }
+//
+//
+//    private ApiInfo apiInfo() {
+//        return new ApiInfoBuilder()
+//                .title("Footprint Spring Boot REST API")
+//                .version("1.0.0")
+//                .description("발자국 API Swagger API")
+//                .build();
+//    }
 }
