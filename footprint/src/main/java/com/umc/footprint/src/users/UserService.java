@@ -70,7 +70,6 @@ public class UserService {
     private final GoalNextRepository goalNextRepository;
     private final GoalDayRepository goalDayRepository;
     private final GoalDayNextRepository goalDayNextRepository;
-    private final HashtagRepository hashtagRepository;
     private final BadgeRepository badgeRepository;
     private final UserBadgeRepository userBadgeRepository;
     private final PhotoRepository photoRepository;
