@@ -335,6 +335,11 @@ public class UserControllerV2 {
      */
     @ResponseBody
     @GetMapping("/months/footprints")
+    @ApiOperation(value = "월별 산책 기록 수 조회")
+    @ApiImplicitParams({
+                    @ApiImplicitParam(name = "year", value = "조회 년도", required = true, example = "2023"),
+                    @ApiImplicitParam(name = "month", value = "조회 월", required = true, example = "1")
+    })
     public BaseResponse<List<GetFootprintCount>> getMonthFootprints(
             @RequestParam(required = true) int year,
             @RequestParam(required = true) int month) throws BaseException
