@@ -89,6 +89,12 @@ dependencies {
 
 }
 
+task copyGitSubmodule(type: Copy) {
+	from './Security-Server'
+	include '*.yml'
+	into './src/main/resources'
+}
+
 test {
 	useJUnitPlatform()
 }
