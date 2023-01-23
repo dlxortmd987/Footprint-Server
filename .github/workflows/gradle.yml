@@ -43,7 +43,7 @@ jobs:
       
     - name: Build Docker Image
       working-directory: ./footprint
-      run: docker build -t sangmin715/footprint .
+      run: docker build -t sangmin715/footprint_dev .
     
     - name: Docker Hub Login
       uses: docker/login-action@v2
@@ -52,7 +52,7 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
         
     - name: Docker Hub Publish
-      run: docker push sangmin715/footprint:dev
+      run: docker push sangmin715/footprint_dev
       
     - name: Publish Unit Test Results # test 후 result를 보기 위해 추가
       uses: EnricoMi/publish-unit-test-result-action@v1
