@@ -28,6 +28,15 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         
+       
+    - name: access to secrets
+      run: |
+        echo $APPLICATION >> ./footprint/src/main/resources/application.yml
+        echo $AWS >> ./footprint/src/main/resources/aws.yml
+      env:
+        APPLICATION: ${{secrets.APPLICATION}}
+        AWS: ${{secrets.AWS}}
+        
     - name: Grant execute permission for gradlew
       run: chmod +x ./footprint/gradlew
         
