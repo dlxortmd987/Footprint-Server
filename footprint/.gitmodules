@@ -1,4 +1,0 @@
-[submodule "Security-Server"]
-	path = Security-Server
-	url = https://github.com/UMC-1-Footprint/Security-Server.git
-	branch = main
