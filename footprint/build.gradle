@@ -90,7 +90,7 @@ dependencies {
 }
 
 task copyGitSubmodule(type: Copy) {
-	from './Security-Server'
+	from '../Security-Server'
 	include '*.yml'
 	into './src/main/resources'
 }
