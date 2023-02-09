@@ -26,8 +26,8 @@ jobs:
         
     - name: Copy Yaml File
       run: 
-        cp ./Security-Server/aws.yml ./footprint/src/main/resources/aws.yml
-        cp ./Security-Server/application_dev.yml ./footprint/src/main/resources/application.yml
+        cp ./Security-Server/aws.yml ./footprint/src/main/resources/
+        cp ./Security-Server/application_dev.yml ./footprint/src/main/resources/
       
       
     - name: Grant execute permission for gradlew
