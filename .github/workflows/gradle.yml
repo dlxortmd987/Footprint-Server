@@ -28,7 +28,7 @@ jobs:
       run: cp ./Security-Server/*.yml ./footprint/src/main/resources/
       
     - name: Rename Application Yaml File
-      run: mv ./footprint/src/main/resources/applicationDev.yml ./footprint/src/main/resources/application.yml
+      run: mv applicationDev.yml application.yml
       
     - name: Grant execute permission for gradlew
       run: chmod +x ./footprint/gradlew
