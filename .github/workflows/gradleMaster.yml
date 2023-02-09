@@ -1,4 +1,4 @@
-name: footprint-dev-springboot-gradle-ci
+name: footprint-master-springboot-gradle-ci
 
 on:
   pull_request:
