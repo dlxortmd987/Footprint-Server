@@ -1,4 +1,4 @@
-name: footprint-springboot-gradle
+name: footprint-springboot-gradle-ci
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
       run: |
         cp ./Security-Server/aws.yml ./footprint/src/main/resources/
         cp ./Security-Server/application_dev.yml ./footprint/src/main/resources/
-      
+        rename application_dev.yml application.yml ./footprint/src/main/resources/application_dev.yml
       
     - name: Grant execute permission for gradlew
       run: chmod +x ./footprint/gradlew
