@@ -25,7 +25,7 @@ jobs:
         distribution: 'temurin'
         
     - name: Copy Yaml File
-      run: 
+      run: |
         cp ./Security-Server/aws.yml ./footprint/src/main/resources/
         cp ./Security-Server/application_dev.yml ./footprint/src/main/resources/
       
