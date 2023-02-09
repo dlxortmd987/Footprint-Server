@@ -24,12 +24,9 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         
-    - name: Copy AWS Yaml File
-      run: cp ./Security-Server/aws.yml ./footprint/src/main/resources/
-    
-    - name: Copy Application Yaml File
-      run: cp ./Security-Server/applicationDev.yml ./footprint/src/main/resources/ 
-
+    - name: Copy Yaml File
+      run: cp ./Security-Server/*.yml ./footprint/src/main/resources/
+      
     - name: Rename Application Yaml File
       run: rename applicationDev.yml application.yml ./footprint/src/main/resources/applicationDev.yml
       
