@@ -2,8 +2,6 @@ package com.umc.footprint.src.common.model.vo;
 
 import lombok.*;
 
-import java.util.List;
-
 /*
  * walkIdx 와 hashtag 정보
  * */

@@ -8,16 +8,16 @@ import lombok.*;
 @NoArgsConstructor
 public class PostLoginReq {
 
-    @ApiModelProperty(example = "사용자 ID")
+    @ApiModelProperty(value = "유저 id", example = "1923191")
     private String userId;
 
-    @ApiModelProperty(example = "사용자 이름")
+    @ApiModelProperty(value = "이름", example = "blue")
     private String username;
 
-    @ApiModelProperty(example = "사용자 Email")
+    @ApiModelProperty(value = "이메일", example = "example@gmail.com")
     private String email;
 
-    @ApiModelProperty(example = "구글 Or 카카오")
+    @ApiModelProperty(value = "Provider", example = "kakao or google")
     private String providerType;
 
     @Builder

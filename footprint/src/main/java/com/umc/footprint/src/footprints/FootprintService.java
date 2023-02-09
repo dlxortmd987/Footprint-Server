@@ -33,15 +33,12 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 
 @Service
 @Slf4j
 public class FootprintService {
-    private final FootprintDao footprintDao;
-    private final FootprintProvider footprintProvider;
     private final WalkRepository walkRepository;
     private final FootprintRepository footprintRepository;
     private final PhotoRepository photoRepository;
@@ -53,9 +50,7 @@ public class FootprintService {
     private final EncryptProperties encryptProperties;
 
     @Autowired
-    public FootprintService(FootprintDao footprintDao, FootprintProvider footprintProvider, WalkRepository walkRepository, FootprintRepository footprintRepository, PhotoRepository photoRepository, TagRepository tagRepository, HashtagRepository hashtagRepository, WalkService walkService, UserRepository userRepository, AwsS3Service awsS3Service, EncryptProperties encryptProperties) {
-        this.footprintDao = footprintDao;
-        this.footprintProvider = footprintProvider;
+    public FootprintService(WalkRepository walkRepository, FootprintRepository footprintRepository, PhotoRepository photoRepository, TagRepository tagRepository, HashtagRepository hashtagRepository, WalkService walkService, UserRepository userRepository, AwsS3Service awsS3Service, EncryptProperties encryptProperties) {
         this.walkRepository = walkRepository;
         this.footprintRepository = footprintRepository;
         this.photoRepository = photoRepository;
@@ -147,29 +142,6 @@ public class FootprintService {
         }
     }
 
-
-    // 발자국 삭제 (PATCH) - 사진 삭제, 태그 삭제, 발자국 기록 삭제
-    @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-    public void deleteFootprint(int footprintIdx) throws BaseException {
-        try {
-            int activeFootprint = footprintDao.activeFootprint(footprintIdx);
-            int footprintExist = footprintDao.footprintExist(footprintIdx);
-
-            if (footprintExist == 0) { // 발자국이 존재하지 않을 때
-                throw new BaseException(NO_EXIST_FOOTPRINT);
-            }
-            else if (activeFootprint == 0) { // 이미 삭제된 발자국
-                throw new BaseException(DELETED_FOOTPRINT);
-            }
-
-            footprintDao.deletePhotos(footprintIdx);
-            footprintDao.deleteHashtags(footprintIdx);
-            footprintDao.deleteFootprint(footprintIdx); // 발자국 삭제 성공 - 1, 실패 - 0
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            throw new BaseException(DATABASE_ERROR);
-        }
-    }
 
     // 발자국 삭제 (PATCH) - 사진 삭제, 태그 삭제, 발자국 기록 삭제
     @Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)

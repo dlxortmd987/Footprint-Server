@@ -1,6 +1,5 @@
 package com.umc.footprint.src.badge.model;
 
-import com.umc.footprint.src.badge.model.Badge;
 import com.umc.footprint.src.badge.model.vo.BadgeInfo;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

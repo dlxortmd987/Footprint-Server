@@ -1,6 +1,5 @@
 package com.umc.footprint.src.notice.model.dto;
 
-import com.umc.footprint.src.notice.model.dto.GetNoticeRes;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

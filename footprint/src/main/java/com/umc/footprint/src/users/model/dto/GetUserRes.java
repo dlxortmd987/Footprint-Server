@@ -1,9 +1,7 @@
 package com.umc.footprint.src.users.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jdk.jfr.Timespan;
 import lombok.*;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.sql.Timestamp;
 

@@ -29,6 +29,9 @@ dependencies {
 	// Spring Boot Starter
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
+	// For Bean Validation
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -74,8 +77,7 @@ dependencies {
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
 	// Swagger
-	implementation 'io.springfox:springfox-swagger-ui:2.9.2'
-	implementation 'io.springfox:springfox-swagger2:2.9.2'
+	implementation "io.springfox:springfox-boot-starter:3.0.0"
 
 	// Test
 	testImplementation 'org.junit.platform:junit-platform-launcher:1.5.2'
@@ -85,6 +87,12 @@ dependencies {
 	//aop
 	implementation 'org.springframework.boot:spring-boot-starter-aop'
 
+}
+
+task copyGitSubmodule(type: Copy) {
+	from '../Security-Server'
+	include '*.yml'
+	into './src/main/resources'
 }
 
 test {
