@@ -32,7 +32,10 @@ jobs:
         ls -al ./footprint/src/main/resources/
       
     - name: Rename Yaml File
-      run: mv ./footprint/src/main/resources/applicationMaster.yml ./footprint/src/main/resources/application.yml
+      run: |
+        mv ./footprint/src/main/resources/applicationMaster.yml ./footprint/src/main/resources/application.yml
+        ls -al ./footprint/src/main/resources/
+        cat ./footprint/src/main/resources/application.yml
       
     - name: Grant execute permission for gradlew
       run: chmod +x ./footprint/gradlew
