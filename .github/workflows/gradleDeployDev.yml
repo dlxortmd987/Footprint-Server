@@ -61,4 +61,4 @@ jobs:
           docker rm footprint_dev
           docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/footprint_dev
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/footprint_dev
-          nohup docker run -p ${{ secrets.DEV_PORT }}:${{ secrets.DEV_PORT }} --name footprint_dev ${{ secrets.DOCKERHUB_USERNAME }}/footprint > dev_server.log 2>&1 &
+          nohup docker run -p ${{ secrets.DEV_PORT }}:${{ secrets.DEV_PORT }} --name footprint_dev ${{ secrets.DOCKERHUB_USERNAME }}/footprint_dev > dev_server.log 2>&1 &

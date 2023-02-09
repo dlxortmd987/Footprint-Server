@@ -69,4 +69,4 @@ jobs:
           docker rm footprint_master
           docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/footprint_master
           docker pull ${{ secrets.DOCKERHUB_USERNAME }}/footprint_master
-          nohup docker run -p ${{ secrets.PROD_PORT }}:${{ secrets.PROD_PORT }} --name footprint_master ${{ secrets.DOCKERHUB_USERNAME }}/footprint > prod_server.log 2>&1 &
+          nohup docker run -p ${{ secrets.PROD_PORT }}:${{ secrets.PROD_PORT }} --name footprint_master ${{ secrets.DOCKERHUB_USERNAME }}/footprint_master > prod_server.log 2>&1 &
