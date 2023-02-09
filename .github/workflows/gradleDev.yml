@@ -1,8 +1,8 @@
-name: footprint-springboot-gradle-ci
+name: footprint-dev-springboot-gradle-ci
 
 on:
   push:
-    branches: [ dev, master ]
+    branches: [ dev ]
   pull_request:
     branches: [ dev ]
 

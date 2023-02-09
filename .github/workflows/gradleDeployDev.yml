@@ -1,4 +1,4 @@
-name: footprint-springboot-gradle-docker-ec2-cd
+name: footprint-dev-springboot-gradle-docker-ec2-cd
 
 on:
   push:
