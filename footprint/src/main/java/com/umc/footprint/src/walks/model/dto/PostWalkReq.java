@@ -1,12 +1,16 @@
 package com.umc.footprint.src.walks.model.dto;
 
-import io.swagger.annotations.ApiModelProperty;
-import com.umc.footprint.src.footprints.model.vo.FootprintInfo;
-import com.umc.footprint.src.walks.model.vo.WalkInfo;
-import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.umc.footprint.src.footprints.model.vo.FootprintInfo;
+import com.umc.footprint.src.walks.model.entity.Walk;
+import com.umc.footprint.src.walks.model.vo.WalkInfo;
+
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
@@ -32,5 +36,9 @@ public class PostWalkReq {
     @ApiModelProperty(hidden = true)
     public void setConvertedFootprints(ArrayList<FootprintInfo> convertedFootprints) {
         this.footprintList = convertedFootprints;
+    }
+
+    public Walk toWalk(String defaultThumbnail, int userIdx, Double goalRate) {
+        return walk.toEntity(defaultThumbnail, userIdx, goalRate);
     }
 }

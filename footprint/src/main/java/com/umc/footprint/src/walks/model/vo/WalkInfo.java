@@ -1,11 +1,17 @@
 package com.umc.footprint.src.walks.model.vo;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.umc.footprint.src.walks.CoordinateConvertor;
+import com.umc.footprint.src.walks.model.entity.Walk;
+import com.umc.footprint.utils.AES128;
+
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
@@ -41,7 +47,9 @@ public class WalkInfo {
     private String thumbnail;
 
     @Builder
-    public WalkInfo(int walkIdx, LocalDateTime startAt, LocalDateTime endAt, double distance, List<List<Double>> coordinates, int userIdx, String strCoordinates, Double goalRate, int calorie, String thumbnail) {
+    public WalkInfo(int walkIdx, LocalDateTime startAt, LocalDateTime endAt, double distance,
+        List<List<Double>> coordinates, int userIdx, String strCoordinates, Double goalRate, int calorie,
+        String thumbnail) {
         this.walkIdx = walkIdx;
         this.startAt = startAt;
         this.endAt = endAt;
@@ -51,6 +59,24 @@ public class WalkInfo {
         this.goalRate = goalRate;
         this.calorie = calorie;
         this.thumbnail = thumbnail;
+    }
+
+    public Walk toEntity(String defaultThumbnail, int userIdx, Double goalRate) {
+        String thumbnail = this.thumbnail;
+        if (thumbnail.isEmpty()) {
+            thumbnail = defaultThumbnail;
+        }
+        return Walk.builder()
+            .startAt(this.startAt)
+            .endAt(this.endAt)
+            .distance(this.distance)
+            .coordinate(AES128.encrypt(CoordinateConvertor.fromCoordinates(this.coordinates)))
+            .pathImageUrl(AES128.encrypt(thumbnail))
+            .userIdx(userIdx)
+            .goalRate(goalRate)
+            .calorie(this.calorie)
+            .status("ACTIVE")
+            .build();
     }
 
 }
