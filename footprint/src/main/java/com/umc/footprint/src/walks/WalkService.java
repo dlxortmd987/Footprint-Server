@@ -1,10 +1,8 @@
 package com.umc.footprint.src.walks;
 
 import static com.umc.footprint.config.BaseResponseStatus.*;
-import static com.umc.footprint.config.Constant.*;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,17 +24,14 @@ import com.umc.footprint.src.badge.model.UserBadge;
 import com.umc.footprint.src.badge.model.UserBadgeRepository;
 import com.umc.footprint.src.badge.model.vo.BadgeInfo;
 import com.umc.footprint.src.badge.model.vo.ObtainedBadgeInterface;
-import com.umc.footprint.src.common.model.entity.Hashtag;
 import com.umc.footprint.src.common.model.entity.Photo;
 import com.umc.footprint.src.common.model.entity.Tag;
-import com.umc.footprint.src.common.repository.HashtagRepository;
 import com.umc.footprint.src.common.repository.PhotoRepository;
 import com.umc.footprint.src.common.repository.TagRepository;
+import com.umc.footprint.src.footprints.FootprintFacadeService;
 import com.umc.footprint.src.footprints.model.entity.Footprint;
-import com.umc.footprint.src.footprints.model.vo.FootprintInfo;
 import com.umc.footprint.src.footprints.repository.FootprintRepository;
-import com.umc.footprint.src.goal.model.entity.Goal;
-import com.umc.footprint.src.goal.repository.GoalRepository;
+import com.umc.footprint.src.goal.GoalService;
 import com.umc.footprint.src.users.UserService;
 import com.umc.footprint.src.users.model.entity.User;
 import com.umc.footprint.src.users.repository.UserRepository;
@@ -45,7 +40,6 @@ import com.umc.footprint.src.walks.model.dto.PostWalkReq;
 import com.umc.footprint.src.walks.model.dto.PostWalkRes;
 import com.umc.footprint.src.walks.model.entity.Walk;
 import com.umc.footprint.src.walks.model.vo.GetWalkTime;
-import com.umc.footprint.src.walks.model.vo.WalkInfo;
 import com.umc.footprint.src.walks.repository.WalkRepository;
 import com.umc.footprint.utils.AES128;
 
@@ -62,7 +56,7 @@ public class WalkService {
 	private final FootprintRepository footprintRepository;
 	private final PhotoRepository photoRepository;
 	private final TagRepository tagRepository;
-	private final GoalRepository goalRepository;
+	private final GoalService goalService;
 	private final UserBadgeRepository userBadgeRepository;
 	private final BadgeRepository badgeRepository;
 	private final UserService userService;
@@ -76,8 +70,8 @@ public class WalkService {
 		return walkRepository.getAllByUserIdx(userIdx);
 	}
 
-	@Transactional(propagation = Propagation.NESTED, rollbackFor = Exception.class)
-	public List<PostWalkRes> saveRecord(String userId, PostWalkReq request) throws BaseException {
+	@Transactional
+	public List<PostWalkRes> addWalk(String userId, PostWalkReq request) throws BaseException {
 
 		// userIdx 추출
 		int userIdx = userRepository.findByUserId(userId).getUserIdx();
