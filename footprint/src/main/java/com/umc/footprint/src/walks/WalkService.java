@@ -61,12 +61,12 @@ public class WalkService {
 	private final WalkRepository walkRepository;
 	private final FootprintRepository footprintRepository;
 	private final PhotoRepository photoRepository;
-	private final HashtagRepository hashtagRepository;
 	private final TagRepository tagRepository;
 	private final GoalRepository goalRepository;
 	private final UserBadgeRepository userBadgeRepository;
 	private final BadgeRepository badgeRepository;
 	private final UserService userService;
+	private final FootprintFacadeService footprintFacadeService;
 
 	@Value("${image.course}")
 	private String defaultThumbnail;
@@ -82,64 +82,12 @@ public class WalkService {
 		// userIdx 추출
 		int userIdx = userRepository.findByUserId(userId).getUserIdx();
 
-		// 라인에 좌표가 올 때 나는 오류 방지 (복제)
-		Double goalRate = getGoalRate(request.getWalk(), userIdx);
+		Double goalRate = goalService.getGoalRate(request.getWalk(), userIdx);
 
-		// Walk Table에 삽입 후 생성된 walkIdx return
-		log.debug("Walk 테이블에 insert 후 walkIdx 반환");
-		Walk beforeSaveWalk = request.toWalk(defaultThumbnail, userIdx, goalRate);
-		Integer savedWalkIdx = walkRepository.save(beforeSaveWalk).getWalkIdx();
+		Walk savedWalk = walkRepository.save(request.toWalk(defaultThumbnail, userIdx, goalRate));
 
-		if (!request.getFootprintList().isEmpty()) {
-			for (FootprintInfo footprint : request.getFootprintList()) {
+		footprintFacadeService.addFootprints(request, userIdx, savedWalk);
 
-				String strCoordinates = convertListToString(footprint.getCoordinates());
-				Footprint beforeSaveFootprint = Footprint.builder()
-					.coordinate(AES128.encrypt(strCoordinates))
-					.record(AES128.encrypt(footprint.getWrite()))
-					.onWalk(footprint.getOnWalk())
-					.status("ACTIVE")
-					.build();
-				beforeSaveFootprint.setWalk(beforeSaveWalk);
-				beforeSaveWalk.addFootprint(beforeSaveFootprint);
-				List<Tag> beforeSaveTagList = new ArrayList<>();
-
-				for (String hashtag : footprint.getHashtagList()) {
-					Hashtag beforeSaveHashtag = Hashtag.builder()
-						.hashtag(hashtag)
-						.build();
-					hashtagRepository.save(beforeSaveHashtag);
-					Tag beforeSaveTag = Tag.builder()
-						.userIdx(userIdx)
-						.status("ACTIVE")
-
-						.build();
-					// TODO: 캡슐화 고치기
-					beforeSaveTag.setHashtag(beforeSaveHashtag);
-					beforeSaveTag.setFootprint(beforeSaveFootprint);
-					beforeSaveTag.setWalk(savedWalkIdx);
-
-					beforeSaveFootprint.addTagList(beforeSaveTag);
-					beforeSaveTagList.add(beforeSaveTag);
-
-				}
-
-				footprintRepository.save(beforeSaveFootprint);
-				tagRepository.saveAll(beforeSaveTagList);
-
-				for (String photo : footprint.getPhotos()) {
-					Photo beforeSavePhoto = Photo.builder()
-						.userIdx(userIdx)
-						.imageUrl(AES128.encrypt(photo))
-						.status("ACTIVE")
-						.build();
-					beforeSavePhoto.setFootprint(beforeSaveFootprint);
-					photoRepository.save(beforeSavePhoto);
-				}
-			}
-		}
-
-		// badge 획득 여부 확인 및 id 반환
 		log.debug("10. badge 획득 여부 확인 후 얻은 badgeIdxList 반환");
 		// TODO: 뱃지 쪽으로 넘기기
 		List<BadgeInfo> badgeInfoList = new ArrayList<>();
@@ -192,38 +140,6 @@ public class WalkService {
 
 		// TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 		// throw new BaseException(DATABASE_ERROR);
-	}
-
-	public Double getGoalRate(WalkInfo walk, int userIdx) throws BaseException {
-		try {
-			// 산책 시간
-			Long walkTime = Duration.between(walk.getStartAt(), walk.getEndAt()).getSeconds();
-			log.debug("walkTime: {}", walkTime);
-			// 산책 목표 시간
-			List<Goal> userGoalList = goalRepository.findByUserIdx(userIdx);
-			Goal userGoal = Goal.builder().build();
-			for (Goal goal : userGoalList) {
-				LocalDate goalCreateAt = goal.getCreateAt().toLocalDate();
-				if (goalCreateAt.getMonth().equals(LocalDate.now().getMonth())
-					&& goalCreateAt.getYear() == LocalDate.now().getYear()) {
-					userGoal = goal;
-					break;
-				}
-			}
-			Long walkGoalTime = userGoal.getWalkGoalTime() * MINUTES_TO_SECONDS;
-			log.debug("walkGoalTime: {}", walkGoalTime);
-			// (산책 끝 시간 - 산책 시작 시간) / 산책 목표 시간
-			Double goalRate = (walkTime.doubleValue() / walkGoalTime.doubleValue()) * 100.0;
-
-			// 100퍼 넘을 시 100으로 고정
-			if (goalRate >= 100.0) {
-				goalRate = 100.0;
-			}
-
-			return goalRate;
-		} catch (Exception exception) {
-			throw new BaseException(DATABASE_ERROR);
-		}
 	}
 
 	public boolean checkFirstWalk(int userIdx) throws BaseException {

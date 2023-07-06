@@ -128,7 +128,7 @@ public class FootprintService {
                     tag.setFootprint(footprintByNumber);
                     tag.setHashtag(hashtag);
                     tagList.add(tag);
-                    footprintByNumber.addTagList(tag);
+                    footprintByNumber.addTag(tag);
                 }
                 tagRepository.saveAll(tagList);
 

@@ -345,7 +345,7 @@ public class UserService {
             goalDayNextRepository.deleteById(goalDayNext.get().getPlanIdx());
 
             // Goal 테이블
-            List<Goal> goalList = goalRepository.findByUserIdx(userIdx);
+            List<Goal> goalList = goalRepository.findAllByUserIdx(userIdx);
             for (Goal goal : goalList) {
                 goalRepository.deleteById(goal.getPlanIdx());
             }
@@ -491,8 +491,7 @@ public class UserService {
 //        int walkGoalTime = 0;
 //        if(onDay == true){
 
-
-        List<Goal> userGoalList = goalRepository.findByUserIdx(userIdx);
+        List<Goal> userGoalList = goalRepository.findAllByUserIdx(userIdx);
         Goal userGoal = Goal.builder().build();
         for (Goal goal : userGoalList) {
             LocalDate goalCreateAt = goal.getCreateAt().toLocalDate();
@@ -734,7 +733,7 @@ public class UserService {
     public int calcMonthGoalRate(int userIdx, int beforeMonth) {
 
         // 0. 해당 달에 사용자 목표 기록이 있는지 확인
-        List<Goal> userGoalList = goalRepository.findByUserIdx(userIdx);
+        List<Goal> userGoalList = goalRepository.findAllByUserIdx(userIdx);
         boolean isGoalExist = false;
         for (Goal goal : userGoalList) {
             LocalDate goalCreateAt = goal.getCreateAt().toLocalDate();

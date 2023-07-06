@@ -41,4 +41,8 @@ public class PostWalkReq {
     public Walk toWalk(String defaultThumbnail, int userIdx, Double goalRate) {
         return walk.toEntity(defaultThumbnail, userIdx, goalRate);
     }
+
+    public boolean isFootprintsEmpty() {
+        return footprintList.isEmpty();
+    }
 }
