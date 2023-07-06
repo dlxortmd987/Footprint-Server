@@ -2,6 +2,8 @@ package com.umc.footprint.src.walks;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,7 +40,8 @@ public class WalkControllerV2 {
     @ResponseBody
     @PostMapping("") // (POST) 127.0.0.1:3000/walks/
     @ApiOperation(value = "산책 기록 저장")
-    public BaseResponse<List<PostWalkRes>> saveRecord(@RequestBody PostWalkReq postWalkReq) throws BaseException {
+    public BaseResponse<List<PostWalkRes>> saveRecord(@RequestBody @Valid PostWalkReq postWalkReq) throws
+        BaseException {
 
         // userId(구글이나 카카오에서 보낸 ID) 추출 (복호화)
         String userId = jwtService.getUserId();
